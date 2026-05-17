@@ -124,27 +124,34 @@ export default function DashboardScreen({ user }: { user: User }) {
       return;
     }
 
+    // Google Apps Script Web App URL
     const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx0V8EesGLJjp9xXVFi6Q_GQdjNzzH9TsmvXFtoD1Qk76x8Rl7kE7tyFRVmbVFWoRYXeA/exec";
     
-    // Formatting rows for the sheet
+    // Formatting rows for the sheet based on the user's screenshot
     let rows = transactions.map(r => [r.n, r.d, r.a]);
     let total = transactions.reduce((s, r) => s + (parseFloat(r.a) || 0), 0);
+    
+    // Adding Total Collection row
     rows.push(["TOTAL COLLECTION", "", total.toString()]);
+    // Adding Backup Date row
     rows.push(["Backup Date", new Date().toLocaleString(), ""]);
     
     let payload = { 
-        sheetName: "MinarGo_Data", 
-        headers: ["Member Name", "Date", "Amount (TK)"], 
+        sheetName: "MinarGo_Backup", // Updated to match user screenshot tab name
+        headers: ["Member Name", "Date", "Amount (Tk)"], // Updated to match user screenshot headers
         rows: rows 
     };
     
     try {
         toast({ title: "Backing up...", description: "গুগল শিটে ডাটা পাঠানো হচ্ছে।" });
+        
+        // Using POST with no-cors as required for Google Apps Script in some environments
         await fetch(GOOGLE_SHEETS_URL, { 
             method: "POST", 
             mode: "no-cors", 
             body: JSON.stringify(payload) 
         });
+        
         toast({ title: "Backup Successful", description: "✅ গুগল শিট ব্যাকআপ সম্পন্ন!" });
     } catch(e) { 
         toast({ title: "Backup Failed", description: "❌ ব্যাকআপ ব্যর্থ হয়েছে", variant: "destructive" });
