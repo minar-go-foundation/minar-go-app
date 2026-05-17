@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Plus, Trash2, Calendar, DollarSign } from "lucide-react";
+import { Download, Plus, Trash2, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
@@ -21,41 +22,29 @@ const MONTHS = [
 
 const CATEGORIES = ["প্রতি মাসের জমা", "যাকাত", "ফিতরা", "বাড়ির কাজ"];
 
-export default function TransactionManager({ members }: { members: string[] }) {
+interface TransactionManagerProps {
+  members: string[];
+  transactions: any[];
+}
+
+export default function TransactionManager({ members, transactions }: TransactionManagerProps) {
   const [selectedMember, setSelectedMember] = useState("");
   const [category, setCategory] = useState("প্রতি মাসের জমা");
   const [amount, setAmount] = useState("5000");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [filterMonth, setFilterMonth] = useState("All");
-  const [transactions, setTransactions] = useState<any[]>([]);
   const { toast } = useToast();
-
-  // We rely on the parent syncing transactions via standard firebase 'onValue' 
-  // but for local UI reactive performance we keep it clean.
-  // Actually, standard firebase approach in dashboard-screen syncs the data.
-  // I need to fetch it again or pass it down. Let's fetch it for this component to keep it isolated.
-  useState(() => {
-    const transRef = ref(database, "transactions");
-    const unsubscribe = require("firebase/database").onValue(transRef, (snapshot: any) => {
-      const data = snapshot.val();
-      if (data) {
-        const list = Object.entries(data).map(([key, value]: [string, any]) => ({
-          id: key,
-          ...value
-        }));
-        setTransactions(list);
-      } else {
-        setTransactions([]);
-      }
-    });
-  });
 
   const filteredTransactions = useMemo(() => {
     let list = [...transactions];
     if (filterMonth !== "All") {
       list = list.filter(t => {
-        const tMonth = new Date(t.d).getMonth();
-        return MONTHS[tMonth] === filterMonth;
+        try {
+          const tMonth = new Date(t.d).getMonth();
+          return MONTHS[tMonth] === filterMonth;
+        } catch (e) {
+          return false;
+        }
       });
     }
     return list.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime());
@@ -107,8 +96,7 @@ export default function TransactionManager({ members }: { members: string[] }) {
       head: [["Member Name", "Date", "Category", "Amount"]],
       body: tableData,
       foot: [["TOTAL", "", "", `BDT ${totalFiltered}`]],
-      theme: "striped",
-      headStyles: { fillStyle: "F" }
+      theme: "striped"
     });
     
     doc.save(`MinarGo_Report_${format(new Date(), "yyyyMMdd")}.pdf`);

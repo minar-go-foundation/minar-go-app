@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -49,7 +50,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   useEffect(() => {
     // Sync members
     const membersRef = ref(database, "member_list");
-    onValue(membersRef, (snapshot) => {
+    const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         setMembers(Object.values(data));
@@ -61,7 +62,7 @@ export default function DashboardScreen({ user }: { user: User }) {
 
     // Sync transactions
     const transRef = ref(database, "transactions");
-    onValue(transRef, (snapshot) => {
+    const unsubscribeTrans = onValue(transRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const list = Object.entries(data).map(([key, value]: [string, any]) => ({
@@ -77,6 +78,11 @@ export default function DashboardScreen({ user }: { user: User }) {
     // Load logo
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
+
+    return () => {
+      unsubscribeMembers();
+      unsubscribeTrans();
+    };
   }, []);
 
   const totalCollected = transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
@@ -151,7 +157,7 @@ export default function DashboardScreen({ user }: { user: User }) {
 
         {/* Action Grids */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TransactionManager members={members} />
+          <TransactionManager members={members} transactions={transactions} />
           <MemberManager members={members} />
         </div>
 
