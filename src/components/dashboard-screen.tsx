@@ -19,7 +19,8 @@ import {
   Phone,
   Database,
   MapPin,
-  CloudSun
+  CloudSun,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -125,6 +126,7 @@ export default function DashboardScreen({ user }: { user: User }) {
 
     const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx0V8EesGLJjp9xXVFi6Q_GQdjNzzH9TsmvXFtoD1Qk76x8Rl7kE7tyFRVmbVFWoRYXeA/exec";
     
+    // Formatting rows for the sheet
     let rows = transactions.map(r => [r.n, r.d, r.a]);
     let total = transactions.reduce((s, r) => s + (parseFloat(r.a) || 0), 0);
     rows.push(["TOTAL COLLECTION", "", total.toString()]);
@@ -152,19 +154,19 @@ export default function DashboardScreen({ user }: { user: User }) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-body">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <LogoManager currentLogo={logo} onUpdate={setLogo} />
           <div>
             <h1 className="text-xs font-black text-primary leading-tight uppercase tracking-tight">Minar Go</h1>
-            <p className="text-[8px] text-accent font-bold uppercase tracking-widest">Expatriate Foundation</p>
+            <p className="text-[8px] text-accent font-bold uppercase tracking-widest leading-none mt-0.5">Expatriate Foundation</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-primary" onClick={backupToSheets}>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="text-blue-600 hover:bg-blue-50" onClick={backupToSheets}>
             <CloudUpload className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-destructive" onClick={handleLogout}>
+          <Button variant="ghost" size="icon" className="text-destructive hover:bg-red-50" onClick={handleLogout}>
             <LogOut className="h-5 w-5" />
           </Button>
         </div>
@@ -207,7 +209,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               </Card>
 
               {/* Weather & Location Card */}
-              <Card className="border-none shadow-sm bg-white overflow-hidden">
+              <Card className="border-none shadow-sm bg-white overflow-hidden rounded-2xl">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
@@ -218,43 +220,47 @@ export default function DashboardScreen({ user }: { user: User }) {
                       <h4 className="text-xs font-black text-slate-800 uppercase">{weather?.city || "Detecting Location..."}</h4>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl">
+                  <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
                     <CloudSun className="text-accent h-4 w-4" />
                     <span className="text-sm font-black text-primary">{weather ? `${weather.temp}°C` : "--°C"}</span>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Quick Actions Stats */}
+              {/* Cloud Backup Action */}
+              <Card className="border-none shadow-lg bg-white overflow-hidden rounded-3xl group active:scale-95 transition-all cursor-pointer border-l-4 border-l-blue-600" onClick={backupToSheets}>
+                <CardContent className="p-5 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                      <Database className="text-blue-600 h-6 w-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 uppercase">Cloud Data Backup</h4>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sync to Google Sheets</p>
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                    <CloudUpload className="text-blue-600 h-5 w-5" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Foundation Links */}
               <div className="grid grid-cols-2 gap-4">
-                <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow cursor-pointer" onClick={backupToSheets}>
-                  <CardContent className="p-5 flex flex-col items-center text-center">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mb-3">
-                      <Database className="text-blue-600 h-5 w-5" />
-                    </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cloud Backup</p>
-                    <h4 className="text-sm font-black text-slate-800">GOOGLE SHEETS</h4>
-                  </CardContent>
-                </Card>
-                <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-5 flex flex-col items-center text-center">
-                    <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center mb-3">
-                      <Target className="text-orange-600 h-5 w-5" />
-                    </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Next Target</p>
-                    <h4 className="text-sm font-black text-slate-800">Eid Zakat</h4>
-                  </CardContent>
+                <Button 
+                  variant="outline" 
+                  className="h-20 rounded-3xl border-2 border-slate-100 bg-white flex flex-col items-center justify-center gap-1 shadow-sm hover:border-blue-200 transition-all active:scale-95"
+                  onClick={() => window.open("https://zegocloud.com", "_blank")}
+                >
+                  <Phone className="h-6 w-6 text-blue-600" />
+                  <span className="text-[10px] font-black uppercase text-slate-600">Group Call</span>
+                </Button>
+                <Card className="border-none shadow-sm bg-white rounded-3xl flex flex-col items-center justify-center p-4">
+                  <Target className="h-6 w-6 text-orange-600 mb-1" />
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Target</p>
+                  <h4 className="text-[10px] font-black text-slate-800 uppercase">Eid Zakat</h4>
                 </Card>
               </div>
-
-              <Button 
-                variant="outline" 
-                className="w-full h-14 rounded-2xl border-2 border-slate-200 bg-white text-blue-600 font-black flex items-center justify-center gap-3 shadow-sm active:scale-95 transition-all"
-                onClick={() => window.open("https://zegocloud.com", "_blank")}
-              >
-                <Phone className="h-5 w-5" />
-                FOUNDATION GROUP CALL
-              </Button>
 
               <TransactionManager members={members} transactions={transactions} mode="summary" />
             </div>
@@ -316,16 +322,22 @@ export default function DashboardScreen({ user }: { user: User }) {
                 </div>
               </button>
             </DialogTrigger>
-            <DialogContent className="max-w-[90vw] rounded-3xl">
-              <DialogHeader>
-                <DialogTitle>New Deposit Entry</DialogTitle>
-              </DialogHeader>
-              <TransactionManager 
-                members={members} 
-                transactions={transactions} 
-                mode="form" 
-                onSuccess={() => setIsDepositOpen(false)}
-              />
+            <DialogContent className="max-w-[95vw] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+              <div className="bg-primary p-6 text-white">
+                <DialogHeader>
+                  <DialogTitle className="text-white flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-accent" /> New Fund Deposit
+                  </DialogTitle>
+                </DialogHeader>
+              </div>
+              <div className="p-6 bg-white">
+                <TransactionManager 
+                  members={members} 
+                  transactions={transactions} 
+                  mode="form" 
+                  onSuccess={() => setIsDepositOpen(false)}
+                />
+              </div>
             </DialogContent>
           </Dialog>
 
