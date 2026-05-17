@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Sparkles, Download, ShieldCheck } from "lucide-react";
+import { FileText, Sparkles, Download, ShieldCheck, Mail, Phone, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
@@ -46,7 +46,7 @@ export default function DemandLetterAssistant() {
       console.error(error);
       toast({ 
         title: "AI Error", 
-        description: "Failed to generate draft.", 
+        description: "Failed to generate draft. Please check your connection.", 
         variant: "destructive" 
       });
     } finally {
@@ -60,182 +60,179 @@ export default function DemandLetterAssistant() {
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     
-    // Top Border Line
+    // Page Border
     doc.setDrawColor(0, 35, 102);
-    doc.setLineWidth(1.5);
-    doc.line(15, 12, pageWidth - 15, 12);
+    doc.setLineWidth(0.5);
+    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
 
     // Dark Blue Header Box
-    doc.setFillColor(10, 50, 120);
-    doc.roundedRect(15, 18, pageWidth - 30, 28, 4, 4, 'F');
+    doc.setFillColor(0, 35, 102);
+    doc.roundedRect(15, 15, pageWidth - 30, 35, 3, 3, 'F');
     
     // Header Text
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text(isBengali ? "মিনার গো প্রবাসী উন্নয়ন ফাউন্ডেশন" : "MINAR GO EXPATRIATE", pageWidth / 2, 33, { align: "center" });
+    doc.setFontSize(24);
+    doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 32, { align: "center" });
     
-    doc.setFontSize(11);
-    doc.setTextColor(255, 215, 0); // Gold color for subtitle
-    doc.text(isBengali ? "MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION" : "DEVELOPMENT FOUNDATION", pageWidth / 2, 40, { align: "center" });
+    doc.setFontSize(10);
+    doc.setTextColor(255, 215, 0); // Gold color
+    doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 40, { align: "center" });
+    doc.setFontSize(8);
+    doc.text("ESTD: 2024 | GOVT. REG NO: MG-10293", pageWidth / 2, 45, { align: "center" });
 
     // Date
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    const dateStr = isBengali ? `Date: ${format(new Date(), "d MMMM, yyyy")} খ্রি.` : `Date: ${format(new Date(), "d MMMM, yyyy")}`;
-    doc.text(dateStr, pageWidth - 15, 55, { align: "right" });
+    const dateStr = `Date: ${format(new Date(), "dd MMMM, yyyy")}`;
+    doc.text(dateStr, pageWidth - 20, 60, { align: "right" });
 
     // Recipient Info
     doc.setFontSize(11);
-    doc.text("To:", 15, 65);
+    doc.text("To,", 20, 70);
+    doc.setFont("helvetica", "bold");
+    doc.text(letterDetails.companyName || "Managing Director", 20, 76);
     doc.setFont("helvetica", "normal");
-    doc.text(letterDetails.companyName || "Sundow Properties LTD", 15, 72);
+    doc.text("Official Correspondent Address", 20, 81);
 
     // Subject
     doc.setFont("helvetica", "bold");
     const subject = isBengali ? result?.subjectBengali : result?.subjectEnglish;
-    doc.text(`Subject: ${subject}`, 15, 85);
+    doc.text(`Subject: ${subject}`, 20, 95);
 
-    // Body with light yellow background
+    // Body with light yellow background (premium look)
     const bodyText = isBengali ? result?.bodyBengali : result?.bodyEnglish;
     const splitBody = doc.splitTextToSize(bodyText || "", 170);
-    const bodyHeight = (splitBody.length * 7) + 15;
+    const bodyHeight = (splitBody.length * 7) + 20;
     
-    doc.setFillColor(255, 252, 235); // Light yellow background like image
-    doc.roundedRect(15, 95, pageWidth - 30, bodyHeight, 2, 2, 'F');
+    doc.setFillColor(255, 253, 235); // Very light gold/yellow
+    doc.roundedRect(15, 105, pageWidth - 30, bodyHeight, 2, 2, 'F');
     
     doc.setTextColor(30, 30, 30);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(splitBody, 20, 105);
+    doc.text(splitBody, 20, 118);
 
     // Signatures
-    const finalY = 105 + bodyHeight + 15;
+    const finalY = 118 + bodyHeight + 20;
     doc.setFont("helvetica", "normal");
-    doc.text("Sincerely,", 15, finalY);
+    doc.text("With Regards,", 20, finalY);
 
-    // Signature lines
-    doc.setDrawColor(150, 150, 150);
-    doc.setLineWidth(0.5);
-    doc.line(15, finalY + 30, 80, finalY + 30);
-    doc.line(pageWidth - 80, finalY + 30, pageWidth - 15, finalY + 30);
+    // Signature Area
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, finalY + 30, 80, finalY + 30);
+    doc.line(pageWidth - 80, finalY + 30, pageWidth - 20, finalY + 30);
 
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
-    doc.text("Minar Go Expatriate Development Foundation", 15, finalY + 35);
-    doc.text(letterDetails.companyName, pageWidth - 80, finalY + 35);
+    doc.text("Foundation Authority", 20, finalY + 35);
+    doc.text("Received By", pageWidth - 20, finalY + 35, { align: "right" });
 
-    // Footer section
-    const footerY = pageHeight - 45;
+    // Footer
+    const footerY = pageHeight - 40;
     
-    // Contact Info with icons placeholder (text-based for reliability)
+    // Contact Info Bar
+    doc.setFillColor(245, 245, 245);
+    doc.rect(15, footerY, pageWidth - 30, 15, 'F');
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    const contactInfo = `  ${letterDetails.mobile}  |   ${letterDetails.email}  |   ${letterDetails.website}`;
-    doc.text(contactInfo, pageWidth / 2, footerY, { align: "center" });
+    const contactText = `Tel: ${letterDetails.mobile}  |  Email: ${letterDetails.email}  |  Web: ${letterDetails.website}`;
+    doc.text(contactText, pageWidth / 2, footerY + 9, { align: "center" });
 
-    // Green Bar "Thank you"
+    // Green Thank You Bar
     doc.setFillColor(232, 245, 233);
-    doc.roundedRect(15, footerY + 5, pageWidth - 30, 10, 5, 5, 'F');
+    doc.roundedRect(15, footerY + 18, pageWidth - 30, 8, 4, 4, 'F');
     doc.setTextColor(46, 125, 50);
-    doc.setFontSize(9);
-    doc.text("Thank you for your cooperation.", pageWidth / 2, footerY + 11.5, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.text("Thank you for your valuable cooperation and support.", pageWidth / 2, footerY + 23.5, { align: "center" });
 
-    // Bottom Copyright
-    doc.setFontSize(7);
-    doc.setTextColor(180, 180, 180);
-    doc.text(`© Minar Go Expatriate Development Foundation`, pageWidth / 2, footerY + 22, { align: "center" });
-
-    doc.save(`MinarGo_Official_Letter_${lang}.pdf`);
+    doc.save(`MinarGo_Official_Agreement_${lang}.pdf`);
   };
 
   return (
-    <Card className="shadow-2xl border-none bg-white rounded-[2.5rem] overflow-hidden">
-      <CardHeader className="bg-slate-50/50 p-8 border-b border-slate-100">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-            <Sparkles className="h-6 w-6" />
-          </div>
-          <div>
-            <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Official Letter Assistant</CardTitle>
-            <CardDescription className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mt-1">Draft professional demand letters</CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-8 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-1">Recipient Company</label>
-              <Input 
-                placeholder="Sundow Properties LTD" 
-                value={letterDetails.companyName}
-                onChange={(e) => setLetterDetails({...letterDetails, companyName: e.target.value})}
-                className="h-14 rounded-2xl bg-slate-50 border-none shadow-sm placeholder:text-slate-300 px-6"
-              />
+    <div className="space-y-6">
+      <Card className="shadow-2xl border-none bg-white rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="bg-primary p-8 text-white relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+          <div className="flex items-center gap-4 relative">
+            <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
+              <Sparkles className="h-7 w-7 text-accent" />
             </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-1">Letter Purpose</label>
-              <Textarea 
-                placeholder="Describe the purpose of the letter (e.g., account opening, installment terms...)" 
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
-                className="h-44 rounded-[2rem] bg-slate-50 border-none shadow-sm resize-none p-6 placeholder:text-slate-300"
-              />
+            <div>
+              <CardTitle className="text-2xl font-black uppercase tracking-tight">Official Agreement Assistant</CardTitle>
+              <CardDescription className="text-white/60 text-[10px] font-bold uppercase tracking-widest mt-1">AI-Powered Professional Letter Drafting</CardDescription>
             </div>
-            <Button 
-              className="w-full bg-[#002366] hover:bg-[#001a4d] text-white font-black h-16 rounded-2xl text-lg shadow-xl shadow-blue-900/20 active:scale-[0.98] transition-all uppercase tracking-wider" 
-              onClick={handleGenerate}
-              disabled={loading}
-            >
-              {loading ? "Drafting..." : "Generate AI Draft"}
-            </Button>
           </div>
+        </CardHeader>
+        <CardContent className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Company / Recipient</label>
+                <div className="relative">
+                  <Input 
+                    placeholder="e.g. Sundow Properties LTD" 
+                    value={letterDetails.companyName}
+                    onChange={(e) => setLetterDetails({...letterDetails, companyName: e.target.value})}
+                    className="h-14 rounded-2xl bg-slate-50 border-none shadow-sm px-6 font-bold"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Draft Purpose & Context</label>
+                <Textarea 
+                  placeholder="Describe the letter's purpose in detail..." 
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  className="h-44 rounded-3xl bg-slate-50 border-none shadow-sm resize-none p-6"
+                />
+              </div>
+              <Button 
+                className="w-full bg-primary hover:bg-primary/95 text-white font-black h-16 rounded-2xl text-lg shadow-xl shadow-primary/20 active:scale-[0.98] transition-all uppercase" 
+                onClick={handleGenerate}
+                disabled={loading}
+              >
+                {loading ? "PROCESSING AI DRAFT..." : "GENERATE AI DRAFT"}
+              </Button>
+            </div>
 
-          <div className="relative group">
-            <div className="absolute inset-0 bg-blue-50/30 rounded-[2.5rem] border-2 border-dashed border-slate-200" />
-            <div className="relative h-full min-h-[400px] flex flex-col p-8">
+            <div className="bg-slate-50/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 p-8 flex flex-col justify-center min-h-[400px]">
               {result ? (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <h4 className="text-[10px] font-black text-primary uppercase mb-3 flex items-center gap-2 tracking-widest">
-                      <ShieldCheck className="h-4 w-4 text-accent" /> Subject Preview (EN)
-                    </h4>
-                    <p className="text-sm font-bold text-slate-700">{result.subjectEnglish}</p>
-                  </div>
-                  
-                  <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <h4 className="text-[10px] font-black text-primary uppercase mb-3 flex items-center gap-2 tracking-widest">
-                      <ShieldCheck className="h-4 w-4 text-accent" /> Subject Preview (BN)
-                    </h4>
-                    <p className="text-sm font-bold font-bengali text-slate-700">{result.subjectBengali}</p>
+                  <div className="space-y-4">
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                      <p className="text-[9px] font-black text-primary uppercase mb-2 tracking-widest">Subject Preview</p>
+                      <p className="text-sm font-bold text-slate-700">{result.subjectEnglish}</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                      <p className="text-[9px] font-black text-primary uppercase mb-2 tracking-widest">Body Preview (Snippet)</p>
+                      <p className="text-xs text-slate-500 line-clamp-4 leading-relaxed">{result.bodyEnglish}</p>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mt-8">
-                    <Button variant="outline" className="h-14 rounded-2xl border-slate-200 font-black text-xs hover:bg-slate-50" onClick={() => downloadPDF('English')}>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button variant="outline" className="h-14 rounded-2xl border-slate-200 font-black text-xs hover:bg-white hover:shadow-md" onClick={() => downloadPDF('English')}>
                       <Download className="mr-2 h-4 w-4" /> ENGLISH PDF
                     </Button>
-                    <Button variant="outline" className="h-14 rounded-2xl border-slate-200 font-black text-xs hover:bg-slate-50" onClick={() => downloadPDF('Bengali')}>
+                    <Button variant="outline" className="h-14 rounded-2xl border-slate-200 font-black text-xs hover:bg-white hover:shadow-md" onClick={() => downloadPDF('Bengali')}>
                       <Download className="mr-2 h-4 w-4" /> BENGALI PDF
                     </Button>
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center flex-1 text-center py-10">
-                  <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-md mb-6">
-                    <FileText className="h-10 w-10 text-slate-200" />
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm">
+                    <FileText className="h-8 w-8 text-slate-200" />
                   </div>
-                  <h5 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">No Draft Yet</h5>
-                  <p className="text-[10px] text-slate-400 mt-2 max-w-[220px] font-medium leading-relaxed">
-                    Enter details and generate to see your official letter preview.
-                  </p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No Draft Generated</p>
+                  <p className="text-[10px] text-slate-400 max-w-[200px] mx-auto">Input details on the left and click generate to see the professional preview.</p>
                 </div>
               )}
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
