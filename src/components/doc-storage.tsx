@@ -3,11 +3,9 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, FileText, Upload, Download, HardDrive, Eye, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface MGDoc {
@@ -20,7 +18,6 @@ interface MGDoc {
 
 export default function DocStorage() {
   const [docs, setDocs] = useState<MGDoc[]>([]);
-  const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<MGDoc | null>(null);
   const { toast } = useToast();
@@ -38,10 +35,7 @@ export default function DocStorage() {
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !title) {
-      toast({ title: "Error", description: "Enter title and select file", variant: "destructive" });
-      return;
-    }
+    if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: "File too large", description: "Max size is 5MB", variant: "destructive" });
@@ -54,7 +48,7 @@ export default function DocStorage() {
       const base64 = event.target?.result as string;
       const newDoc: MGDoc = {
         id: Math.random().toString(36).substr(2, 9),
-        title,
+        title: file.name, // Automatically use file name as title
         type: file.type,
         data: base64,
         date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -63,7 +57,6 @@ export default function DocStorage() {
       const updatedDocs = [newDoc, ...docs];
       setDocs(updatedDocs);
       localStorage.setItem("mg_docs", JSON.stringify(updatedDocs));
-      setTitle("");
       setLoading(false);
       toast({ title: "Document Saved", description: "Stored securely in local memory." });
     };
@@ -81,7 +74,7 @@ export default function DocStorage() {
   const downloadDoc = (doc: MGDoc) => {
     const link = document.createElement("a");
     link.href = doc.data;
-    link.download = `${doc.title}.${doc.type.split('/')[1]}`;
+    link.download = doc.title;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -105,15 +98,9 @@ export default function DocStorage() {
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           <div className="flex flex-col gap-3">
-            <Input 
-              placeholder="Document / Image Title" 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)}
-              className="h-12 rounded-xl border-slate-100 bg-slate-50"
-            />
             <div className="relative">
-              <Button className="w-full bg-primary h-12 rounded-xl text-white font-bold" disabled={loading}>
-                <Upload className="mr-2 h-4 w-4" /> {loading ? "PROCESSING..." : "UPLOAD TO VAULT"}
+              <Button className="w-full bg-primary h-14 rounded-2xl text-white font-bold text-base shadow-lg shadow-primary/20 active:scale-95 transition-all" disabled={loading}>
+                <Upload className="mr-2 h-5 w-5" /> {loading ? "PROCESSING..." : "SELECT & UPLOAD FILE"}
               </Button>
               <input 
                 type="file" 
@@ -123,6 +110,7 @@ export default function DocStorage() {
                 disabled={loading}
               />
             </div>
+            <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-wider">Supports Images & PDF (Max 5MB)</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
@@ -140,7 +128,7 @@ export default function DocStorage() {
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-primary/30">
                         <FileText className="h-12 w-12" />
-                        <span className="text-[8px] font-bold uppercase mt-1">PDF DOCUMENT</span>
+                        <span className="text-[8px] font-bold uppercase mt-1">PDF</span>
                       </div>
                     )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -155,7 +143,7 @@ export default function DocStorage() {
                       </Button>
                     </div>
                   </div>
-                  <div className="p-3">
+                  <div className="p-3 bg-white">
                     <h5 className="text-[10px] font-black text-slate-800 uppercase truncate">{doc.title}</h5>
                     <div className="flex items-center gap-1 mt-1 text-slate-400">
                       <Calendar className="h-3 w-3" />
@@ -173,19 +161,19 @@ export default function DocStorage() {
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
         <DialogContent className="max-w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="p-4 bg-white border-b">
-            <DialogTitle className="text-sm font-black uppercase text-primary">{previewDoc?.title}</DialogTitle>
+            <DialogTitle className="text-sm font-black uppercase text-primary truncate pr-8">{previewDoc?.title}</DialogTitle>
           </DialogHeader>
           <div className="relative w-full aspect-auto min-h-[50vh] bg-slate-50 flex items-center justify-center p-4">
             {previewDoc && (
               isImage(previewDoc.type) ? (
-                <img src={previewDoc.data} alt="Preview" className="max-w-full max-h-[70vh] rounded-xl shadow-lg" />
+                <img src={previewDoc.data} alt="Preview" className="max-w-full max-h-[70vh] rounded-xl shadow-lg object-contain" />
               ) : (
                 <iframe src={previewDoc.data} className="w-full h-[60vh] border-none rounded-xl" />
               )
             )}
           </div>
           <div className="p-4 bg-white flex justify-between items-center border-t">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">Saved on: {previewDoc?.date}</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Uploaded: {previewDoc?.date}</span>
             <Button size="sm" onClick={() => previewDoc && downloadDoc(previewDoc)} className="bg-primary rounded-xl font-bold">
               <Download className="mr-2 h-4 w-4" /> DOWNLOAD
             </Button>

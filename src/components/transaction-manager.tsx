@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Plus, Trash2, Calendar, CreditCard } from "lucide-react";
+import { Download, Plus, Trash2, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
@@ -75,12 +76,16 @@ export default function TransactionManager({ members, transactions, mode = "full
   };
 
   const handleDelete = async (id: string) => {
+    if (!id) return;
     if (!confirm("Delete this transaction?")) return;
+    
     try {
-      await remove(ref(database, `transactions/${id}`));
-      toast({ title: "Deleted", description: "Transaction removed." });
-    } catch (error) {
-      toast({ title: "Error", description: "Delete failed", variant: "destructive" });
+      const transRef = ref(database, `transactions/${id}`);
+      await remove(transRef);
+      toast({ title: "Deleted", description: "Transaction removed successfully." });
+    } catch (error: any) {
+      console.error("Delete error:", error);
+      toast({ title: "Error", description: "Delete failed: " + error.message, variant: "destructive" });
     }
   };
 
@@ -115,7 +120,7 @@ export default function TransactionManager({ members, transactions, mode = "full
             </SelectTrigger>
             <SelectContent>
               {members.map((m, idx) => {
-                const name = typeof m === 'string' ? m : (m?.name || "Unknown Member");
+                const name = typeof m === 'object' ? (m.name || "Unknown") : m;
                 return <SelectItem key={idx} value={name}>{name}</SelectItem>;
               })}
             </SelectContent>
@@ -170,7 +175,7 @@ export default function TransactionManager({ members, transactions, mode = "full
                   </SelectTrigger>
                   <SelectContent>
                     {members.map((m, idx) => {
-                      const name = typeof m === 'string' ? m : (m?.name || "Unknown Member");
+                      const name = typeof m === 'object' ? (m.name || "Unknown") : m;
                       return <SelectItem key={idx} value={name}>{name}</SelectItem>;
                     })}
                   </SelectContent>
@@ -255,7 +260,7 @@ export default function TransactionManager({ members, transactions, mode = "full
                     <TableCell className="text-[9px] font-medium text-slate-400">{t.d}</TableCell>
                     <TableCell className="font-black text-xs text-primary">৳{t.a}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-300 hover:text-destructive" onClick={() => handleDelete(t.id)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-300 hover:text-destructive active:scale-90" onClick={() => handleDelete(t.id)}>
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </TableCell>
