@@ -17,7 +17,9 @@ import {
   PieChart,
   Target,
   Phone,
-  Database
+  Database,
+  MapPin,
+  CloudSun
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,6 +46,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [weather, setWeather] = useState<{ temp: number; city: string } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -76,6 +79,30 @@ export default function DashboardScreen({ user }: { user: User }) {
 
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
+
+    // Fetch Weather and Location
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+          const wData = await wRes.json();
+          
+          const gRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`, {
+            headers: { 'Accept-Language': 'bn,en' }
+          });
+          const gData = await gRes.json();
+          const city = gData.address.city || gData.address.town || gData.address.state || gData.address.country;
+
+          setWeather({
+            temp: Math.round(wData.current_weather.temperature),
+            city: city
+          });
+        } catch (e) {
+          console.error("Location/Weather fetch failed", e);
+        }
+      });
+    }
 
     return () => {
       unsubscribeMembers();
@@ -175,6 +202,25 @@ export default function DashboardScreen({ user }: { user: User }) {
                       <p className="text-[10px] uppercase font-bold text-white/60 mb-1">Status</p>
                       <h3 className="text-lg font-black text-accent">ACTIVE</h3>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Weather & Location Card */}
+              <Card className="border-none shadow-sm bg-white overflow-hidden">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                      <MapPin className="text-primary h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Current Location</p>
+                      <h4 className="text-xs font-black text-slate-800 uppercase">{weather?.city || "Detecting Location..."}</h4>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl">
+                    <CloudSun className="text-accent h-4 w-4" />
+                    <span className="text-sm font-black text-primary">{weather ? `${weather.temp}°C` : "--°C"}</span>
                   </div>
                 </CardContent>
               </Card>
