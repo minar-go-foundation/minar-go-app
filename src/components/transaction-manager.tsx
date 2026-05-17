@@ -116,21 +116,28 @@ export default function TransactionManager({ members, transactions, mode = "full
 
   const exportPDF = () => {
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
     
-    // Header
-    doc.setFillColor(0, 35, 102);
-    doc.rect(0, 0, 210, 35, 'F');
+    // Header background
+    doc.setFillColor(0, 35, 102); // Deep Navy
+    doc.rect(0, 0, pageWidth, 45, 'F');
     
+    // Header Title
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
-    doc.text("MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION", 105, 18, { align: "center" });
+    doc.setFontSize(22);
+    doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 18, { align: "center" });
+    doc.setFontSize(16);
+    doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 28, { align: "center" });
     
-    doc.setFontSize(12);
+    // Report Subtitle
+    doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(`Collection Summary Report - ${filterMonth === 'All' ? 'Yearly' : filterMonth} Period`, 105, 28, { align: "center" });
+    doc.setTextColor(220, 220, 220);
+    doc.text(`Collection Summary Report - ${filterMonth === 'All' ? 'Yearly' : filterMonth} Period`, pageWidth / 2, 38, { align: "center" });
     
-    // Data mapping to fix Bengali encoding issues in PDF
+    // Table Preparation
     const tableData = filteredTransactions.map(t => [
       t.n, 
       t.d, 
@@ -139,31 +146,60 @@ export default function TransactionManager({ members, transactions, mode = "full
     ]);
     
     autoTable(doc, {
-      startY: 45,
+      startY: 55,
       head: [["Member Name", "Date", "Category", "Amount"]],
       body: tableData,
       foot: [["TOTAL COLLECTION", "", "", `BDT ${totalFiltered.toLocaleString()}`]],
       theme: "striped",
-      headStyles: { fillColor: [0, 35, 102], textColor: 255, fontStyle: 'bold' },
-      footStyles: { fillColor: [0, 35, 102], textColor: 255, fontStyle: 'bold' },
-      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { 
+        fillColor: [0, 35, 102], 
+        textColor: [255, 255, 255], 
+        fontStyle: 'bold',
+        fontSize: 11,
+        cellPadding: 4
+      },
+      footStyles: { 
+        fillColor: [0, 35, 102], 
+        textColor: [255, 255, 255], 
+        fontStyle: 'bold',
+        fontSize: 12,
+        cellPadding: 4
+      },
+      styles: { 
+        fontSize: 10, 
+        cellPadding: 4,
+        overflow: 'linebreak',
+        font: 'helvetica'
+      },
       columnStyles: {
         3: { halign: 'right', fontStyle: 'bold' }
-      }
+      },
+      margin: { left: 15, right: 15, bottom: 30 }
     });
     
-    // Footer with Copyright
+    // Professional Footer logic
     const pageCount = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      const pageSize = doc.internal.pageSize;
-      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+      
+      // Footer Divider
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.5);
+      doc.line(15, pageHeight - 25, pageWidth - 15, pageHeight - 25);
+      
+      // Footer Content
+      doc.setFontSize(9);
+      doc.setTextColor(50, 50, 50);
+      doc.setFont("helvetica", "bold");
+      doc.text("MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION", pageWidth / 2, pageHeight - 18, { align: "center" });
       
       doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text("________________________________________________________________________________________________________", 105, pageHeight - 15, { align: "center" });
-      doc.text("© 2024 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION | ALL RIGHTS RESERVED", 105, pageHeight - 10, { align: "center" });
-      doc.text(`Page ${i} of ${pageCount}`, 190, pageHeight - 10, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text("COPYRIGHT © 2024 ALL RIGHTS RESERVED | OFFICIAL COLLECTION REPORT", pageWidth / 2, pageHeight - 12, { align: "center" });
+      
+      // Page Number
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - 15, pageHeight - 12, { align: "right" });
     }
     
     doc.save(`MinarGo_Report_${format(new Date(), "yyyyMMdd")}.pdf`);
