@@ -7,11 +7,22 @@ import { ref, push, remove, get } from "firebase/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Plus, Users } from "lucide-react";
+import { Trash2, Plus, Users, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function MemberManager({ members }: { members: any[] }) {
   const [newMember, setNewMember] = useState("");
+  const [deleteMember, setDeleteMember] = useState<any | null>(null);
   const { toast } = useToast();
 
   const handleAddMember = async (e: React.FormEvent) => {
@@ -27,16 +38,15 @@ export default function MemberManager({ members }: { members: any[] }) {
     }
   };
 
-  const handleDeleteMember = async (member: any) => {
-    const name = typeof member === 'string' ? member : member?.name;
-    if (!name || !confirm(`Are you sure you want to remove ${name}?`)) return;
-
+  const confirmDelete = async () => {
+    if (!deleteMember) return;
+    const name = typeof deleteMember === 'string' ? deleteMember : deleteMember?.name;
+    
     try {
       const membersRef = ref(database, "member_list");
       const snapshot = await get(membersRef);
       if (snapshot.exists()) {
         const data = snapshot.val();
-        // Find key by value string or object name
         const keyToDelete = Object.keys(data).find(key => {
           const val = data[key];
           return val === name || (typeof val === 'object' && val?.name === name);
@@ -49,6 +59,8 @@ export default function MemberManager({ members }: { members: any[] }) {
       }
     } catch (error) {
       toast({ title: "Error", description: "Failed to remove member", variant: "destructive" });
+    } finally {
+      setDeleteMember(null);
     }
   };
 
@@ -83,16 +95,35 @@ export default function MemberManager({ members }: { members: any[] }) {
               >
                 <span className="text-sm font-medium truncate pr-2">{name}</span>
                 <button 
-                  onClick={() => handleDeleteMember(member)}
-                  className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => setDeleteMember(member)}
+                  className="text-destructive hover:scale-110 transition-transform flex items-center justify-center h-8 w-8"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-5 w-5" />
                 </button>
               </div>
             );
           })}
         </div>
       </CardContent>
+
+      <AlertDialog open={!!deleteMember} onOpenChange={() => setDeleteMember(null)}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="text-destructive h-5 w-5" /> Remove Member?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this member from the foundation list?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl font-bold">CANCEL</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white rounded-xl font-bold hover:bg-destructive/90">
+              REMOVE NOW
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

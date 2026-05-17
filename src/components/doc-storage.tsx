@@ -4,9 +4,19 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, FileText, Upload, Download, HardDrive, Eye, Calendar } from "lucide-react";
+import { Trash2, FileText, Upload, Download, HardDrive, Eye, Calendar, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface MGDoc {
   id: string;
@@ -20,6 +30,7 @@ export default function DocStorage() {
   const [docs, setDocs] = useState<MGDoc[]>([]);
   const [loading, setLoading] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<MGDoc | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,16 +72,15 @@ export default function DocStorage() {
       toast({ title: "Document Saved", description: "Stored securely in local memory." });
     };
     reader.readAsDataURL(file);
-    // Reset input
     e.target.value = '';
   };
 
-  const deleteDoc = (id: string) => {
-    if (!window.confirm("Delete this document from storage?")) return;
-    
-    const updated = docs.filter(d => d.id !== id);
+  const confirmDelete = () => {
+    if (!deleteId) return;
+    const updated = docs.filter(d => d.id !== deleteId);
     setDocs(updated);
     localStorage.setItem("mg_docs", JSON.stringify(updated));
+    setDeleteId(null);
     toast({ title: "Document Removed", description: "Deleted successfully." });
   };
 
@@ -135,7 +145,6 @@ export default function DocStorage() {
                       </div>
                     )}
                     
-                    {/* Floating Actions for better mobile access */}
                     <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
                       <Button 
                         size="icon" 
@@ -151,10 +160,10 @@ export default function DocStorage() {
                       <Button 
                         size="icon" 
                         variant="destructive" 
-                        className="h-8 w-8 rounded-full shadow-lg" 
+                        className="h-8 w-8 rounded-full shadow-lg bg-red-500 hover:bg-red-600" 
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteDoc(doc.id);
+                          setDeleteId(doc.id);
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -206,12 +215,33 @@ export default function DocStorage() {
           </div>
           <div className="p-4 bg-white flex justify-between items-center border-t">
             <span className="text-[10px] font-bold text-slate-400 uppercase">Uploaded: {previewDoc?.date}</span>
-            <Button size="sm" onClick={() => previewDoc && downloadDoc(previewDoc)} className="bg-primary rounded-xl font-bold">
-              <Download className="mr-2 h-4 w-4" /> DOWNLOAD
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => previewDoc && downloadDoc(previewDoc)} className="bg-primary rounded-xl font-bold">
+                <Download className="mr-2 h-4 w-4" /> DOWNLOAD
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="text-destructive h-5 w-5" /> Delete File?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this file from the storage? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl font-bold">CANCEL</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white rounded-xl font-bold hover:bg-destructive/90">
+              DELETE NOW
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

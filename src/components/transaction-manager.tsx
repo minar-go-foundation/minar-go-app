@@ -9,11 +9,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Plus, Trash2, Calendar } from "lucide-react";
+import { Download, Plus, Trash2, Calendar, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June", 
@@ -35,6 +45,7 @@ export default function TransactionManager({ members, transactions, mode = "full
   const [amount, setAmount] = useState("5000");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [filterMonth, setFilterMonth] = useState("All");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const filteredTransactions = useMemo(() => {
@@ -75,14 +86,10 @@ export default function TransactionManager({ members, transactions, mode = "full
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!id) return;
-    
-    // Using simple confirm, but ensuring it's handled properly
-    if (!window.confirm("Are you sure you want to delete this record?")) return;
-    
+  const confirmDelete = async () => {
+    if (!deleteId) return;
     try {
-      const transRef = ref(database, `transactions/${id}`);
+      const transRef = ref(database, `transactions/${deleteId}`);
       await remove(transRef);
       toast({ 
         title: "Transaction Deleted", 
@@ -94,6 +101,8 @@ export default function TransactionManager({ members, transactions, mode = "full
         description: error.message || "An unexpected error occurred.", 
         variant: "destructive" 
       });
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -271,13 +280,13 @@ export default function TransactionManager({ members, transactions, mode = "full
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-9 w-9 text-slate-400 hover:text-destructive hover:bg-destructive/10 rounded-full active:scale-90 transition-all" 
+                        className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full active:scale-90 transition-all flex items-center justify-center" 
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(t.id);
+                          setDeleteId(t.id);
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-5 w-5" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -291,6 +300,25 @@ export default function TransactionManager({ members, transactions, mode = "full
           <span className="text-primary text-lg">৳{totalFiltered.toLocaleString()}</span>
         </CardFooter>
       </Card>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="text-destructive h-5 w-5" /> Delete Record?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this transaction? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl font-bold">CANCEL</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white rounded-xl font-bold hover:bg-destructive/90">
+              DELETE NOW
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
