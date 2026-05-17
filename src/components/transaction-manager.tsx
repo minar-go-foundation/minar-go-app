@@ -23,7 +23,7 @@ const MONTHS = [
 const CATEGORIES = ["প্রতি মাসের জমা", "যাকাত", "ফিতরা", "বাড়ির কাজ"];
 
 interface TransactionManagerProps {
-  members: string[];
+  members: any[];
   transactions: any[];
 }
 
@@ -119,9 +119,12 @@ export default function TransactionManager({ members, transactions }: Transactio
                   <SelectValue placeholder="Select Member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {members.map(m => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
-                  ))}
+                  {members.map((m, idx) => {
+                    const name = typeof m === 'string' ? m : (m?.name || "Unknown Member");
+                    return (
+                      <SelectItem key={idx} value={name}>{name}</SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

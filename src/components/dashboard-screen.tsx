@@ -42,7 +42,7 @@ const DEFAULT_MEMBERS = [
 ];
 
 export default function DashboardScreen({ user }: { user: User }) {
-  const [members, setMembers] = useState<string[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
   const { toast } = useToast();
@@ -53,7 +53,9 @@ export default function DashboardScreen({ user }: { user: User }) {
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        setMembers(Object.values(data));
+        // Handle both string and object formats safely
+        const list = Object.values(data);
+        setMembers(list);
       } else {
         // Init with default members if empty
         DEFAULT_MEMBERS.forEach(m => push(membersRef, m));
