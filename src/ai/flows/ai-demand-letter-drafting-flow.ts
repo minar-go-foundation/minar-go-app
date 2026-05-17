@@ -50,13 +50,23 @@ const demandLetterDraftPrompt = ai.definePrompt({
   name: 'demandLetterDraftPrompt',
   input: {schema: AIDemandLetterDraftInputSchema},
   output: {schema: AIDemandLetterDraftOutputSchema},
-  prompt: `You are an AI assistant specialized in drafting professional demand letters.
+  prompt: `You are an AI assistant specialized in drafting professional official demand letters.
 
-Your task is to generate a subject line and body content for a demand letter, based on the user's provided purpose description. You must provide the output in both English and Bengali. Ensure the Bengali text uses the Noto Sans Bengali font characters.
+Your task is to generate a subject line and body content for an official letter, based on the user's provided purpose description. 
+
+IMPORTANT STRUCTURE:
+The body content should be structured with clear numbered points (1, 2, 3...) as seen in professional documents. 
+For example:
+1. Application for membership/account opening...
+2. Terms regarding installment or deposit timelines...
+3. Financial management and authority delegation...
+
+Ensure the tone is very formal and professional.
+You must provide the output in both English and Bengali.
 
 Purpose Description: {{{purposeDescription}}}
 
-Generate the content, ensuring it is professional and suitable for an official demand letter.`,
+Generate the content now.`,
 });
 
 const aiDemandLetterDraftFlow = ai.defineFlow(
