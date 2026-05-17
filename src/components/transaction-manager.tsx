@@ -32,6 +32,14 @@ const MONTHS = [
 
 const CATEGORIES = ["প্রতি মাসের জমা", "যাকাত", "ফিতরা", "বাড়ির কাজ"];
 
+// Category translation for PDF consistency
+const CATEGORY_MAP: Record<string, string> = {
+  "প্রতি মাসের জমা": "Monthly Deposit",
+  "যাকাত": "Zakat",
+  "ফিতরা": "Fitra",
+  "বাড়ির কাজ": "House Work"
+};
+
 interface TransactionManagerProps {
   members: any[];
   transactions: any[];
@@ -108,20 +116,55 @@ export default function TransactionManager({ members, transactions, mode = "full
 
   const exportPDF = () => {
     const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION", 105, 15, { align: "center" });
-    doc.setFontSize(14);
-    doc.text(`Collection Summary Report - ${filterMonth} Month(s)`, 105, 25, { align: "center" });
     
-    const tableData = filteredTransactions.map(t => [t.n, t.d, t.c, `BDT ${t.a}`]);
+    // Header
+    doc.setFillColor(0, 35, 102);
+    doc.rect(0, 0, 210, 35, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text("MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION", 105, 18, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Collection Summary Report - ${filterMonth === 'All' ? 'Yearly' : filterMonth} Period`, 105, 28, { align: "center" });
+    
+    // Data mapping to fix Bengali encoding issues in PDF
+    const tableData = filteredTransactions.map(t => [
+      t.n, 
+      t.d, 
+      CATEGORY_MAP[t.c] || t.c, 
+      `BDT ${parseFloat(t.a).toLocaleString()}`
+    ]);
     
     autoTable(doc, {
-      startY: 35,
+      startY: 45,
       head: [["Member Name", "Date", "Category", "Amount"]],
       body: tableData,
-      foot: [["TOTAL", "", "", `BDT ${totalFiltered}`]],
-      theme: "striped"
+      foot: [["TOTAL COLLECTION", "", "", `BDT ${totalFiltered.toLocaleString()}`]],
+      theme: "striped",
+      headStyles: { fillColor: [0, 35, 102], textColor: 255, fontStyle: 'bold' },
+      footStyles: { fillColor: [0, 35, 102], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 10, cellPadding: 3 },
+      columnStyles: {
+        3: { halign: 'right', fontStyle: 'bold' }
+      }
     });
+    
+    // Footer with Copyright
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      const pageSize = doc.internal.pageSize;
+      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+      
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text("________________________________________________________________________________________________________", 105, pageHeight - 15, { align: "center" });
+      doc.text("© 2024 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION | ALL RIGHTS RESERVED", 105, pageHeight - 10, { align: "center" });
+      doc.text(`Page ${i} of ${pageCount}`, 190, pageHeight - 10, { align: "right" });
+    }
     
     doc.save(`MinarGo_Report_${format(new Date(), "yyyyMMdd")}.pdf`);
   };
