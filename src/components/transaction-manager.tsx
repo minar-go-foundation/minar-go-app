@@ -77,15 +77,23 @@ export default function TransactionManager({ members, transactions, mode = "full
 
   const handleDelete = async (id: string) => {
     if (!id) return;
-    if (!confirm("Delete this transaction?")) return;
+    
+    // Using simple confirm, but ensuring it's handled properly
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
     
     try {
       const transRef = ref(database, `transactions/${id}`);
       await remove(transRef);
-      toast({ title: "Deleted", description: "Transaction removed successfully." });
+      toast({ 
+        title: "Transaction Deleted", 
+        description: "The record has been removed from the system." 
+      });
     } catch (error: any) {
-      console.error("Delete error:", error);
-      toast({ title: "Error", description: "Delete failed: " + error.message, variant: "destructive" });
+      toast({ 
+        title: "Delete Failed", 
+        description: error.message || "An unexpected error occurred.", 
+        variant: "destructive" 
+      });
     }
   };
 
@@ -259,9 +267,17 @@ export default function TransactionManager({ members, transactions, mode = "full
                     <TableCell className="font-bold text-xs text-slate-700">{t.n}</TableCell>
                     <TableCell className="text-[9px] font-medium text-slate-400">{t.d}</TableCell>
                     <TableCell className="font-black text-xs text-primary">৳{t.a}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-300 hover:text-destructive active:scale-90" onClick={() => handleDelete(t.id)}>
-                        <Trash2 className="h-3 w-3" />
+                    <TableCell className="text-right pr-4">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-9 w-9 text-slate-400 hover:text-destructive hover:bg-destructive/10 rounded-full active:scale-90 transition-all" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(t.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

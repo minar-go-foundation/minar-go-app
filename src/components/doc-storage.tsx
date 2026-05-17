@@ -47,8 +47,8 @@ export default function DocStorage() {
     reader.onload = (event) => {
       const base64 = event.target?.result as string;
       const newDoc: MGDoc = {
-        id: Math.random().toString(36).substr(2, 9),
-        title: file.name, // Automatically use file name as title
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+        title: file.name,
         type: file.type,
         data: base64,
         date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -61,14 +61,17 @@ export default function DocStorage() {
       toast({ title: "Document Saved", description: "Stored securely in local memory." });
     };
     reader.readAsDataURL(file);
+    // Reset input
+    e.target.value = '';
   };
 
   const deleteDoc = (id: string) => {
-    if (!confirm("Delete this document?")) return;
+    if (!window.confirm("Delete this document from storage?")) return;
+    
     const updated = docs.filter(d => d.id !== id);
     setDocs(updated);
     localStorage.setItem("mg_docs", JSON.stringify(updated));
-    toast({ title: "Deleted", description: "Document removed." });
+    toast({ title: "Document Removed", description: "Deleted successfully." });
   };
 
   const downloadDoc = (doc: MGDoc) => {
@@ -131,15 +134,44 @@ export default function DocStorage() {
                         <span className="text-[8px] font-bold uppercase mt-1">PDF</span>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={() => setPreviewDoc(doc)}>
+                    
+                    {/* Floating Actions for better mobile access */}
+                    <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+                      <Button 
+                        size="icon" 
+                        variant="secondary" 
+                        className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm shadow-sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPreviewDoc(doc);
+                        }}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={() => downloadDoc(doc)}>
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="destructive" className="h-8 w-8 rounded-full" onClick={() => deleteDoc(doc.id)}>
+                      <Button 
+                        size="icon" 
+                        variant="destructive" 
+                        className="h-8 w-8 rounded-full shadow-lg" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteDoc(doc.id);
+                        }}
+                      >
                         <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="absolute bottom-2 right-2 z-10">
+                      <Button 
+                        size="icon" 
+                        variant="secondary" 
+                        className="h-8 w-8 rounded-full bg-primary/80 text-white backdrop-blur-sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadDoc(doc);
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
