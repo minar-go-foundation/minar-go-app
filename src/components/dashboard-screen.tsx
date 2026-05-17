@@ -16,7 +16,8 @@ import {
   CreditCard,
   PieChart,
   Target,
-  Phone
+  Phone,
+  Database
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -89,8 +90,36 @@ export default function DashboardScreen({ user }: { user: User }) {
     toast({ title: "Logged out", description: "Goodbye!" });
   };
 
-  const backupToSheets = () => {
-    window.open("https://script.google.com/macros/s/AKfycbx0V8EesGLJjp9xXVFi6Q_GQdjNzzH9TsmvXFtoD1Qk76x8Rl7kE7tyFRVmbVFWoRYXeA/exec", "_blank");
+  const backupToSheets = async () => {
+    if (transactions.length === 0) {
+      toast({ title: "No Data", description: "ব্যাকআপের জন্য কোন ডাটা নেই!", variant: "destructive" });
+      return;
+    }
+
+    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx0V8EesGLJjp9xXVFi6Q_GQdjNzzH9TsmvXFtoD1Qk76x8Rl7kE7tyFRVmbVFWoRYXeA/exec";
+    
+    let rows = transactions.map(r => [r.n, r.d, r.a]);
+    let total = transactions.reduce((s, r) => s + (parseFloat(r.a) || 0), 0);
+    rows.push(["TOTAL COLLECTION", "", total.toString()]);
+    rows.push(["Backup Date", new Date().toLocaleString(), ""]);
+    
+    let payload = { 
+        sheetName: "MinarGo_Data", 
+        headers: ["Member Name", "Date", "Amount (TK)"], 
+        rows: rows 
+    };
+    
+    try {
+        toast({ title: "Backing up...", description: "গুগল শিটে ডাটা পাঠানো হচ্ছে।" });
+        await fetch(GOOGLE_SHEETS_URL, { 
+            method: "POST", 
+            mode: "no-cors", 
+            body: JSON.stringify(payload) 
+        });
+        toast({ title: "Backup Successful", description: "✅ গুগল শিট ব্যাকআপ সম্পন্ন!" });
+    } catch(e) { 
+        toast({ title: "Backup Failed", description: "❌ ব্যাকআপ ব্যর্থ হয়েছে", variant: "destructive" });
+    }
   };
 
   return (
@@ -105,7 +134,7 @@ export default function DashboardScreen({ user }: { user: User }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-slate-400" onClick={backupToSheets}>
+          <Button variant="ghost" size="icon" className="text-primary" onClick={backupToSheets}>
             <CloudUpload className="h-5 w-5" />
           </Button>
           <Button variant="ghost" size="icon" className="text-destructive" onClick={handleLogout}>
@@ -152,13 +181,13 @@ export default function DashboardScreen({ user }: { user: User }) {
 
               {/* Quick Actions Stats */}
               <div className="grid grid-cols-2 gap-4">
-                <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow cursor-pointer">
+                <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow cursor-pointer" onClick={backupToSheets}>
                   <CardContent className="p-5 flex flex-col items-center text-center">
-                    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-3">
-                      <PieChart className="text-green-600 h-5 w-5" />
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mb-3">
+                      <Database className="text-blue-600 h-5 w-5" />
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Allocation</p>
-                    <h4 className="text-sm font-black text-slate-800">100% Shared</h4>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cloud Backup</p>
+                    <h4 className="text-sm font-black text-slate-800">GOOGLE SHEETS</h4>
                   </CardContent>
                 </Card>
                 <Card className="border-none shadow-sm bg-white hover:shadow-md transition-shadow cursor-pointer">
@@ -279,4 +308,3 @@ export default function DashboardScreen({ user }: { user: User }) {
     </div>
   );
 }
-
