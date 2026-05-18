@@ -74,11 +74,22 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [weather, setWeather] = useState({ city: "Detecting...", temp: "--" });
   const [backupLoading, setBackupLoading] = useState(false);
+  const [countdown, setCountdown] = useState({ hajj: 0, ramadan: 0 });
   const { toast } = useToast();
   
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
+    // Calculate countdowns on client side to avoid hydration mismatch
+    const hajjDate = new Date("2026-05-25");
+    const ramadanDate = new Date("2026-02-18");
+    const now = new Date();
+    
+    setCountdown({
+      hajj: Math.max(0, Math.ceil((hajjDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))),
+      ramadan: Math.max(0, Math.ceil((ramadanDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    });
+
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         try {
@@ -281,13 +292,19 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <div className="text-[8px] font-black uppercase text-accent tracking-[0.2em] mb-3 flex items-center gap-2">
                   <div className="w-1 h-1 bg-accent rounded-full" /> Hajj 2026
                 </div>
-                <h4 className="text-xs font-bold leading-tight">Departure in<br/><span className="text-lg font-black text-accent">450 Days</span></h4>
+                <h4 className="text-xs font-bold leading-tight">
+                  25 May 2026<br/>
+                  <span className="text-lg font-black text-accent">{countdown.hajj} Days Left</span>
+                </h4>
               </div>
               <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl relative overflow-hidden group">
                 <div className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-2">
                    <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan 2026
                 </div>
-                <h4 className="text-xs font-bold leading-tight text-slate-500">Scheduled on<br/><span className="text-lg font-black text-primary">18 February</span></h4>
+                <h4 className="text-xs font-bold leading-tight text-slate-500">
+                  18 Feb 2026<br/>
+                  <span className="text-lg font-black text-primary">{countdown.ramadan} Days Left</span>
+                </h4>
               </div>
             </div>
 
