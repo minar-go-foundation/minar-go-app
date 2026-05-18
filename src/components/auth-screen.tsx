@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,8 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw } from "lucide-react";
 import Image from "next/image";
-
-const WEB3FORMS_ACCESS_KEY = "1bd54ce8-4288-43d-9b71-929c9b829e12";
+import { sendOtpEmailAction } from "@/app/actions/send-email";
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -31,30 +31,6 @@ export default function AuthScreen() {
     if (storedLogo) setLogo(storedLogo);
   }, []);
 
-  const sendOtp = async (targetEmail: string, otp: string) => {
-    try {
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
-          subject: "Email Verification Code - Minar Go Foundation",
-          from_name: "Minar Go Foundation",
-          email: targetEmail,
-          message: `Your account verification code is: ${otp}. Please use this code to complete your registration.`,
-        }),
-      });
-      const result = await response.json();
-      return result.success;
-    } catch (error) {
-      console.error("OTP Error:", error);
-      return false;
-    }
-  };
-
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -66,17 +42,19 @@ export default function AuthScreen() {
       } else {
         // Registration Flow: Start OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const sent = await sendOtp(email, otp);
         
-        if (sent) {
+        // Calling server-side direct Gmail SMTP action
+        const result = await sendOtpEmailAction(email, otp);
+        
+        if (result.success) {
           setGeneratedOtp(otp);
           setStep("otp");
           toast({ 
             title: "Verification Sent!", 
-            description: `A 6-digit code has been sent to ${email}.` 
+            description: `A secure code has been sent to ${email}.` 
           });
         } else {
-          throw new Error("Failed to send OTP. Please check your email address.");
+          throw new Error(result.error || "Failed to send OTP. Please try again.");
         }
       }
     } catch (error: any) {
