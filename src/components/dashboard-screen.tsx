@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { User, signOut } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
-import { ref, onValue, push, onChildAdded, query, limitToLast } from "firebase/database";
+import { ref, onValue, push, onChildAdded, query, limitToLast, get } from "firebase/database";
 import { 
   LogOut, 
   Plus, 
@@ -51,11 +51,10 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [weather, setWeather] = useState<{ temp: number; city: string } | null>(null);
   const { toast } = useToast();
   
-  // Ref to track if it's the first load to prevent old data notification
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    // 1. Transactions Listener for UI
+    // 1. Transactions Listener
     const transRef = ref(database, "transactions");
     const unsubscribeTrans = onValue(transRef, (snapshot) => {
       const data = snapshot.val();
@@ -74,18 +73,15 @@ export default function DashboardScreen({ user }: { user: User }) {
     const notifyQuery = query(ref(database, "transactions"), limitToLast(1));
     const unsubscribeNotify = onChildAdded(notifyQuery, (snapshot) => {
       if (isInitialLoad.current) {
-        // Skip first one on load as it's existing data
         isInitialLoad.current = false;
         return;
       }
 
       const data = snapshot.val();
       if (data && data.n) {
-        // Play Sound
         const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
         audio.play().catch(e => console.log("Audio interaction required", e));
 
-        // Show Toast Notification
         toast({
           title: "নতুন জমা জমা হয়েছে! 🔔",
           description: `${data.n} আজ ৳${data.a} জমা দিয়েছেন।`,
@@ -93,7 +89,6 @@ export default function DashboardScreen({ user }: { user: User }) {
           className: "bg-primary text-white border-none shadow-2xl rounded-2xl",
         });
 
-        // System Browser Notification
         if ("Notification" in window && Notification.permission === "granted") {
           new Notification("Minar Go Foundation", {
             body: `নতুন জমা: ${data.n} - ৳${data.a}`,
@@ -103,12 +98,11 @@ export default function DashboardScreen({ user }: { user: User }) {
       }
     });
 
-    // Request Notification Permission
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
 
-    // Members Listener
+    // 3. Members Listener with Seeding Logic
     const membersRef = ref(database, "member_list");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const data = snapshot.val();
@@ -118,6 +112,7 @@ export default function DashboardScreen({ user }: { user: User }) {
         );
         setMembers(list);
       } else {
+        // Seed database if member list is empty
         DEFAULT_MEMBERS.forEach(m => push(membersRef, m));
       }
     });
