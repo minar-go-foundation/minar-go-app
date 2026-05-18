@@ -11,10 +11,16 @@ import {
   Users, 
   Image as ImageIcon, 
   FileText,
-  CloudUpload,
-  CloudSun,
-  MapPin,
-  RefreshCw
+  RotateCcw,
+  Download,
+  Bell,
+  User as UserIcon,
+  MessageCircle,
+  Video,
+  Settings,
+  Moon,
+  Building2,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +31,7 @@ import DemandLetterAssistant from "./demand-letter-assistant";
 import DocStorage from "./doc-storage";
 import LogoManager from "./logo-manager";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const DEFAULT_MEMBERS = [
   "Mr. Dulal", 
@@ -45,7 +52,7 @@ const DEFAULT_MEMBERS = [
 
 const ADMIN_EMAIL = "kosttoonek7@gmail.com";
 
-type Tab = "profile" | "members" | "gallery" | "tools";
+type Tab = "home" | "members" | "chat" | "gallery" | "setting" | "tools";
 
 export interface MGMember {
   id: string;
@@ -53,12 +60,11 @@ export interface MGMember {
 }
 
 export default function DashboardScreen({ user }: { user: User }) {
-  const [activeTab, setActiveTab] = useState<Tab>("profile");
+  const [activeTab, setActiveTab] = useState<Tab>("home");
   const [members, setMembers] = useState<MGMember[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
-  const [weather, setWeather] = useState<{ temp: number; city: string } | null>(null);
   const { toast } = useToast();
   
   const isInitialLoad = useRef(true);
@@ -85,14 +91,12 @@ export default function DashboardScreen({ user }: { user: User }) {
         isInitialLoad.current = false;
         return;
       }
-
       const data = snapshot.val();
       if (data && data.n) {
         try {
           const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
           audio.play().catch(() => {});
         } catch (e) {}
-
         toast({
           title: "নতুন জমা জমা হয়েছে! 🔔",
           description: `${data.n} আজ ৳${data.a} জমা দিয়েছেন।`,
@@ -100,7 +104,7 @@ export default function DashboardScreen({ user }: { user: User }) {
       }
     });
 
-    // 3. Members Listener - Robust Sync
+    // 3. Members Listener
     const membersRef = ref(database, "members");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const list: MGMember[] = [];
@@ -109,57 +113,24 @@ export default function DashboardScreen({ user }: { user: User }) {
           const val = child.val();
           list.push({
             id: child.key!,
-            name: (typeof val === 'object' ? val.name : val) || val || "Unknown Member"
+            name: (typeof val === 'object' ? val.name : val) || "Unknown"
           });
         });
         setMembers(list);
       } else {
         setMembers([]);
-        // Auto-seed if empty and is admin
+        // Auto-seed if empty
         if (user.email === ADMIN_EMAIL) {
           DEFAULT_MEMBERS.forEach(m => {
             const newMemberRef = push(membersRef);
-            set(newMemberRef, { 
-              name: m, 
-              createdAt: new Date().toISOString() 
-            });
+            set(newMemberRef, { name: m, createdAt: new Date().toISOString() });
           });
         }
       }
-    }, (error) => {
-      toast({
-        title: "Database Access Error",
-        description: "মেম্বার লিস্ট পাওয়া যাচ্ছে না। আপনার সিকিউরিটি রুলস চেক করুন।",
-        variant: "destructive"
-      });
     });
 
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
-
-    // Weather detection with immediate request
-    if (typeof window !== "undefined" && "geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
-          const wData = await wRes.json();
-          
-          const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
-          const geoData = await geoRes.json();
-          const cityName = geoData.city || geoData.locality || "Detected Location";
-          
-          setWeather({ 
-            temp: Math.round(wData.current_weather.temperature), 
-            city: cityName 
-          });
-        } catch (e) {
-          console.error("Weather fetch failed:", e);
-        }
-      }, (err) => {
-        console.warn("Geolocation access denied:", err);
-      });
-    }
 
     return () => {
       unsubscribeMembers();
@@ -175,146 +146,171 @@ export default function DashboardScreen({ user }: { user: User }) {
     toast({ title: "Logged out", description: "Goodbye!" });
   };
 
-  const backupToSheets = async () => {
-    if (transactions.length === 0) {
-      toast({ title: "No Data", description: "ব্যাকআপের জন্য কোন ডাটা নেই!", variant: "destructive" });
-      return;
-    }
-    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx0V8EesGLJjp9xXVFi6Q_GQdjNzzH9TsmvXFtoD1Qk76x8Rl7kE7tyFRVmbVFWoRYXeA/exec";
-    let rows = transactions.map(r => [r.n, r.d, r.a]);
-    let total = transactions.reduce((s, r) => s + (parseFloat(r.a) || 0), 0);
-    rows.push(["TOTAL COLLECTION", "", total.toString()]);
-    let payload = { sheetName: "MinarGo_Backup", headers: ["Member Name", "Date", "Amount (Tk)"], rows: rows };
-    try {
-        toast({ title: "Backing up...", description: "গুগল শিটে ডাটা পাঠানো হচ্ছে।" });
-        await fetch(GOOGLE_SHEETS_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-        toast({ title: "Backup Successful", description: "✅ গুগল শিট ব্যাকআপ সম্পন্ন!" });
-    } catch(e) { 
-        toast({ title: "Backup Failed", description: "❌ ব্যাকআপ ব্যর্থ হয়েছে", variant: "destructive" });
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-body">
-      <header className="bg-white border-b sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-sm">
+    <div className="min-h-screen bg-[#F8FAFF] flex flex-col font-body">
+      {/* Header matching the image */}
+      <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm">
         <div className="flex items-center gap-3">
-          <LogoManager currentLogo={logo} onUpdate={setLogo} />
+          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm">
+            MG
+          </div>
           <div>
-            <h1 className="text-xs font-black text-primary leading-tight uppercase tracking-tight">Minar Go</h1>
-            <p className="text-[8px] text-accent font-bold uppercase tracking-widest leading-none mt-0.5">Expatriate Foundation</p>
+            <h1 className="text-[10px] font-black text-primary leading-tight uppercase tracking-tight">Minar Go Expatriate</h1>
+            <p className="text-[9px] text-[#C4A052] font-bold uppercase tracking-widest leading-none mt-0.5">Foundation HQ</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          {weather && (
-            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
-              <CloudSun className="h-4 w-4 text-orange-500" />
-              <div className="flex flex-col">
-                <span className="text-[9px] font-black text-primary leading-none uppercase">{weather.city}</span>
-                <span className="text-[10px] font-bold text-slate-600 leading-tight">{weather.temp}°C</span>
-              </div>
-            </div>
-          )}
-          <Button variant="ghost" size="icon" className="text-blue-600 hover:bg-blue-50" onClick={backupToSheets}>
-            <CloudUpload className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-destructive hover:bg-red-50" onClick={handleLogout}>
-            <LogOut className="h-5 w-5" />
-          </Button>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Bell className="h-6 w-6 text-slate-400" />
+            <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
+          </div>
+          <div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200">
+            <UserIcon className="h-5 w-5 text-slate-400" />
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-32">
-        <div className="container mx-auto px-4 mt-6 max-w-lg space-y-6">
+      <main className="flex-1 overflow-y-auto pb-36">
+        <div className="container mx-auto px-6 mt-6 max-w-lg space-y-6">
           
-          {activeTab === "profile" && (
+          {activeTab === "home" && (
             <div className="space-y-6">
-              <Card className="bg-primary text-white border-none shadow-xl overflow-hidden relative">
-                <CardContent className="p-6 relative">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md">
-                      {logo ? (
-                        <img src={logo} className="w-full h-full object-cover rounded-2xl" alt="Logo" />
-                      ) : (
-                        <Home className="h-7 w-7" />
-                      )}
-                    </div>
-                    <div>
-                      <h2 className="font-black text-lg">Admin Dashboard</h2>
-                      <p className="text-[10px] text-accent uppercase font-bold tracking-widest">Live Monitoring</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white/10 p-4 rounded-2xl">
-                      <p className="text-[10px] uppercase font-bold text-white/60">Total Fund</p>
-                      <h3 className="text-xl font-black">৳{totalCollected.toLocaleString()}</h3>
-                    </div>
-                    <div className="bg-white/10 p-4 rounded-2xl">
-                      <p className="text-[10px] uppercase font-bold text-white/60">Members</p>
-                      <h3 className="text-xl font-black">{members.length}</h3>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Main Stats Cards */}
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[2rem] overflow-hidden">
+                  <CardContent className="p-6 text-center">
+                    <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-4">Total Collection</p>
+                    <h3 className="text-3xl font-black text-primary">৳{totalCollected.toLocaleString()}</h3>
+                  </CardContent>
+                </Card>
+                <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[2rem] overflow-hidden">
+                  <CardContent className="p-6 text-center">
+                    <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-4">Total Members</p>
+                    <h3 className="text-3xl font-black text-[#C4A052]">{members.length}</h3>
+                  </CardContent>
+                </Card>
+              </div>
 
-              <Card className="border-none shadow-md bg-white rounded-3xl overflow-hidden">
-                <CardContent className="p-6 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
-                      <MapPin className="h-6 w-6" />
+              {/* Event Cards */}
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="bg-primary text-white border-none shadow-xl rounded-[2.5rem] overflow-hidden relative">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[#C4A052]"></div>
+                  <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-1">
+                      <Building2 className="h-7 w-7 text-[#C4A052]" />
                     </div>
-                    <div>
-                      <h4 className="text-sm font-black uppercase text-slate-800">Location Sync</h4>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase">Live Weather Monitoring</p>
+                    <p className="text-[9px] uppercase font-black tracking-widest text-[#C4A052]">Hajj 2026</p>
+                    <h4 className="text-xs font-bold">27 May, 2026</h4>
+                  </CardContent>
+                </Card>
+                <Card className="bg-white text-primary border-none shadow-xl rounded-[2.5rem] overflow-hidden relative">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                  <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-1">
+                      <Moon className="h-7 w-7 text-[#C4A052]" />
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-black text-primary uppercase">{weather?.city || "Detecting..."}</p>
-                    <p className="text-[10px] font-bold text-slate-400">{weather ? `${weather.temp}°C` : "Allow Permission"}</p>
-                  </div>
-                </CardContent>
-              </Card>
+                    <p className="text-[9px] uppercase font-black tracking-widest text-primary">Ramadan</p>
+                    <h4 className="text-xs font-bold text-slate-500">18 Feb, 2026</h4>
+                  </CardContent>
+                </Card>
+              </div>
 
-              <TransactionManager members={members} transactions={transactions} mode="summary" />
+              {/* Log History Header */}
+              <div className="flex items-center justify-between px-2 pt-2">
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="h-5 w-5 text-[#C4A052]" />
+                  <h3 className="text-sm font-black text-primary uppercase tracking-tight">Log History</h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-white rounded-xl shadow-sm border border-slate-100">
+                    <RotateCcw className="h-4 w-4 text-green-500" />
+                  </div>
+                  <div className="p-2.5 bg-white rounded-xl shadow-sm border border-slate-100">
+                    <Download className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="bg-white rounded-xl shadow-sm border border-slate-100 px-3 py-1.5 flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase text-slate-400">all</span>
+                    <ChevronDown className="h-3 w-3 text-slate-400" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Log History Content */}
+              <div className="min-h-[250px] flex flex-col items-center justify-center bg-white/50 rounded-[3rem] border-2 border-dashed border-slate-200">
+                {transactions.length === 0 ? (
+                  <div className="text-center space-y-3 opacity-30">
+                    <RotateCcw className="h-16 w-16 mx-auto" />
+                    <p className="text-xs font-black uppercase tracking-[0.2em]">No Deposits Logged</p>
+                  </div>
+                ) : (
+                  <TransactionManager members={members} transactions={transactions} mode="summary" />
+                )}
+              </div>
             </div>
           )}
 
           {activeTab === "members" && <MemberManager members={members} />}
           {activeTab === "gallery" && <DocStorage />}
           {activeTab === "tools" && <DemandLetterAssistant />}
+          {activeTab === "setting" && (
+            <div className="space-y-6">
+              <Card className="rounded-[2.5rem] border-none shadow-xl p-8 bg-white">
+                <h3 className="font-black text-primary uppercase mb-6 text-center">Admin Settings</h3>
+                <div className="flex flex-col items-center gap-4">
+                  <LogoManager currentLogo={logo} onUpdate={setLogo} />
+                  <p className="text-xs font-bold text-slate-400 uppercase">Change Foundation Logo</p>
+                  <Button variant="destructive" className="w-full h-14 rounded-2xl font-black mt-8" onClick={handleLogout}>
+                    <LogOut className="mr-2" /> SECURE LOGOUT
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          )}
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full px-6 pb-8 pt-4 z-50">
-        <div className="max-w-md mx-auto bg-white rounded-[2.5rem] shadow-2xl flex items-center justify-between px-2 py-2 border">
-          <button onClick={() => setActiveTab("profile")} className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-[2rem] transition-all ${activeTab === "profile" ? "bg-slate-50 text-primary" : "text-slate-400"}`}>
-            <Home className="h-5 w-5" />
-            <span className="text-[9px] font-black uppercase">Profile</span>
+      {/* Floating Bottom Nav matching the image */}
+      <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 pt-4 z-50">
+        <div className="max-w-md mx-auto bg-white rounded-[2.8rem] shadow-2xl flex items-center justify-between px-3 py-3 border border-slate-100/50">
+          <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "home" ? "text-primary" : "text-slate-300"}`}>
+            <Home className={`h-6 w-6 ${activeTab === "home" ? "stroke-[2.5px]" : "stroke-[1.5px]"}`} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Home</span>
           </button>
-          <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-[2rem] transition-all ${activeTab === "members" ? "bg-slate-50 text-primary" : "text-slate-400"}`}>
-            <Users className="h-5 w-5" />
-            <span className="text-[9px] font-black uppercase">Members</span>
+          
+          <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "members" ? "text-primary" : "text-slate-300"}`}>
+            <Users className={`h-6 w-6 ${activeTab === "members" ? "stroke-[2.5px]" : "stroke-[1.5px]"}`} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Members</span>
           </button>
+
+          <button onClick={() => setActiveTab("chat")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "chat" ? "text-primary" : "text-slate-300"}`}>
+            <MessageCircle className="h-6 w-6 stroke-[1.5px]" />
+            <span className="text-[8px] font-black uppercase tracking-widest">Chat</span>
+          </button>
+
           <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
             <DialogTrigger asChild>
-              <button className="flex flex-col items-center justify-center -mt-12">
-                <div className="w-16 h-16 rounded-full bg-accent border-4 border-white shadow-xl flex items-center justify-center text-white">
-                  <Plus className="h-8 w-8 stroke-[3px]" />
+              <button className="flex flex-col items-center justify-center -mt-10 mx-2 group">
+                <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-2xl flex items-center justify-center text-white transition-transform active:scale-90 shadow-primary/30">
+                  <Video className="h-7 w-7 stroke-[2.5px]" />
                 </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
               </button>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] rounded-[2rem] p-6">
-              <DialogHeader><DialogTitle>New Deposit</DialogTitle></DialogHeader>
+            <DialogContent className="max-w-[95vw] rounded-[3rem] p-8">
+              <DialogHeader><DialogTitle className="text-center font-black uppercase text-primary">Record New Deposit</DialogTitle></DialogHeader>
               <TransactionManager members={members} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
             </DialogContent>
           </Dialog>
-          <button onClick={() => setActiveTab("gallery")} className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-[2rem] transition-all ${activeTab === "gallery" ? "bg-slate-50 text-primary" : "text-slate-400"}`}>
-            <ImageIcon className="h-5 w-5" />
-            <span className="text-[9px] font-black uppercase">Gallery</span>
+
+          <button onClick={() => setActiveTab("gallery")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "gallery" ? "text-primary" : "text-slate-300"}`}>
+            <ImageIcon className={`h-6 w-6 ${activeTab === "gallery" ? "stroke-[2.5px]" : "stroke-[1.5px]"}`} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Gallery</span>
           </button>
-          <button onClick={() => setActiveTab("tools")} className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-[2rem] transition-all ${activeTab === "tools" ? "bg-slate-50 text-primary" : "text-slate-400"}`}>
-            <FileText className="h-5 w-5" />
-            <span className="text-[9px] font-black uppercase">Tools</span>
+
+          <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "setting" ? "text-primary" : "text-slate-300"}`}>
+            <Settings className={`h-6 w-6 ${activeTab === "setting" ? "stroke-[2.5px]" : "stroke-[1.5px]"}`} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Setting</span>
           </button>
         </div>
       </nav>
