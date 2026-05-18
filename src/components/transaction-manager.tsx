@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { database } from "@/lib/firebase";
 import { ref, push, remove } from "firebase/database";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Plus, Trash2, Calendar, AlertCircle } from "lucide-react";
+import { Download, Plus, Trash2, Calendar, AlertCircle, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
@@ -53,16 +53,23 @@ export default function TransactionManager({ members, transactions, mode = "full
   const [category, setCategory] = useState("প্রতি মাসের জমা");
   const [amount, setAmount] = useState("5000");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [filterMonth, setFilterMonth] = useState("All");
+  const [filterMonth, setFilterMonth] = useState<string>("All");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Set initial filter to current month on client side
+  useEffect(() => {
+    const currentMonth = MONTHS[new Date().getMonth()];
+    setFilterMonth(currentMonth);
+  }, []);
 
   const filteredTransactions = useMemo(() => {
     let list = [...transactions];
     if (filterMonth !== "All") {
       list = list.filter(t => {
         try {
-          const tMonth = new Date(t.d).getMonth();
+          const tDate = new Date(t.d);
+          const tMonth = tDate.getMonth();
           return MONTHS[tMonth] === filterMonth;
         } catch (e) {
           return false;
@@ -305,66 +312,71 @@ export default function TransactionManager({ members, transactions, mode = "full
         </Card>
       )}
 
-      <Card className="shadow-lg border-none bg-white rounded-3xl overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between p-6">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-50 rounded-xl text-primary">
-              <Calendar className="h-5 w-5" />
+      <Card className="shadow-lg border-none bg-white rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between p-8 bg-slate-50/50">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white rounded-2xl text-primary shadow-sm border border-slate-100">
+              <Filter className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-sm font-black text-primary uppercase">Summary</CardTitle>
-              <CardDescription className="text-[8px] font-bold uppercase text-slate-400">Financial History</CardDescription>
+              <CardTitle className="text-[12px] font-black text-primary uppercase tracking-tight">Monthly Log History</CardTitle>
+              <CardDescription className="text-[9px] font-bold uppercase text-slate-400 tracking-widest">{filterMonth === 'All' ? 'All Records' : `Records for ${filterMonth}`}</CardDescription>
             </div>
           </div>
           <div className="flex gap-2">
             <Select onValueChange={setFilterMonth} value={filterMonth}>
-              <SelectTrigger className="w-[100px] h-9 text-[10px] font-bold rounded-xl border-slate-100 bg-slate-50">
+              <SelectTrigger className="w-[120px] h-10 text-[10px] font-black rounded-xl border-slate-200 bg-white shadow-sm uppercase">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All Months</SelectItem>
+                <SelectItem value="All" className="text-[10px] font-bold uppercase">All Months</SelectItem>
                 {MONTHS.map(m => (
-                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                  <SelectItem key={m} value={m} className="text-[10px] font-bold uppercase">{m}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button size="icon" variant="outline" className="h-9 w-9 rounded-xl border-slate-100" onClick={exportPDF}>
+            <Button size="icon" variant="outline" className="h-10 w-10 rounded-xl border-slate-200 bg-white shadow-sm" onClick={exportPDF}>
               <Download className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
+        <CardContent className="p-0 overflow-x-auto min-h-[300px]">
           <Table>
-            <TableHeader className="bg-slate-50/50">
+            <TableHeader className="bg-slate-50/80">
               <TableRow className="border-b border-slate-100">
-                <TableHead className="text-[10px] font-black uppercase text-slate-400">Member</TableHead>
-                <TableHead className="text-[10px] font-black uppercase text-slate-400">Date</TableHead>
-                <TableHead className="text-[10px] font-black uppercase text-slate-400">Amount</TableHead>
-                <TableHead className="text-right"></TableHead>
+                <TableHead className="text-[9px] font-black uppercase text-slate-400 pl-8">Member Name</TableHead>
+                <TableHead className="text-[9px] font-black uppercase text-slate-400">Date</TableHead>
+                <TableHead className="text-[9px] font-black uppercase text-slate-400">Total Amount</TableHead>
+                <TableHead className="text-right pr-8"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-12 text-slate-300 font-bold uppercase text-[10px]">No records found</TableCell>
+                  <TableCell colSpan={4} className="text-center py-20">
+                    <div className="flex flex-col items-center gap-2 opacity-20">
+                      <Calendar className="h-12 w-12" />
+                      <p className="text-[10px] font-black uppercase tracking-widest">No records for {filterMonth}</p>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ) : (
-                filteredTransactions.slice(0, mode === "summary" ? 5 : undefined).map(t => (
-                  <TableRow key={t.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                    <TableCell className="font-bold text-xs text-slate-700">{t.n}</TableCell>
-                    <TableCell className="text-[9px] font-medium text-slate-400">{t.d}</TableCell>
-                    <TableCell className="font-black text-xs text-primary">৳{t.a}</TableCell>
-                    <TableCell className="text-right pr-4">
+                filteredTransactions.slice(0, mode === "summary" ? 8 : undefined).map(t => (
+                  <TableRow key={t.id} className="border-b border-slate-50 hover:bg-slate-50/30 transition-colors group">
+                    <TableCell className="font-black text-[12px] text-slate-700 pl-8">{t.n}</TableCell>
+                    <TableCell className="text-[10px] font-bold text-slate-400">{t.d}</TableCell>
+                    <TableCell className="font-black text-[13px] text-primary">৳{parseFloat(t.a).toLocaleString()}</TableCell>
+                    <TableCell className="text-right pr-8">
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full active:scale-90 transition-all flex items-center justify-center" 
+                        className="h-10 w-10 text-slate-200 hover:text-destructive hover:bg-destructive/5 rounded-full transition-all" 
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeleteId(t.id);
                         }}
                       >
-                        <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -373,25 +385,31 @@ export default function TransactionManager({ members, transactions, mode = "full
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="bg-slate-50/50 p-6 font-black flex justify-between rounded-b-3xl">
-          <span className="text-[10px] uppercase text-slate-400">Total Collected</span>
-          <span className="text-primary text-lg">৳{totalFiltered.toLocaleString()}</span>
+        <CardFooter className="bg-primary p-8 font-black flex justify-between items-center rounded-b-[2.5rem] shadow-[0_-10px_30px_rgba(0,35,102,0.1)]">
+          <div>
+             <p className="text-[9px] uppercase text-white/50 tracking-[0.2em] mb-1">Total {filterMonth === 'All' ? 'Foundation' : filterMonth} Assets</p>
+             <h4 className="text-white text-2xl font-black">৳{totalFiltered.toLocaleString()}</h4>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Filtered Summary</span>
+          </div>
         </CardFooter>
       </Card>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent className="rounded-3xl">
+        <AlertDialogContent className="rounded-[2.5rem] p-10 border-none">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertCircle className="text-destructive h-5 w-5" /> Delete Record?
+            <AlertDialogTitle className="flex items-center gap-3 text-xl font-black text-primary">
+              <AlertCircle className="text-destructive h-6 w-6" /> REMOVE RECORD?
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove this transaction? This action cannot be undone.
+            <AlertDialogDescription className="text-sm font-bold text-slate-500">
+              Are you sure you want to delete this transaction record? This action will permanently remove it from the cloud database.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl font-bold">CANCEL</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white rounded-xl font-bold hover:bg-destructive/90">
+          <AlertDialogFooter className="mt-6 gap-3">
+            <AlertDialogCancel className="h-12 rounded-xl font-black text-[10px] uppercase tracking-widest border-2">CANCEL</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white h-12 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-100">
               DELETE NOW
             </AlertDialogAction>
           </AlertDialogFooter>
