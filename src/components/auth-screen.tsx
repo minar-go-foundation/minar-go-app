@@ -15,13 +15,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw, KeyRound, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw, KeyRound, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import { sendOtpEmailAction } from "@/app/actions/send-email";
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState<"auth" | "otp" | "forgot-password" | "otp-reset" | "new-password-setup">("auth");
+  const [step, setStep] = useState<"auth" | "otp" | "forgot-password" | "otp-reset" | "new-password-setup" | "reset-success">("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -103,8 +103,8 @@ export default function AuthScreen() {
       toast({ title: "Invalid Code", description: "The OTP you entered is incorrect.", variant: "destructive" });
       return;
     }
-    toast({ title: "Identity Verified!", description: "Please create your new secure password." });
     setStep("new-password-setup");
+    toast({ title: "Identity Verified!", description: "Now you can set your new password." });
   };
 
   const handleFinalPasswordReset = async (e: React.FormEvent) => {
@@ -120,13 +120,14 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
-      // Firebase requires an official link for security, so we trigger that here
+      // For security, Firebase requires sending an actual reset email link.
+      // We trigger this after verifying the user's OTP to ensure they are the owner.
       await sendPasswordResetEmail(auth, email);
+      setStep("reset-success");
       toast({ 
         title: "Security Link Sent!", 
-        description: "For security, a final confirmation link has been sent to your email to apply your new password." 
+        description: "A final verification link has been sent to your email to apply the change." 
       });
-      setStep("auth");
     } catch (error: any) {
       toast({ title: "Reset Error", description: error.message, variant: "destructive" });
     } finally {
@@ -160,6 +161,28 @@ export default function AuthScreen() {
     }
   };
 
+  if (step === "reset-success") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50">
+        <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white text-center">
+          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="h-10 w-10 text-green-500" />
+          </div>
+          <h2 className="text-xl font-black text-primary uppercase mb-2">Check Your Email</h2>
+          <p className="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-wider mb-8">
+            নিরাপত্তার স্বার্থে আপনার ইমেইলে একটি লিঙ্ক পাঠানো হয়েছে। ওই লিঙ্কে ক্লিক করলেই আপনার নতুন পাসওয়ার্ডটি সক্রিয় হয়ে যাবে।
+          </p>
+          <Button 
+            onClick={() => setStep("auth")} 
+            className="w-full bg-primary h-14 rounded-2xl font-black text-base"
+          >
+            BACK TO LOGIN
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   if (step === "new-password-setup") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50">
@@ -170,7 +193,7 @@ export default function AuthScreen() {
             </div>
             <h2 className="text-xl font-black text-primary uppercase">New Password</h2>
             <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
-              Create a secure password for your account
+              Set your new secure security password
             </p>
           </div>
 
@@ -214,7 +237,7 @@ export default function AuthScreen() {
               className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20"
               disabled={loading}
             >
-              {loading ? "SAVING..." : "UPDATE PASSWORD"}
+              {loading ? "SAVING..." : "UPDATE & ACTIVATE"}
             </Button>
           </form>
         </Card>
