@@ -166,15 +166,6 @@ export default function DashboardScreen({ user }: { user: User }) {
     };
   }, [toast]);
 
-  const filteredTotal = useMemo(() => {
-    if (filterMonth === "All") return transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
-    return transactions.reduce((acc, curr) => {
-      const tDate = new Date(curr.d);
-      if (MONTHS[tDate.getMonth()] === filterMonth) return acc + (parseFloat(curr.a) || 0), 0;
-      return acc;
-    }, 0);
-  }, [transactions, filterMonth]);
-
   const dashboardTotal = useMemo(() => {
     if (filterMonth === "All") return transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
     return transactions.reduce((acc, curr) => {
@@ -205,22 +196,25 @@ export default function DashboardScreen({ user }: { user: User }) {
 
   return (
     <div className="min-h-screen bg-[#F8FAFF] flex flex-col font-body pb-32">
-      <header className="px-6 py-5 flex items-center justify-between bg-white shadow-sm border-b border-slate-100 sticky top-0 z-40">
-        <div className="flex items-center gap-4">
-          <div className="relative w-12 h-12 rounded-2xl bg-primary border-2 border-accent/20 flex items-center justify-center overflow-hidden shadow-lg transition-transform active:scale-95 cursor-pointer" onClick={() => setActiveTab("setting")}>
-            {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <span className="text-white font-black text-lg">MG</span>}
+      <header className="px-6 py-4 flex items-center justify-between bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <div className="relative w-11 h-11 rounded-xl border border-primary/10 flex items-center justify-center overflow-hidden shadow-sm transition-transform active:scale-95 cursor-pointer" onClick={() => setActiveTab("setting")}>
+            {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black">MG</div>}
           </div>
-          <div>
-            <h1 className="text-[12px] font-black text-primary leading-tight uppercase tracking-tight">Minar Go Foundation</h1>
-            <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex flex-col">
+            <h1 className="text-[11px] font-[900] text-primary uppercase tracking-tight leading-none mb-1">
+              MINAR GO FOUNDATION
+            </h1>
+            <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <CloudSun className="h-3 w-3 text-accent" />
-                <span className="text-[8px] text-accent font-bold uppercase tracking-widest">{weather.temp}°C</span>
+                <CloudSun className="h-3 w-3 text-secondary" />
+                <span className="text-[10px] font-bold text-secondary">{weather.temp}°C</span>
               </div>
+              <div className="h-3 w-[1px] bg-slate-200" />
               {currentTime && (
-                <div className="flex items-center gap-1 border-l border-slate-200 pl-2">
-                  <Clock className="h-3 w-3 text-primary animate-pulse" />
-                  <span className="text-[9px] font-black text-primary tracking-tighter">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-primary" />
+                  <span className="text-[10px] font-black text-primary">
                     {format(currentTime, "hh:mm:ss a")}
                   </span>
                 </div>
@@ -229,12 +223,12 @@ export default function DashboardScreen({ user }: { user: User }) {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="relative p-2.5 bg-slate-50 rounded-xl" onClick={() => setActiveTab("chat")}>
+        <div className="flex items-center gap-2.5">
+          <Button variant="ghost" size="icon" className="h-10 w-10 relative bg-slate-50 rounded-xl" onClick={() => setActiveTab("chat")}>
             <Bell className="h-5 w-5 text-slate-400" />
-            <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></div>
+            <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></div>
           </Button>
-          <div className="w-10 h-10 bg-slate-100 rounded-full border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
+          <div className="w-10 h-10 bg-slate-100 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center overflow-hidden">
              {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-400" />}
           </div>
         </div>
