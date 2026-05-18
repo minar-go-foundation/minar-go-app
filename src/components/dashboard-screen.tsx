@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { User, signOut } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
-import { ref, onValue, push, query, limitToLast, onChildAdded } from "firebase/database";
+import { ref, onValue, push, query, limitToLast, onChildAdded, get, set } from "firebase/database";
 import { 
   LogOut, 
   Plus, 
@@ -13,12 +13,6 @@ import {
   Image as ImageIcon, 
   FileText,
   CloudUpload,
-  CreditCard,
-  PieChart,
-  Target,
-  Phone,
-  Database,
-  MapPin,
   CloudSun,
   ShieldCheck,
   BellRing
@@ -112,7 +106,6 @@ export default function DashboardScreen({ user }: { user: User }) {
       const data = snapshot.val();
       if (data) {
         const list: MGMember[] = Object.entries(data).map(([key, value]: [string, any]) => {
-          // Robust checking for member name
           const nameValue = typeof value === 'object' ? value.name : value;
           return {
             id: key,
@@ -121,14 +114,13 @@ export default function DashboardScreen({ user }: { user: User }) {
         });
         setMembers(list);
       } else {
-        // Only seed if we are authenticated and the list is really empty
+        // Only seed if empty
         console.log("Database empty, seeding default members...");
         DEFAULT_MEMBERS.forEach(m => {
-          push(membersRef, { 
+          const newMemberRef = push(membersRef);
+          set(newMemberRef, { 
             name: m, 
             createdAt: new Date().toISOString() 
-          }).catch(e => {
-            console.error("Failed to seed member:", m, e);
           });
         });
       }
@@ -193,6 +185,12 @@ export default function DashboardScreen({ user }: { user: User }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {weather && (
+            <div className="hidden md:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full">
+              <CloudSun className="h-4 w-4 text-primary" />
+              <span className="text-[10px] font-black text-slate-600">{weather.temp}°C • {weather.city}</span>
+            </div>
+          )}
           <Button variant="ghost" size="icon" className="text-blue-600 hover:bg-blue-50" onClick={backupToSheets}>
             <CloudUpload className="h-5 w-5" />
           </Button>
@@ -232,6 +230,24 @@ export default function DashboardScreen({ user }: { user: User }) {
                       <h3 className="text-xl font-black">{members.length}</h3>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Explicit Backup Card for Visibility */}
+              <Card className="border-none shadow-md bg-white rounded-3xl overflow-hidden">
+                <CardContent className="p-6 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
+                      <CloudUpload className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black uppercase text-slate-800">Cloud Data Backup</h4>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">Sync with Google Sheets</p>
+                    </div>
+                  </div>
+                  <Button onClick={backupToSheets} className="bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl">
+                    SYNC NOW
+                  </Button>
                 </CardContent>
               </Card>
 

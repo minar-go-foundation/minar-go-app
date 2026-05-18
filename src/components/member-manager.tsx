@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { database } from "@/lib/firebase";
-import { ref, push, remove } from "firebase/database";
+import { ref, push, remove, set } from "firebase/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,8 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
     setLoading(true);
     try {
       const membersRef = ref(database, "members");
-      await push(membersRef, {
+      const newMemberRef = push(membersRef);
+      await set(newMemberRef, {
         name: newMember.trim(),
         createdAt: new Date().toISOString()
       });
@@ -45,8 +46,8 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
       toast({ 
         title: "Error", 
         description: error.message.includes("PERMISSION_DENIED") 
-          ? "Permission Denied: Check your database security rules." 
-          : "Failed to add member. Please try again.", 
+          ? "Permission Denied: Check database rules." 
+          : "Failed to add member.", 
         variant: "destructive" 
       });
     } finally {
@@ -59,7 +60,7 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
     
     try {
       await remove(ref(database, `members/${deleteMember.id}`));
-      toast({ title: "Member removed", description: `${deleteMember.name} was deleted successfully.` });
+      toast({ title: "Member removed", description: `${deleteMember.name} deleted successfully.` });
     } catch (error: any) {
       toast({ title: "Error", description: "Failed to remove member", variant: "destructive" });
     } finally {
@@ -96,7 +97,7 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
           {members.length === 0 ? (
             <div className="text-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">
               <Users className="h-10 w-10 mx-auto text-slate-200 mb-2" />
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No members found in database</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No members found</p>
             </div>
           ) : (
             members.map((member) => (
