@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   Video,
   MessageSquare,
-  Lock
+  Lock,
+  History
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,7 +74,7 @@ MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - SYSTEM PROFILE
 - ভিডিও কানেক্ট: হাই-ডেফিনিশন ভিডিও ও অডিও কনফারেন্সিং।
 `.trim();
 
-type Tab = "home" | "members" | "chat" | "gallery" | "setting" | "call";
+type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call";
 
 export interface MGMember {
   id: string;
@@ -290,13 +291,26 @@ export default function DashboardScreen({ user }: { user: User }) {
               </div>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50">
-              <TransactionManager members={members} transactions={transactions} mode="summary" filterMonth={filterMonth} onFilterMonthChange={setFilterMonth} />
-            </div>
+            <Card className="bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-sm flex flex-col items-center justify-center text-center gap-4">
+               <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center">
+                 <ShieldCheck className="h-8 w-8 text-primary opacity-20" />
+               </div>
+               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+                 Security First Dashboard<br/>
+                 <span className="text-[10px] opacity-60">Manage your foundation safely.</span>
+               </p>
+            </Card>
           </div>
         )}
 
         {activeTab === "members" && <MemberManager members={members} />}
+        {activeTab === "history" && (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50">
+              <TransactionManager members={members} transactions={transactions} mode="full" filterMonth={filterMonth} onFilterMonthChange={setFilterMonth} />
+            </div>
+          </div>
+        )}
         {activeTab === "chat" && <ChatScreen user={user} />}
         {activeTab === "call" && <VideoCall user={user} />}
         {activeTab === "gallery" && <DocStorage />}
@@ -358,44 +372,44 @@ export default function DashboardScreen({ user }: { user: User }) {
         )}
       </main>
 
-      {/* Unique Dynamic Bottom Navigation Bar */}
+      {/* Optimized Bottom Navigation Bar - Real App Layout */}
       <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50 pointer-events-none">
         <div className="max-w-md mx-auto relative pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_15px_50px_-12px_rgba(0,35,102,0.25)] border border-slate-100 flex items-center justify-between px-3 py-3 ring-1 ring-black/5">
+          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_15px_50px_-12px_rgba(0,35,102,0.25)] border border-slate-100 flex items-center justify-between px-2 py-3 ring-1 ring-black/5">
             
-            <div className="flex items-center justify-around flex-1">
+            <div className="flex items-center justify-around flex-1 gap-1">
               <button 
                 onClick={() => setActiveTab("home")} 
                 className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Home className={`h-7 w-7 transition-all ${activeTab === "home" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "home" ? "opacity-100" : "opacity-60"}`}>Home</span>
+                <Home className={`h-6 w-6 transition-all ${activeTab === "home" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "home" ? "opacity-100" : "opacity-60"}`}>Home</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("members")} 
                 className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Users className={`h-7 w-7 transition-all ${activeTab === "members" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "members" ? "opacity-100" : "opacity-60"}`}>Members</span>
+                <Users className={`h-6 w-6 transition-all ${activeTab === "members" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "members" ? "opacity-100" : "opacity-60"}`}>Members</span>
               </button>
 
               <button 
-                onClick={() => setActiveTab("chat")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}
+                onClick={() => setActiveTab("history")} 
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "history" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <MessageSquare className={`h-7 w-7 transition-all ${activeTab === "chat" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "chat" ? "opacity-100" : "opacity-60"}`}>Chat</span>
+                <History className={`h-6 w-6 transition-all ${activeTab === "history" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "history" ? "opacity-100" : "opacity-60"}`}>History</span>
               </button>
             </div>
 
-            <div className="px-5 -mt-12 relative">
+            <div className="px-3 -mt-10 relative">
               <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                 <DialogTrigger asChild>
                   <button className="group relative focus:outline-none focus:ring-0">
                     <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl group-hover:blur-3xl transition-all animate-pulse" />
-                    <div className="w-18 h-18 rounded-full bg-primary border-[6px] border-white shadow-[0_12px_30px_rgba(0,35,102,0.4)] flex items-center justify-center text-white relative z-10 transition-all active:scale-90 active:rotate-90 hover:scale-110 hover:-translate-y-2">
-                      <Plus className="h-10 w-10 stroke-[4px]" />
+                    <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-[0_12px_30px_rgba(0,35,102,0.4)] flex items-center justify-center text-white relative z-10 transition-all active:scale-90 active:rotate-90 hover:scale-110 hover:-translate-y-2">
+                      <Plus className="h-8 w-8 stroke-[4px]" />
                     </div>
                   </button>
                 </DialogTrigger>
@@ -406,21 +420,29 @@ export default function DashboardScreen({ user }: { user: User }) {
               </Dialog>
             </div>
 
-            <div className="flex items-center justify-around flex-1">
+            <div className="flex items-center justify-around flex-1 gap-1">
+              <button 
+                onClick={() => setActiveTab("chat")} 
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}
+              >
+                <MessageSquare className={`h-6 w-6 transition-all ${activeTab === "chat" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "chat" ? "opacity-100" : "opacity-60"}`}>Chat</span>
+              </button>
+              
               <button 
                 onClick={() => setActiveTab("call")} 
                 className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Video className={`h-7 w-7 transition-all ${activeTab === "call" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "call" ? "opacity-100" : "opacity-60"}`}>Call</span>
+                <Video className={`h-6 w-6 transition-all ${activeTab === "call" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "call" ? "opacity-100" : "opacity-60"}`}>Call</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("setting")} 
                 className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Settings className={`h-7 w-7 transition-all ${activeTab === "setting" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "setting" ? "opacity-100" : "opacity-60"}`}>System</span>
+                <Settings className={`h-6 w-6 transition-all ${activeTab === "setting" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "setting" ? "opacity-100" : "opacity-60"}`}>System</span>
               </button>
             </div>
 
