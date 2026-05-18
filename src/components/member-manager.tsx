@@ -24,21 +24,33 @@ import {
 export default function MemberManager({ members }: { members: MGMember[] }) {
   const [newMember, setNewMember] = useState("");
   const [deleteMember, setDeleteMember] = useState<MGMember | null>(null);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMember.trim()) return;
     
+    setLoading(true);
     try {
-      await push(ref(database, "members"), {
+      const membersRef = ref(database, "members");
+      await push(membersRef, {
         name: newMember.trim(),
         createdAt: new Date().toISOString()
       });
       setNewMember("");
       toast({ title: "Member added", description: `${newMember} has been joined.` });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to add member. Please check permissions.", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Add Member Error:", error);
+      toast({ 
+        title: "Error", 
+        description: error.message.includes("PERMISSION_DENIED") 
+          ? "Permission Denied: Check your database security rules." 
+          : "Failed to add member. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,7 +60,7 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
     try {
       await remove(ref(database, `members/${deleteMember.id}`));
       toast({ title: "Member removed", description: `${deleteMember.name} was deleted successfully.` });
-    } catch (error) {
+    } catch (error: any) {
       toast({ title: "Error", description: "Failed to remove member", variant: "destructive" });
     } finally {
       setDeleteMember(null);
@@ -56,41 +68,51 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
   };
 
   return (
-    <Card className="shadow-lg border-none">
-      <CardHeader className="bg-primary/5 rounded-t-xl flex flex-row items-center justify-between">
+    <Card className="shadow-lg border-none bg-white rounded-3xl overflow-hidden">
+      <CardHeader className="bg-primary/5 p-6 flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="text-primary h-5 w-5" />
-          <CardTitle className="text-lg font-bold">Member Management</CardTitle>
+          <CardTitle className="text-lg font-bold uppercase">Member Management</CardTitle>
         </div>
+        <span className="text-[10px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full">
+          TOTAL: {members.length}
+        </span>
       </CardHeader>
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="p-6 space-y-6">
         <form onSubmit={handleAddMember} className="flex gap-2">
           <Input 
             placeholder="Enter new member name" 
             value={newMember} 
             onChange={(e) => setNewMember(e.target.value)}
-            className="flex-1"
+            disabled={loading}
+            className="flex-1 h-12 rounded-xl bg-slate-50 border-none shadow-sm"
           />
-          <Button type="submit" className="bg-primary hover:bg-primary/90">
-            <Plus className="h-4 w-4" />
+          <Button type="submit" className="bg-primary h-12 w-12 rounded-xl shadow-lg" disabled={loading}>
+            {loading ? <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-b-transparent" /> : <Plus className="h-5 w-5" />}
           </Button>
         </form>
 
-        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
           {members.length === 0 ? (
-            <div className="col-span-2 text-center py-10 text-muted-foreground text-xs uppercase font-bold tracking-widest">
-              No members found
+            <div className="text-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">
+              <Users className="h-10 w-10 mx-auto text-slate-200 mb-2" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No members found in database</p>
             </div>
           ) : (
             members.map((member) => (
               <div 
                 key={member.id} 
-                className="group flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-transparent hover:border-primary/20 hover:bg-muted/50 transition-all"
+                className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-all"
               >
-                <span className="text-sm font-medium truncate pr-2">{member.name}</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                    {member.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm font-bold text-slate-700">{member.name}</span>
+                </div>
                 <button 
                   onClick={() => setDeleteMember(member)}
-                  className="text-destructive hover:scale-110 transition-transform flex items-center justify-center h-8 w-8"
+                  className="text-slate-300 hover:text-destructive transition-colors p-2"
                 >
                   <Trash2 className="h-5 w-5" />
                 </button>
@@ -107,12 +129,12 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
               <AlertCircle className="text-destructive h-5 w-5" /> Remove Member?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove this member from the foundation list?
+              Are you sure you want to remove <strong>{deleteMember?.name}</strong> from the foundation?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-xl font-bold">CANCEL</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white rounded-xl font-bold hover:bg-destructive/90">
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white rounded-xl font-bold">
               REMOVE NOW
             </AlertDialogAction>
           </AlertDialogFooter>

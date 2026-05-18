@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { User, signOut } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
-import { ref, onValue, push, onChildAdded, query, limitToLast, get, set } from "firebase/database";
+import { ref, onValue, push, query, limitToLast, onChildAdded } from "firebase/database";
 import { 
   LogOut, 
   Plus, 
@@ -84,7 +84,7 @@ export default function DashboardScreen({ user }: { user: User }) {
       }
     });
 
-    // 2. Real-time Notification Listener
+    // 2. Notifications for Transactions
     const notifyQuery = query(ref(database, "transactions"), limitToLast(1));
     const unsubscribeNotify = onChildAdded(notifyQuery, (snapshot) => {
       if (isInitialLoad.current) {
@@ -94,43 +94,42 @@ export default function DashboardScreen({ user }: { user: User }) {
 
       const data = snapshot.val();
       if (data && data.n) {
-        const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-        audio.play().catch(e => console.log("Audio interaction required", e));
+        try {
+          const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+          audio.play().catch(() => {});
+        } catch (e) {}
 
         toast({
           title: "নতুন জমা জমা হয়েছে! 🔔",
           description: `${data.n} আজ ৳${data.a} জমা দিয়েছেন।`,
-          variant: "default",
-          className: "bg-primary text-white border-none shadow-2xl rounded-2xl",
         });
-
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification("Minar Go Foundation", {
-            body: `নতুন জমা: ${data.n} - ৳${data.a}`,
-            icon: logo || "/favicon.ico"
-          });
-        }
       }
     });
 
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-
-    // 3. Members Listener with Robust Seeding Logic
+    // 3. Members Listener and Auto-Seeding
     const membersRef = ref(database, "members");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const list: MGMember[] = Object.entries(data).map(([key, value]: [string, any]) => ({
-          id: key,
-          name: typeof value === 'object' ? value.name : value
-        }));
+        const list: MGMember[] = Object.entries(data).map(([key, value]: [string, any]) => {
+          // Robust checking for member name
+          const nameValue = typeof value === 'object' ? value.name : value;
+          return {
+            id: key,
+            name: nameValue || "Unknown Member"
+          };
+        });
         setMembers(list);
       } else {
-        // Seed database if members list is empty
+        // Only seed if we are authenticated and the list is really empty
+        console.log("Database empty, seeding default members...");
         DEFAULT_MEMBERS.forEach(m => {
-          push(membersRef, { name: m, createdAt: new Date().toISOString() });
+          push(membersRef, { 
+            name: m, 
+            createdAt: new Date().toISOString() 
+          }).catch(e => {
+            console.error("Failed to seed member:", m, e);
+          });
         });
       }
     });
@@ -145,12 +144,7 @@ export default function DashboardScreen({ user }: { user: User }) {
         try {
           const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
           const wData = await wRes.json();
-          const gRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`, {
-            headers: { 'Accept-Language': 'bn,en' }
-          });
-          const gData = await gRes.json();
-          const city = gData.address.city || gData.address.town || gData.address.state || gData.address.country;
-          setWeather({ temp: Math.round(wData.current_weather.temperature), city: city });
+          setWeather({ temp: Math.round(wData.current_weather.temperature), city: "Detected Location" });
         } catch (e) {}
       });
     }
@@ -160,7 +154,7 @@ export default function DashboardScreen({ user }: { user: User }) {
       unsubscribeTrans();
       unsubscribeNotify();
     };
-  }, [toast, logo]);
+  }, [toast]);
 
   const totalCollected = transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
 
@@ -178,7 +172,6 @@ export default function DashboardScreen({ user }: { user: User }) {
     let rows = transactions.map(r => [r.n, r.d, r.a]);
     let total = transactions.reduce((s, r) => s + (parseFloat(r.a) || 0), 0);
     rows.push(["TOTAL COLLECTION", "", total.toString()]);
-    rows.push(["Backup Date", new Date().toLocaleString(), ""]);
     let payload = { sheetName: "MinarGo_Backup", headers: ["Member Name", "Date", "Amount (Tk)"], rows: rows };
     try {
         toast({ title: "Backing up...", description: "গুগল শিটে ডাটা পাঠানো হচ্ছে।" });
@@ -213,12 +206,11 @@ export default function DashboardScreen({ user }: { user: User }) {
         <div className="container mx-auto px-4 mt-6 max-w-lg space-y-6">
           
           {activeTab === "profile" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-6">
               <Card className="bg-primary text-white border-none shadow-xl overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
                 <CardContent className="p-6 relative">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/30">
+                    <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md">
                       {logo ? (
                         <img src={logo} className="w-full h-full object-cover rounded-2xl" alt="Logo" />
                       ) : (
@@ -227,70 +219,21 @@ export default function DashboardScreen({ user }: { user: User }) {
                     </div>
                     <div>
                       <h2 className="font-black text-lg">Admin Dashboard</h2>
-                      <div className="flex items-center gap-1.5 text-accent">
-                        <BellRing className="h-3 w-3" />
-                        <p className="text-[9px] font-bold uppercase tracking-widest">Live Monitoring Active</p>
-                      </div>
+                      <p className="text-[10px] text-accent uppercase font-bold tracking-widest">Live Monitoring</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white/10 p-4 rounded-2xl border border-white/10">
-                      <p className="text-[10px] uppercase font-bold text-white/60 mb-1">Total Fund</p>
+                    <div className="bg-white/10 p-4 rounded-2xl">
+                      <p className="text-[10px] uppercase font-bold text-white/60">Total Fund</p>
                       <h3 className="text-xl font-black">৳{totalCollected.toLocaleString()}</h3>
                     </div>
-                    <div className="bg-white/10 p-4 rounded-2xl border border-white/10">
-                      <p className="text-[10px] uppercase font-bold text-white/60 mb-1">Status</p>
-                      <h3 className="text-lg font-black text-accent">ACTIVE</h3>
+                    <div className="bg-white/10 p-4 rounded-2xl">
+                      <p className="text-[10px] uppercase font-bold text-white/60">Members</p>
+                      <h3 className="text-xl font-black">{members.length}</h3>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-
-              <Card className="border-none shadow-sm bg-white overflow-hidden rounded-2xl">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                      <MapPin className="text-primary h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Current Location</p>
-                      <h4 className="text-xs font-black text-slate-800 uppercase">{weather?.city || "Detecting..."}</h4>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
-                    <CloudSun className="text-accent h-4 w-4" />
-                    <span className="text-sm font-black text-primary">{weather ? `${weather.temp}°C` : "--°C"}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-none shadow-lg bg-white overflow-hidden rounded-3xl group active:scale-95 transition-all cursor-pointer border-l-4 border-l-blue-600" onClick={backupToSheets}>
-                <CardContent className="p-5 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
-                      <Database className="text-blue-600 h-6 w-6" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800 uppercase">Cloud Data Backup</h4>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sync to Google Sheets</p>
-                    </div>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                    <CloudUpload className="text-blue-600 h-5 w-5" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="h-20 rounded-3xl border-2 border-slate-100 bg-white flex flex-col items-center justify-center gap-1 shadow-sm active:scale-95" onClick={() => window.open("https://zegocloud.com", "_blank")}>
-                  <Phone className="h-6 w-6 text-blue-600" />
-                  <span className="text-[10px] font-black uppercase text-slate-600">Group Call</span>
-                </Button>
-                <Card className="border-none shadow-sm bg-white rounded-3xl flex flex-col items-center justify-center p-4">
-                  <Target className="h-6 w-6 text-orange-600 mb-1" />
-                  <h4 className="text-[10px] font-black text-slate-800 uppercase">Eid Zakat</h4>
-                </Card>
-              </div>
 
               <TransactionManager members={members} transactions={transactions} mode="summary" />
             </div>
@@ -302,36 +245,36 @@ export default function DashboardScreen({ user }: { user: User }) {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full px-6 pb-8 pt-4 bg-transparent pointer-events-none z-50">
-        <div className="max-w-md mx-auto bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,35,102,0.15)] flex items-center justify-between px-2 py-2 border border-slate-100 pointer-events-auto">
+      <nav className="fixed bottom-0 left-0 w-full px-6 pb-8 pt-4 z-50">
+        <div className="max-w-md mx-auto bg-white rounded-[2.5rem] shadow-2xl flex items-center justify-between px-2 py-2 border">
           <button onClick={() => setActiveTab("profile")} className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-[2rem] transition-all ${activeTab === "profile" ? "bg-slate-50 text-primary" : "text-slate-400"}`}>
             <Home className="h-5 w-5" />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Profile</span>
+            <span className="text-[9px] font-black uppercase">Profile</span>
           </button>
           <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-[2rem] transition-all ${activeTab === "members" ? "bg-slate-50 text-primary" : "text-slate-400"}`}>
             <Users className="h-5 w-5" />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Members</span>
+            <span className="text-[9px] font-black uppercase">Members</span>
           </button>
           <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
             <DialogTrigger asChild>
-              <button className="flex flex-col items-center justify-center -mt-12 group">
-                <div className="w-16 h-16 rounded-full bg-accent border-4 border-white shadow-xl shadow-accent/40 flex items-center justify-center text-white transition-transform active:scale-90">
+              <button className="flex flex-col items-center justify-center -mt-12">
+                <div className="w-16 h-16 rounded-full bg-accent border-4 border-white shadow-xl flex items-center justify-center text-white">
                   <Plus className="h-8 w-8 stroke-[3px]" />
                 </div>
               </button>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-              <div className="bg-primary p-6 text-white"><DialogHeader><DialogTitle className="text-white">New Deposit</DialogTitle></DialogHeader></div>
-              <div className="p-6 bg-white"><TransactionManager members={members} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} /></div>
+            <DialogContent className="max-w-[95vw] rounded-[2rem] p-6">
+              <DialogHeader><DialogTitle>New Deposit</DialogTitle></DialogHeader>
+              <TransactionManager members={members} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
             </DialogContent>
           </Dialog>
           <button onClick={() => setActiveTab("gallery")} className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-[2rem] transition-all ${activeTab === "gallery" ? "bg-slate-50 text-primary" : "text-slate-400"}`}>
             <ImageIcon className="h-5 w-5" />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Gallery</span>
+            <span className="text-[9px] font-black uppercase">Gallery</span>
           </button>
           <button onClick={() => setActiveTab("tools")} className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-[2rem] transition-all ${activeTab === "tools" ? "bg-slate-50 text-primary" : "text-slate-400"}`}>
             <FileText className="h-5 w-5" />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Tools</span>
+            <span className="text-[9px] font-black uppercase">Tools</span>
           </button>
         </div>
       </nav>
