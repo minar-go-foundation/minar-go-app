@@ -48,7 +48,7 @@ export default function AuthScreen() {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "Welcome back!", description: "Logged in successfully." });
       } else {
-        // Registration / Adding new email from outside
+        // registration flow with OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const result = await sendOtpEmailAction(email, otp);
         
@@ -121,7 +121,6 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
-      // Sends official reset link after internal verification
       await sendPasswordResetEmail(auth, email);
       setStep("reset-success");
       toast({ 
@@ -180,7 +179,10 @@ export default function AuthScreen() {
           </div>
 
           <Button 
-            onClick={() => setStep("auth")} 
+            onClick={() => {
+              setStep("auth");
+              setIsLogin(true);
+            }} 
             className="w-full bg-[#002366] hover:bg-[#001a4d] h-14 rounded-2xl font-black text-sm tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20"
           >
             BACK TO LOGIN
