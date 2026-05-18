@@ -82,7 +82,6 @@ export default function AuthScreen() {
     setLoading(true);
     try {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      // Using custom SMTP to send OTP to ensure it arrives
       const result = await sendOtpEmailAction(email, otp);
       if (result.success) {
         setGeneratedOtp(otp);
@@ -125,8 +124,8 @@ export default function AuthScreen() {
       await sendPasswordResetEmail(auth, email);
       setStep("reset-success");
       toast({ 
-        title: "Security Link Triggered!", 
-        description: "The final reset link has been dispatched to your email." 
+        title: "Security Link Dispatched", 
+        description: "The activation link has been sent to your email." 
       });
     } catch (error: any) {
       toast({ title: "Reset Error", description: error.message, variant: "destructive" });
@@ -164,25 +163,24 @@ export default function AuthScreen() {
   if (step === "reset-success") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 font-body">
-        <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white text-center">
-          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+        <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-10 bg-white text-center animate-in fade-in zoom-in duration-500">
+          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8">
             <CheckCircle2 className="h-10 w-10 text-green-500" />
           </div>
-          <h2 className="text-xl font-black text-primary uppercase mb-2">Check Your Email</h2>
-          <div className="space-y-4 mb-8">
-            <p className="text-[11px] font-bold text-slate-500 leading-relaxed uppercase tracking-wider">
-              নিরাপত্তার স্বার্থে আপনার ইমেইলে একটি চূড়ান্ত ভেরিফিকেশন লিঙ্ক পাঠানো হয়েছে। 
+          
+          <h2 className="text-xl font-black text-[#002366] uppercase mb-4 tracking-tight">
+            CHECK YOUR EMAIL
+          </h2>
+          
+          <div className="space-y-4 mb-10 px-2">
+            <p className="text-[13px] font-bold text-slate-500 leading-relaxed font-bengali">
+              নিরাপত্তার স্বার্থে আপনার ইমেইলে একটি লিঙ্ক পাঠানো হয়েছে। ওই লিঙ্কে ক্লিক করলেই আপনার নতুন পাসওয়ার্ডটি সক্রিয় হয়ে যাবে।
             </p>
-            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-3">
-              <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-              <p className="text-[9px] text-left font-bold text-amber-700 uppercase leading-normal">
-                যদি লিঙ্কটি না পান, তবে আপনার ইমেইলের "Spam" ফোল্ডার চেক করুন। অথবা ফায়ারবেস কনসোলে ইমেইল টেমপ্লেট সক্রিয় আছে কিনা নিশ্চিত করুন।
-              </p>
-            </div>
           </div>
+
           <Button 
             onClick={() => setStep("auth")} 
-            className="w-full bg-primary h-14 rounded-2xl font-black text-base"
+            className="w-full bg-[#002366] hover:bg-[#001a4d] h-14 rounded-2xl font-black text-sm tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20"
           >
             BACK TO LOGIN
           </Button>
