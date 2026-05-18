@@ -168,12 +168,13 @@ export default function DashboardScreen({ user }: { user: User }) {
     setBackupLoading(true);
     const backupData = {
       spreadsheetId: SPREADSHEET_ID,
-      sheetName: `Backup_${format(new Date(), "MMM_yyyy")}`,
-      headers: ["Member Name", "Date", "Category", "Amount"],
-      rows: transactions.map(t => [t.n, t.d, t.c, t.a])
+      sheetName: "MinarGo_Backup",
+      headers: ["Member Name", "Date", "Amount (Tk)"],
+      rows: transactions.map(t => [t.n, t.d, t.a])
     };
 
     try {
+      // Using fetch with no-cors as Google Apps Script often requires it for simple POSTs
       await fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors", 
@@ -182,8 +183,8 @@ export default function DashboardScreen({ user }: { user: User }) {
       });
       
       toast({ 
-        title: "Backup Successful!", 
-        description: "Your foundation data has been synced to Google Sheets." 
+        title: "Backup Initialized!", 
+        description: "Request sent to Google Cloud. Please check your sheet." 
       });
     } catch (error) {
       toast({ 
@@ -218,7 +219,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             <h1 className="text-[12px] font-black text-primary leading-tight uppercase tracking-tight">Minar Go Expatriate</h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               <CloudSun className="h-3 w-3 text-[#C4A052]" />
-              <p className="text-[9px] text-[#C4A052] font-bold uppercase tracking-widest">{weather.city} • {weather.temp}°C</p>
+              <div className="text-[9px] text-[#C4A052] font-bold uppercase tracking-widest">{weather.city} • {weather.temp}°C</div>
             </div>
           </div>
         </div>
