@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { database } from "@/lib/firebase";
 import { ref, push, remove } from "firebase/database";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
@@ -33,7 +33,6 @@ const MONTHS = [
 
 const CATEGORIES = ["প্রতি মাসের জমা", "যাকাত", "ফিতরা", "বাড়ির কাজ"];
 
-// Category translation for PDF consistency
 const CATEGORY_MAP: Record<string, string> = {
   "প্রতি মাসের জমা": "Monthly Deposit",
   "যাকাত": "Zakat",
@@ -46,22 +45,24 @@ interface TransactionManagerProps {
   transactions: any[];
   mode?: "form" | "summary" | "full";
   onSuccess?: () => void;
+  filterMonth?: string;
+  onFilterMonthChange?: (month: string) => void;
 }
 
-export default function TransactionManager({ members, transactions, mode = "full", onSuccess }: TransactionManagerProps) {
+export default function TransactionManager({ 
+  members, 
+  transactions, 
+  mode = "full", 
+  onSuccess,
+  filterMonth = "All",
+  onFilterMonthChange
+}: TransactionManagerProps) {
   const [selectedMember, setSelectedMember] = useState("");
   const [category, setCategory] = useState("প্রতি মাসের জমা");
   const [amount, setAmount] = useState("5000");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [filterMonth, setFilterMonth] = useState<string>("All");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
-
-  // Set initial filter to current month on client side
-  useEffect(() => {
-    const currentMonth = MONTHS[new Date().getMonth()];
-    setFilterMonth(currentMonth);
-  }, []);
 
   const filteredTransactions = useMemo(() => {
     let list = [...transactions];
@@ -69,8 +70,7 @@ export default function TransactionManager({ members, transactions, mode = "full
       list = list.filter(t => {
         try {
           const tDate = new Date(t.d);
-          const tMonth = tDate.getMonth();
-          return MONTHS[tMonth] === filterMonth;
+          return MONTHS[tDate.getMonth()] === filterMonth;
         } catch (e) {
           return false;
         }
@@ -127,11 +127,9 @@ export default function TransactionManager({ members, transactions, mode = "full
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     
-    // Header background
-    doc.setFillColor(0, 35, 102); // Deep Navy
+    doc.setFillColor(0, 35, 102); 
     doc.rect(0, 0, pageWidth, 45, 'F');
     
-    // Header Title
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
@@ -139,13 +137,11 @@ export default function TransactionManager({ members, transactions, mode = "full
     doc.setFontSize(16);
     doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 28, { align: "center" });
     
-    // Report Subtitle
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(220, 220, 220);
     doc.text(`Collection Summary Report - ${filterMonth === 'All' ? 'Yearly' : filterMonth} Period`, pageWidth / 2, 38, { align: "center" });
     
-    // Table Preparation
     const tableData = filteredTransactions.map(t => [
       t.n, 
       t.d, 
@@ -185,28 +181,20 @@ export default function TransactionManager({ members, transactions, mode = "full
       margin: { left: 15, right: 15, bottom: 30 }
     });
     
-    // Professional Footer logic
     const pageCount = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      
-      // Footer Divider
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.5);
       doc.line(15, pageHeight - 25, pageWidth - 15, pageHeight - 25);
-      
-      // Footer Content
       doc.setFontSize(9);
       doc.setTextColor(50, 50, 50);
       doc.setFont("helvetica", "bold");
       doc.text("MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION", pageWidth / 2, pageHeight - 18, { align: "center" });
-      
       doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(100, 100, 100);
       doc.text("COPYRIGHT © 2024 ALL RIGHTS RESERVED | OFFICIAL COLLECTION REPORT", pageWidth / 2, pageHeight - 12, { align: "center" });
-      
-      // Page Number
       doc.text(`Page ${i} of ${pageCount}`, pageWidth - 15, pageHeight - 12, { align: "right" });
     }
     
@@ -324,7 +312,7 @@ export default function TransactionManager({ members, transactions, mode = "full
             </div>
           </div>
           <div className="flex gap-2">
-            <Select onValueChange={setFilterMonth} value={filterMonth}>
+            <Select onValueChange={(val) => onFilterMonthChange?.(val)} value={filterMonth}>
               <SelectTrigger className="w-[120px] h-10 text-[10px] font-black rounded-xl border-slate-200 bg-white shadow-sm uppercase">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>

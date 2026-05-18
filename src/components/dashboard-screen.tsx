@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { User, signOut } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
 import { ref, onValue, push, query, limitToLast, onChildAdded, set } from "firebase/database";
@@ -55,6 +55,11 @@ const DEFAULT_MEMBERS = [
   "Mr. Aqib"
 ];
 
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June", 
+  "July", "August", "September", "October", "November", "December"
+];
+
 const ADMIN_EMAIL = "kosttoonek7@gmail.com";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
@@ -75,12 +80,13 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [weather, setWeather] = useState({ city: "Detecting...", temp: "--" });
   const [backupLoading, setBackupLoading] = useState(false);
   const [countdown, setCountdown] = useState({ hajj: 0, ramadan: 0 });
+  const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
   const { toast } = useToast();
   
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    // Calculate countdowns on client side to avoid hydration mismatch
+    // Calculate countdowns on client side
     const hajjDate = new Date("2026-05-25");
     const ramadanDate = new Date("2026-02-18");
     const now = new Date();
@@ -165,6 +171,21 @@ export default function DashboardScreen({ user }: { user: User }) {
     };
   }, [toast, user.email]);
 
+  const filteredTotal = useMemo(() => {
+    if (filterMonth === "All") {
+      return transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
+    }
+    return transactions.reduce((acc, curr) => {
+      try {
+        const tDate = new Date(curr.d);
+        if (MONTHS[tDate.getMonth()] === filterMonth) {
+          return acc + (parseFloat(curr.a) || 0);
+        }
+      } catch (e) {}
+      return acc;
+    }, 0);
+  }, [transactions, filterMonth]);
+
   const handleCloudBackup = async () => {
     if (transactions.length === 0) {
       toast({ title: "No Data", description: "There are no transactions to backup.", variant: "destructive" });
@@ -210,8 +231,6 @@ export default function DashboardScreen({ user }: { user: User }) {
       setBackupLoading(false);
     }
   };
-
-  const totalCollected = transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -259,8 +278,10 @@ export default function DashboardScreen({ user }: { user: User }) {
               <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[2.5rem] bg-primary overflow-hidden relative group p-1">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 group-hover:scale-125 transition-transform duration-700" />
                 <CardContent className="p-8 text-center relative z-10">
-                  <p className="text-[10px] uppercase font-black text-[#C4A052] tracking-[0.3em] mb-4">Total Foundation Assets</p>
-                  <h3 className="text-4xl font-black text-white mb-2">৳{totalCollected.toLocaleString()}</h3>
+                  <p className="text-[10px] uppercase font-black text-[#C4A052] tracking-[0.3em] mb-4">
+                    {filterMonth === "All" ? "Total Foundation Assets" : `Total ${filterMonth} Assets`}
+                  </p>
+                  <h3 className="text-4xl font-black text-white mb-2">৳{filteredTotal.toLocaleString()}</h3>
                   <div className="flex justify-center items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                     <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Live System Active</span>
@@ -316,7 +337,13 @@ export default function DashboardScreen({ user }: { user: User }) {
             </div>
 
             <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50 transition-all hover:shadow-2xl hover:shadow-primary/5">
-              <TransactionManager members={members} transactions={transactions} mode="summary" />
+              <TransactionManager 
+                members={members} 
+                transactions={transactions} 
+                mode="summary" 
+                filterMonth={filterMonth}
+                onFilterMonthChange={setFilterMonth}
+              />
             </div>
           </div>
         )}
@@ -387,7 +414,12 @@ export default function DashboardScreen({ user }: { user: User }) {
               <DialogHeader>
                 <DialogTitle className="text-center font-black uppercase text-primary text-xl tracking-tight">Record New Deposit</DialogTitle>
               </DialogHeader>
-              <TransactionManager members={members} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
+              <TransactionManager 
+                members={members} 
+                transactions={transactions} 
+                mode="form" 
+                onSuccess={() => setIsDepositOpen(false)} 
+              />
             </DialogContent>
           </Dialog>
 
