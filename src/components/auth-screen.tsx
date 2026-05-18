@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw, KeyRound, Eye, EyeOff, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw, KeyRound, Eye, EyeOff, CheckCircle2, UserPlus } from "lucide-react";
 import Image from "next/image";
 import { sendOtpEmailAction } from "@/app/actions/send-email";
 
@@ -48,6 +48,7 @@ export default function AuthScreen() {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "Welcome back!", description: "Logged in successfully." });
       } else {
+        // Registration / Adding new email from outside
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const result = await sendOtpEmailAction(email, otp);
         
@@ -120,7 +121,7 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
-      // Firebase standard security: triggers official reset link
+      // Sends official reset link after internal verification
       await sendPasswordResetEmail(auth, email);
       setStep("reset-success");
       toast({ 
@@ -152,7 +153,7 @@ export default function AuthScreen() {
         createdAt: new Date().toISOString()
       });
       
-      toast({ title: "Account Verified!", description: "Account created successfully." });
+      toast({ title: "Account Verified!", description: "New Admin email added successfully." });
     } catch (error: any) {
       toast({ title: "Registration Error", description: error.message, variant: "destructive" });
     } finally {
@@ -375,10 +376,19 @@ export default function AuthScreen() {
       </div>
 
       <div className="w-full max-w-sm mt-8 flex-1">
+        <div className="text-center mb-6">
+          <h2 className="text-lg font-black text-primary uppercase tracking-tight">
+            {isLogin ? "Secure System Login" : "New Admin Registration"}
+          </h2>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+            {isLogin ? "Enter your official credentials" : "Create a new administrative identity"}
+          </p>
+        </div>
+
         <form onSubmit={handleAuth} className="space-y-6">
           {!isLogin && (
             <div className="space-y-2 animate-in fade-in duration-300">
-              <Label htmlFor="name" className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Admin Name</Label>
+              <Label htmlFor="name" className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Admin Full Name</Label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -451,13 +461,17 @@ export default function AuthScreen() {
 
           <div className="text-center pt-2">
             <p className="text-xs text-muted-foreground font-medium">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
+              {isLogin ? "Lost access to your email?" : "Back to official access?"}
               <button 
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="ml-1 text-primary font-bold hover:underline"
+                className="ml-1 text-primary font-bold hover:underline flex items-center justify-center gap-1 mx-auto mt-2"
               >
-                {isLogin ? "Sign up" : "Sign in"}
+                {!isLogin ? (
+                   <>Return to Login <ArrowRight className="h-3 w-3" /></>
+                ) : (
+                   <><UserPlus className="h-3 w-3" /> Register New Admin Email</>
+                )}
               </button>
             </p>
           </div>
