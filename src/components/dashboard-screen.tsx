@@ -100,7 +100,6 @@ export default function DashboardScreen({ user }: { user: User }) {
   }, []);
 
   useEffect(() => {
-    // 1. Transactions Listener
     const transRef = ref(database, "transactions");
     const unsubscribeTrans = onValue(transRef, (snapshot) => {
       const list: any[] = [];
@@ -112,7 +111,6 @@ export default function DashboardScreen({ user }: { user: User }) {
       }
     });
 
-    // 2. Notifications
     const notifyQuery = query(ref(database, "transactions"), limitToLast(1));
     const unsubscribeNotify = onChildAdded(notifyQuery, (snapshot) => {
       if (isInitialLoad.current) {
@@ -130,7 +128,6 @@ export default function DashboardScreen({ user }: { user: User }) {
       }
     });
 
-    // 3. Members Listener
     const membersRef = ref(database, "members");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const list: MGMember[] = [];
@@ -141,7 +138,6 @@ export default function DashboardScreen({ user }: { user: User }) {
         });
         setMembers(list);
       } else if (user.email === ADMIN_EMAIL) {
-        // Auto-seed if empty and user is admin
         DEFAULT_MEMBERS.forEach(m => {
           const newMemberRef = push(membersRef);
           set(newMemberRef, { name: m, createdAt: new Date().toISOString() });
@@ -166,11 +162,21 @@ export default function DashboardScreen({ user }: { user: User }) {
     }
 
     setBackupLoading(true);
+    const now = new Date();
+    const timestampStr = format(now, "dd/MM/yyyy HH:mm:ss");
+    const total = transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
+    
+    // Constructing a structured log for the backup
+    const sessionHeader = [`--- BACKUP SESSION: ${timestampStr} ---`, "", ""];
+    const tableHeaders = ["Member Name", "Date", "Amount (Tk)"];
+    const dataRows = transactions.map(t => [t.n, t.d, t.a]);
+    const totalRow = ["TOTAL ASSETS", "", total.toLocaleString()];
+    const separator = ["", "", ""];
+
     const backupData = {
       spreadsheetId: SPREADSHEET_ID,
       sheetName: "MinarGo_Backup",
-      headers: ["Member Name", "Date", "Amount (Tk)"],
-      rows: transactions.map(t => [t.n, t.d, t.a])
+      rows: [sessionHeader, tableHeaders, ...dataRows, totalRow, separator]
     };
 
     try {
@@ -182,8 +188,8 @@ export default function DashboardScreen({ user }: { user: User }) {
       });
       
       toast({ 
-        title: "Backup Initialized!", 
-        description: "Data successfully pushed to Google Cloud." 
+        title: "Backup Success!", 
+        description: "Data appended to Google Sheet with timestamp and total." 
       });
     } catch (error) {
       toast({ 
@@ -204,7 +210,6 @@ export default function DashboardScreen({ user }: { user: User }) {
 
   return (
     <div className="min-h-screen bg-[#F8FAFF] flex flex-col font-body pb-32">
-      {/* Premium Header */}
       <header className="px-6 py-5 flex items-center justify-between bg-white shadow-sm border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center gap-4">
           <div className="relative w-12 h-12 rounded-2xl bg-primary border-2 border-accent/20 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/10 transition-transform active:scale-95" onClick={() => setActiveTab("setting")}>
@@ -241,7 +246,6 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className="flex-1 overflow-y-auto px-6 py-6 container max-w-lg mx-auto">
         {activeTab === "home" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Main Stats Cards */}
             <div className="grid grid-cols-1 gap-4">
               <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[2.5rem] bg-primary overflow-hidden relative group p-1">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 group-hover:scale-125 transition-transform duration-700" />
@@ -273,7 +277,6 @@ export default function DashboardScreen({ user }: { user: User }) {
               </div>
             </div>
 
-            {/* Event Countdown Section */}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-6 bg-[#002366] rounded-[2.2rem] text-white shadow-2xl relative overflow-hidden group border border-white/5">
                 <div className="absolute bottom-0 left-0 w-20 h-20 bg-accent/10 rounded-full -ml-10 -mb-10 blur-2xl" />
@@ -290,7 +293,6 @@ export default function DashboardScreen({ user }: { user: User }) {
               </div>
             </div>
 
-            {/* Quick Tools & History */}
             <div className="flex items-center justify-between px-2">
               <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Transaction Log</h3>
               <Button variant="ghost" className="text-[9px] font-black text-[#C4A052] uppercase p-0 h-auto tracking-widest hover:bg-transparent" onClick={() => setActiveTab("tools")}>
@@ -346,7 +348,6 @@ export default function DashboardScreen({ user }: { user: User }) {
         )}
       </main>
 
-      {/* Modern Floating Navigation */}
       <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 pt-4 z-50 pointer-events-none">
         <div className="max-w-md mx-auto bg-white/90 rounded-[3rem] shadow-[0_25px_60px_rgba(0,35,102,0.2)] flex items-center justify-between px-3 py-3 border border-white/60 backdrop-blur-xl pointer-events-auto">
           <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}>
@@ -359,7 +360,6 @@ export default function DashboardScreen({ user }: { user: User }) {
             <span className="text-[8px] font-black uppercase tracking-widest">Members</span>
           </button>
 
-          {/* Central FAB - Deposit Action */}
           <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
             <DialogTrigger asChild>
               <button className="flex flex-col items-center justify-center -mt-14 mx-2 group">
