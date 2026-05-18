@@ -3,8 +3,8 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { User, signOut } from "firebase/auth";
-import { auth, database } from "@/lib/firebase";
-import { ref, onValue, query, limitToLast, onChildAdded } from "firebase/database";
+import { useAuth, useFirestore, useCollection } from "@/firebase";
+import { collection, query, orderBy, limit } from "firebase/firestore";
 import { 
   LogOut, 
   Plus, 
@@ -46,32 +46,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
 const APP_SYSTEM_PROFILE = `
-MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - SYSTEM PROFILE
-
-[ ১. ব্র্যান্ডিং ও ডিজাইন (Identity) ]
-- নাম: মিনার গো এক্সপ্যাট্রিয়েট ডেভেলপমেন্ট ফাউন্ডেশন
-- থিম: নেভি ব্লু (#002366) ও প্রিমিয়াম গোল্ড (#C4A052)
-- ফন্ট: ইন্টার (ইংরেজি) এবং নটো সানস বেঙ্গলি (বাংলা)
-- স্টাইল: মডার্ন কার্ড-বেসড ডিজাইন, রাউন্ডেড কর্নার এবং গ্লাস-মর্ফিজম।
-
-[ ২. নিরাপত্তা (Security) ]
-- ওটিপি ভেরিফিকেশন: Nodemailer ও Gmail SMTP ব্যবহার করে সরাসরি ইমেইলে ৬-ডিজিটের কোড।
-- সিকিউরিটি লকআউট: হেডারে সরাসরি দ্রুত লগআউট বাটন।
-- ভিডিও কল: ZegoCloud UIKit এনক্রিপ্টেড গেটওয়ে।
-
-[ ৩. ম্যানেজমেন্ট (Management) ]
-- মেম্বার ডিরেক্টরি: রিয়েল-টাইম মেম্বার ডাটাবেজ (Add/Remove)।
-- ট্রানজ্যাকশন লগ: প্রতি মাসের আলাদা হিসাব এবং অটোমেটিক মান্থলি ফিল্টার।
-- ডিজিটাল গ্যালারি: ৫ মেগাবাইট পর্যন্ত ফাইল আপলোড ও স্টোরেজ সুবিধা।
-
-[ ৪. অটোমেশন ও ডাইনামিক ফিচার ]
-- লাইভ ক্লক: হেডারে প্রতি সেকেন্ডে আপডেট হওয়া ডিজিটাল ঘড়ি।
-- স্মার্ট কাউন্টডাউন: হজ্জ ও রমাদানের তারিখ সয়ংক্রিয়ভাবে পরবর্তী বছরের জন্য আপডেট হয়।
-- ক্লাউড ব্যাকআপ: গুগল শিটে নির্ভুল তারিখ ও সময়ের স্ট্যাম্পসহ সয়ংক্রিয় ব্যাকআপ।
-
-[ ৫. কমিউনিকেশন ]
-- অ্যাডমিন চ্যাট: ফাউন্ডেশনের কর্মকর্তাদের জন্য নিরাপদ রিয়েল-টাইম চ্যাট রুম।
-- ভিডিও কানেক্ট: হাই-ডেফিনিশন ভিডিও ও অডিও কনফারেন্সিং।
+MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - SECURE PROFILE
 `.trim();
 
 type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call";
@@ -92,8 +67,6 @@ const GET_NEXT_DATE = (baseDate: Date) => {
 
 export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
-  const [members, setMembers] = useState<MGMember[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [weather, setWeather] = useState({ city: "Detecting...", temp: "--" });
@@ -101,8 +74,14 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
   const { toast } = useToast();
-  
-  const isInitialLoad = useRef(true);
+  const auth = useAuth();
+  const db = useFirestore();
+
+  const transactionsQuery = useMemo(() => db ? query(collection(db, "transactions"), orderBy("d", "desc")) : null, [db]);
+  const { data: transactions = [] } = useCollection(transactionsQuery);
+
+  const membersQuery = useMemo(() => db ? query(collection(db, "members"), orderBy("name", "asc")) : null, [db]);
+  const { data: members = [] } = useCollection(membersQuery);
 
   const nextHajj = useMemo(() => GET_NEXT_DATE(new Date("2026-05-25")), []);
   const nextRamadan = useMemo(() => GET_NEXT_DATE(new Date("2026-02-18")), []);
@@ -124,47 +103,11 @@ export default function DashboardScreen({ user }: { user: User }) {
       }, () => setWeather({ city: "Global", temp: "24" }));
     }
 
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const transRef = ref(database, "transactions");
-    const unsubscribeTrans = onValue(transRef, (snapshot) => {
-      const list: any[] = [];
-      if (snapshot.exists()) {
-        snapshot.forEach((child) => { list.push({ id: child.key, ...child.val() }); });
-        setTransactions(list);
-      }
-    });
-
-    const notifyQuery = query(ref(database, "transactions"), limitToLast(1));
-    const unsubscribeNotify = onChildAdded(notifyQuery, (snapshot) => {
-      if (isInitialLoad.current) { isInitialLoad.current = false; return; }
-      const data = snapshot.val();
-      if (data) {
-        new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3").play().catch(() => {});
-        toast({ title: "নতুন জমা হয়েছে! 🔔", description: `${data.n} থেকে ৳${data.a} জমা হয়েছে।` });
-      }
-    });
-
-    const membersRef = ref(database, "members");
-    const unsubscribeMembers = onValue(membersRef, (snapshot) => {
-      const list: MGMember[] = [];
-      if (snapshot.exists()) {
-        snapshot.forEach((child) => { list.push({ id: child.key!, name: child.val().name }); });
-        setMembers(list);
-      }
-    });
-
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
 
-    return () => {
-      unsubscribeMembers();
-      unsubscribeTrans();
-      unsubscribeNotify();
-    };
-  }, [toast]);
+    return () => clearInterval(timer);
+  }, []);
 
   const dashboardTotal = useMemo(() => {
     if (filterMonth === "All") return transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
@@ -229,7 +172,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             size="icon" 
             className="h-10 w-10 bg-red-50 hover:bg-red-100 rounded-xl group transition-all" 
             onClick={() => {
-              signOut(auth);
+              signOut(auth!);
               toast({title: "Security Lockout", description: "You have been securely logged out."});
             }}
             title="Security Lockout"
@@ -261,7 +204,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <h3 className="text-4xl font-black text-white mb-2">৳{dashboardTotal.toLocaleString()}</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Active System</span>
+                  <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Secure Cloud System</span>
                 </div>
               </CardContent>
             </Card>
@@ -296,18 +239,18 @@ export default function DashboardScreen({ user }: { user: User }) {
                  <ShieldCheck className="h-8 w-8 text-primary opacity-20" />
                </div>
                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-                 Security First Dashboard<br/>
-                 <span className="text-[10px] opacity-60">Manage your foundation safely.</span>
+                 Hacker-Proof Infrastructure<br/>
+                 <span className="text-[10px] opacity-60">Your data is secured with Cloud Firestore.</span>
                </p>
             </Card>
           </div>
         )}
 
-        {activeTab === "members" && <MemberManager members={members} />}
+        {activeTab === "members" && <MemberManager members={members as MGMember[]} />}
         {activeTab === "history" && (
           <div className="space-y-6 animate-in fade-in duration-500">
             <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50">
-              <TransactionManager members={members} transactions={transactions} mode="full" filterMonth={filterMonth} onFilterMonthChange={setFilterMonth} />
+              <TransactionManager members={members as MGMember[]} transactions={transactions} mode="full" filterMonth={filterMonth} onFilterMonthChange={setFilterMonth} />
             </div>
           </div>
         )}
@@ -334,45 +277,16 @@ export default function DashboardScreen({ user }: { user: User }) {
                    <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-slate-200" onClick={() => setActiveTab("gallery")}>
                      <ImageIcon className="mr-2 h-5 w-5" /> DIGITAL VAULT
                    </Button>
-                   <Button variant="destructive" className="w-full h-14 rounded-2xl font-black shadow-xl mt-4" onClick={() => signOut(auth)}>
+                   <Button variant="destructive" className="w-full h-14 rounded-2xl font-black shadow-xl mt-4" onClick={() => signOut(auth!)}>
                     <LogOut className="mr-2 h-5 w-5" /> SECURE LOGOUT
                   </Button>
                 </div>
               </div>
             </Card>
-
-            <Card className="rounded-[2.5rem] border-none shadow-xl p-8 bg-white">
-               <div className="flex items-center gap-3 mb-6">
-                 <div className="p-2 bg-primary/10 rounded-xl"><ShieldCheck className="h-5 w-5 text-primary" /></div>
-                 <div>
-                   <h4 className="text-xs font-black uppercase text-primary tracking-tight">System Profile</h4>
-                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Full Feature Report</p>
-                 </div>
-               </div>
-               <div className="relative group">
-                 <Textarea 
-                   readOnly 
-                   value={APP_SYSTEM_PROFILE} 
-                   className="h-80 rounded-2xl bg-slate-50 border-none text-[10px] font-medium leading-relaxed mb-4 scrollbar-hide focus:ring-0" 
-                 />
-                 <div className="absolute inset-0 bg-gradient-to-t from-slate-50/50 to-transparent pointer-events-none h-12 bottom-4 rounded-b-2xl" />
-               </div>
-               <Button 
-                variant="outline" 
-                className="w-full h-12 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 border-slate-200" 
-                onClick={() => {
-                  navigator.clipboard.writeText(APP_SYSTEM_PROFILE); 
-                  toast({title: "Report Copied!", description: "System profile has been copied to clipboard."})
-                }}
-               >
-                 <ClipboardCheck className="h-4 w-4" /> Copy System Report
-               </Button>
-            </Card>
           </div>
         )}
       </main>
 
-      {/* Optimized Bottom Navigation Bar - Real App Layout */}
       <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50 pointer-events-none">
         <div className="max-w-md mx-auto relative pointer-events-auto">
           <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_15px_50px_-12px_rgba(0,35,102,0.25)] border border-slate-100 flex items-center justify-between px-2 py-3 ring-1 ring-black/5">
@@ -415,7 +329,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] rounded-[3rem] p-8 border-none shadow-2xl animate-in zoom-in-95 duration-300">
                   <DialogHeader><DialogTitle className="text-center font-black uppercase text-primary text-xl tracking-tight">New Deposit</DialogTitle></DialogHeader>
-                  <TransactionManager members={members} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
+                  <TransactionManager members={members as MGMember[]} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
                 </DialogContent>
               </Dialog>
             </div>

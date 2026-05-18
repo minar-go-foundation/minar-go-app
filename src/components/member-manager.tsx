@@ -1,13 +1,16 @@
+
 "use client";
 
-import { useState } from "react";
-import { database } from "@/lib/firebase";
-import { ref, push, remove, set } from "firebase/database";
+import { useState, useMemo } from "react";
+import { useFirestore, useCollection } from "@/firebase";
+import { collection, doc, addDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Users, AlertCircle, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 import { MGMember } from "./dashboard-screen";
 import {
   AlertDialog,
@@ -20,49 +23,64 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export default function MemberManager({ members }: { members: MGMember[] }) {
+export default function MemberManager({ members: initialMembers }: { members: MGMember[] }) {
   const [newMember, setNewMember] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteMember, setDeleteMember] = useState<MGMember | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const db = useFirestore();
 
-  const handleAddMember = async (e: React.FormEvent) => {
+  const membersRef = useMemo(() => db ? collection(db, "members") : null, [db]);
+  const membersQuery = useMemo(() => membersRef ? query(membersRef, orderBy("name", "asc")) : null, [membersRef]);
+  const { data: members = [] } = useCollection(membersQuery);
+
+  const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMember.trim()) return;
+    if (!newMember.trim() || !db) return;
     
     setLoading(true);
-    try {
-      const membersRef = ref(database, "members");
-      const newMemberRef = push(membersRef);
-      await set(newMemberRef, {
-        name: newMember.trim(),
-        createdAt: new Date().toISOString()
-      });
-      setNewMember("");
-      toast({ title: "সফলভাবে যুক্ত হয়েছে", description: `${newMember} এখন মেম্বার লিস্টে আছে।` });
-    } catch (error: any) {
-      toast({ title: "Error", description: "পারমিশন ডিনাইড!", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
+    const data = {
+      name: newMember.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    addDoc(collection(db, "members"), data)
+      .then(() => {
+        setNewMember("");
+        toast({ title: "সফলভাবে যুক্ত হয়েছে", description: `${newMember} এখন মেম্বার লিস্টে আছে।` });
+      })
+      .catch(async (err) => {
+        const permissionError = new FirestorePermissionError({
+          path: "members",
+          operation: "create",
+          requestResourceData: data,
+        });
+        errorEmitter.emit("permission-error", permissionError);
+      })
+      .finally(() => setLoading(false));
   };
 
-  const confirmDelete = async () => {
-    if (!deleteMember) return;
-    try {
-      await remove(ref(database, `members/${deleteMember.id}`));
-      toast({ title: "Member removed", description: "Deleted successfully." });
-    } catch (error: any) {
-      toast({ title: "Error", description: "Failed to remove member.", variant: "destructive" });
-    } finally {
-      setDeleteMember(null);
-    }
+  const confirmDelete = () => {
+    if (!deleteMember || !db) return;
+    const docRef = doc(db, "members", deleteMember.id);
+    deleteDoc(docRef)
+      .then(() => {
+        toast({ title: "Member removed", description: "Deleted successfully." });
+      })
+      .catch(async (err) => {
+        const permissionError = new FirestorePermissionError({
+          path: `members/${deleteMember.id}`,
+          operation: "delete",
+        });
+        errorEmitter.emit("permission-error", permissionError);
+      })
+      .finally(() => setDeleteMember(null));
   };
 
   const filteredMembers = members.filter(m => 
     m.name.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) => a.name.localeCompare(b.name));
+  );
 
   return (
     <div className="space-y-6">
@@ -121,7 +139,7 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
                     <span className="text-sm font-black text-slate-700 tracking-tight">{member.name}</span>
                   </div>
                   <button 
-                    onClick={() => setDeleteMember(member)}
+                    onClick={() => setDeleteMember(member as MGMember)}
                     className="text-slate-200 hover:text-destructive hover:bg-red-50 p-3 rounded-2xl transition-all"
                   >
                     <Trash2 className="h-5 w-5" />

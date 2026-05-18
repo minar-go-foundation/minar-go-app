@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { database } from "@/lib/firebase";
-import { ref, push, remove } from "firebase/database";
+import { useFirestore, useCollection } from "@/firebase";
+import { collection, doc, addDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 import { MGMember } from "./dashboard-screen";
 import {
   AlertDialog,
@@ -51,7 +53,7 @@ interface TransactionManagerProps {
 
 export default function TransactionManager({ 
   members, 
-  transactions, 
+  transactions: initialTransactions, 
   mode = "full", 
   onSuccess,
   filterMonth = "All",
@@ -63,6 +65,11 @@ export default function TransactionManager({
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
+  const db = useFirestore();
+
+  const transactionsRef = useMemo(() => db ? collection(db, "transactions") : null, [db]);
+  const transactionsQuery = useMemo(() => transactionsRef ? query(transactionsRef, orderBy("d", "desc")) : null, [transactionsRef]);
+  const { data: transactions = [] } = useCollection(transactionsQuery);
 
   const filteredTransactions = useMemo(() => {
     let list = [...transactions];
@@ -76,50 +83,55 @@ export default function TransactionManager({
         }
       });
     }
-    return list.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime());
+    return list;
   }, [transactions, filterMonth]);
 
   const totalFiltered = filteredTransactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
 
-  const handleAddDeposit = async (e: React.FormEvent) => {
+  const handleAddDeposit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMember || !amount) {
+    if (!selectedMember || !amount || !db) {
       toast({ title: "Validation Error", description: "Select a member and enter amount.", variant: "destructive" });
       return;
     }
 
-    try {
-      await push(ref(database, "transactions"), {
-        n: selectedMember,
-        c: category,
-        a: amount,
-        d: date
+    const data = {
+      n: selectedMember,
+      c: category,
+      a: amount,
+      d: date
+    };
+
+    addDoc(collection(db, "transactions"), data)
+      .then(() => {
+        toast({ title: "Deposit Recorded", description: "Transaction saved successfully." });
+        if (onSuccess) onSuccess();
+      })
+      .catch(async (err) => {
+        const permissionError = new FirestorePermissionError({
+          path: "transactions",
+          operation: "create",
+          requestResourceData: data,
+        });
+        errorEmitter.emit("permission-error", permissionError);
       });
-      toast({ title: "Deposit Recorded", description: "Transaction saved successfully." });
-      if (onSuccess) onSuccess();
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to save transaction", variant: "destructive" });
-    }
   };
 
-  const confirmDelete = async () => {
-    if (!deleteId) return;
-    try {
-      const transRef = ref(database, `transactions/${deleteId}`);
-      await remove(transRef);
-      toast({ 
-        title: "Transaction Deleted", 
-        description: "The record has been removed from the system." 
-      });
-    } catch (error: any) {
-      toast({ 
-        title: "Delete Failed", 
-        description: error.message || "An unexpected error occurred.", 
-        variant: "destructive" 
-      });
-    } finally {
-      setDeleteId(null);
-    }
+  const confirmDelete = () => {
+    if (!deleteId || !db) return;
+    const docRef = doc(db, "transactions", deleteId);
+    deleteDoc(docRef)
+      .then(() => {
+        toast({ title: "Transaction Deleted", description: "The record has been removed." });
+      })
+      .catch(async (err) => {
+        const permissionError = new FirestorePermissionError({
+          path: `transactions/${deleteId}`,
+          operation: "delete",
+        });
+        errorEmitter.emit("permission-error", permissionError);
+      })
+      .finally(() => setDeleteId(null));
   };
 
   const exportPDF = () => {
@@ -180,23 +192,6 @@ export default function TransactionManager({
       },
       margin: { left: 15, right: 15, bottom: 30 }
     });
-    
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setDrawColor(200, 200, 200);
-      doc.setLineWidth(0.5);
-      doc.line(15, pageHeight - 25, pageWidth - 15, pageHeight - 25);
-      doc.setFontSize(9);
-      doc.setTextColor(50, 50, 50);
-      doc.setFont("helvetica", "bold");
-      doc.text("MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION", pageWidth / 2, pageHeight - 18, { align: "center" });
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 100, 100);
-      doc.text("COPYRIGHT © 2024 ALL RIGHTS RESERVED | OFFICIAL COLLECTION REPORT", pageWidth / 2, pageHeight - 12, { align: "center" });
-      doc.text(`Page ${i} of ${pageCount}`, pageWidth - 15, pageHeight - 12, { align: "right" });
-    }
     
     doc.save(`MinarGo_Report_${format(new Date(), "yyyyMMdd")}.pdf`);
   };
@@ -392,7 +387,7 @@ export default function TransactionManager({
               <AlertCircle className="text-destructive h-6 w-6" /> REMOVE RECORD?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm font-bold text-slate-500">
-              Are you sure you want to delete this transaction record? This action will permanently remove it from the cloud database.
+              Are you sure you want to delete this transaction record?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 gap-3">

@@ -1,0 +1,72 @@
+
+{
+  "entities": {
+    "AdminProfile": {
+      "title": "Admin Profile",
+      "description": "Secure profile information for foundation administrators",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email"]
+    },
+    "Member": {
+      "title": "Foundation Member",
+      "description": "Records of foundation members protected by security rules",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name"]
+    },
+    "Transaction": {
+      "title": "Financial Transaction",
+      "description": "Highly sensitive financial deposit and payment records",
+      "type": "object",
+      "properties": {
+        "n": { "type": "string", "description": "Member Name" },
+        "c": { "type": "string", "description": "Category" },
+        "a": { "type": "string", "description": "Amount" },
+        "d": { "type": "string", "description": "Date" }
+      },
+      "required": ["n", "a", "d"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Encrypted admin-only communication logs",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["uid", "text", "timestamp"]
+    }
+  },
+  "auth": {
+    "providers": ["password", "google"]
+  },
+  "firestore": {
+    "/admin_users/{userId}": {
+      "schema": { "$ref": "#/backend/entities/AdminProfile" },
+      "description": "Private profile accessible only by the respective user"
+    },
+    "/members/{memberId}": {
+      "schema": { "$ref": "#/backend/entities/Member" },
+      "description": "Member directory accessible only by authenticated admins"
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/backend/entities/Transaction" },
+      "description": "Financial ledger accessible only by authenticated admins"
+    },
+    "/foundation_chat/{messageId}": {
+      "schema": { "$ref": "#/backend/entities/ChatMessage" },
+      "description": "Secure admin chat room logs"
+    }
+  }
+}

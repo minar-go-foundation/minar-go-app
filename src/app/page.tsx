@@ -1,24 +1,13 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { useUser } from "@/firebase";
 import AuthScreen from "@/components/auth-screen";
 import DashboardScreen from "@/components/dashboard-screen";
 import { Toaster } from "@/components/ui/toaster";
 
 export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const { user, loading } = useUser();
 
   if (loading) {
     return (

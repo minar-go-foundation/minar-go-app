@@ -1,5 +1,7 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'Minar Go Expatriate Development Foundation',
@@ -20,7 +22,11 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#002366" />
       </head>
-      <body className="font-body antialiased bg-background text-foreground">{children}</body>
+      <body className="font-body antialiased bg-background text-foreground">
+        <FirebaseClientProvider>
+          {children}
+        </FirebaseClientProvider>
+      </body>
     </html>
   );
 }

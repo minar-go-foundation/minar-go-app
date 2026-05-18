@@ -1,41 +1,35 @@
+
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { User } from "firebase/auth";
-import { database } from "@/lib/firebase";
-import { ref, push, onValue, limitToLast, query, serverTimestamp } from "firebase/database";
+import { useFirestore, useCollection } from "@/firebase";
+import { collection, addDoc, query, orderBy, limit, serverTimestamp } from "firebase/firestore";
 import { Send, User as UserIcon, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 interface Message {
   id: string;
   uid: string;
   name: string;
   text: string;
-  timestamp: number;
+  timestamp: any;
   photoURL?: string;
 }
 
 export default function ChatScreen({ user }: { user: User }) {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const db = useFirestore();
 
-  useEffect(() => {
-    const chatRef = query(ref(database, "foundation_chat"), limitToLast(50));
-    const unsubscribe = onValue(chatRef, (snapshot) => {
-      const list: Message[] = [];
-      snapshot.forEach((child) => {
-        list.push({ id: child.key!, ...child.val() });
-      });
-      setMessages(list);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const messagesRef = useMemo(() => db ? collection(db, "foundation_chat") : null, [db]);
+  const messagesQuery = useMemo(() => messagesRef ? query(messagesRef, orderBy("timestamp", "asc"), limit(50)) : null, [messagesRef]);
+  const { data: messages = [] } = useCollection(messagesQuery);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -45,15 +39,26 @@ export default function ChatScreen({ user }: { user: User }) {
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !db) return;
 
-    push(ref(database, "foundation_chat"), {
+    const data = {
       uid: user.uid,
       name: user.displayName || "Anonymous Admin",
       text: newMessage,
       photoURL: user.photoURL,
       timestamp: serverTimestamp()
-    });
+    };
+
+    addDoc(collection(db, "foundation_chat"), data)
+      .catch(async (err) => {
+        const permissionError = new FirestorePermissionError({
+          path: "foundation_chat",
+          operation: "create",
+          requestResourceData: data,
+        });
+        errorEmitter.emit("permission-error", permissionError);
+      });
+
     setNewMessage("");
   };
 
@@ -68,10 +73,6 @@ export default function ChatScreen({ user }: { user: User }) {
             <h3 className="text-xs font-black uppercase tracking-tight">Admin Connect</h3>
             <p className="text-[8px] font-bold text-accent uppercase tracking-widest">Official Channel</p>
           </div>
-        </div>
-        <div className="flex -space-x-2">
-           <div className="w-8 h-8 rounded-full border-2 border-primary bg-slate-200" />
-           <div className="w-8 h-8 rounded-full border-2 border-primary bg-slate-300" />
         </div>
       </div>
 
