@@ -24,7 +24,9 @@ import {
   ShieldCheck,
   LayoutDashboard,
   FileText,
-  Video
+  Video,
+  MessageSquare,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,6 +61,7 @@ MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - SYSTEM PROFILE
 
 [ ২. নিরাপত্তা (Security) ]
 - ওটিপি ভেরিফিকেশন: Nodemailer ও Gmail SMTP ব্যবহার করে সরাসরি ইমেইলে ৬-ডিজিটের কোড।
+- সিকিউরিটি লকআউট: হেডারে সরাসরি দ্রুত লগআউট বাটন।
 - ভিডিও কল: ZegoCloud UIKit এনক্রিপ্টেড গেটওয়ে।
 
 [ ৩. ম্যানেজমেন্ট (Management) ]
@@ -72,7 +75,7 @@ MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - SYSTEM PROFILE
 - ক্লাউড ব্যাকআপ: গুগল শিটে নির্ভুল তারিখ ও সময়ের স্ট্যাম্পসহ সয়ংক্রিয় ব্যাকআপ।
 
 [ ৫. কমিউনিকেশন ]
-- এডমিন চ্যাট: ফাউন্ডেশনের কর্মকর্তাদের জন্য নিরাপদ রিয়েল-টাইম চ্যাট রুম।
+- অ্যাডমিন চ্যাট: ফাউন্ডেশনের কর্মকর্তাদের জন্য নিরাপদ রিয়েল-টাইম চ্যাট রুম।
 - ভিডিও কানেক্ট: হাই-ডেফিনিশন ভিডিও ও অডিও কনফারেন্সিং।
 `.trim();
 
@@ -225,11 +228,20 @@ export default function DashboardScreen({ user }: { user: User }) {
           </div>
         </div>
         
-        <div className="flex items-center gap-2.5">
-          <Button variant="ghost" size="icon" className="h-10 w-10 relative bg-slate-50 rounded-xl" onClick={() => setActiveTab("call")}>
-            <Video className="h-5 w-5 text-primary" />
-            <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-green-500 rounded-full border border-white"></div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-10 w-10 bg-red-50 hover:bg-red-100 rounded-xl group transition-all" 
+            onClick={() => {
+              signOut(auth);
+              toast({title: "Security Lockout", description: "You have been securely logged out."});
+            }}
+            title="Security Lockout"
+          >
+            <Lock className="h-5 w-5 text-red-500 group-hover:scale-110 transition-transform" />
           </Button>
+          <div className="h-8 w-[1px] bg-slate-100 mx-1" />
           <div className="w-10 h-10 bg-slate-100 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center overflow-hidden">
              {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-400" />}
           </div>
@@ -355,17 +367,20 @@ export default function DashboardScreen({ user }: { user: User }) {
       <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 pt-4 z-50 pointer-events-none">
         <div className="max-w-md mx-auto bg-white/90 rounded-[3rem] shadow-2xl flex items-center justify-around px-3 py-3 border border-white/60 backdrop-blur-xl pointer-events-auto">
           <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Home className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Home</span>
+            <Home className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">Home</span>
           </button>
           <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Users className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Members</span>
+            <Users className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">Members</span>
+          </button>
+          <button onClick={() => setActiveTab("chat")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}>
+            <MessageSquare className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">Chat</span>
           </button>
 
           <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
             <DialogTrigger asChild>
-              <button className="flex flex-col items-center justify-center -mt-14 mx-2 group">
-                <div className="w-18 h-18 rounded-full bg-primary border-[6px] border-[#F8FAFF] shadow-2xl flex items-center justify-center text-white transition-all group-active:scale-90 ring-4 ring-primary/5">
-                  <Plus className="h-9 w-9 stroke-[3.5px]" />
+              <button className="flex flex-col items-center justify-center -mt-12 mx-1 group">
+                <div className="w-14 h-14 rounded-full bg-primary border-[4px] border-[#F8FAFF] shadow-2xl flex items-center justify-center text-white transition-all group-active:scale-90 ring-4 ring-primary/5">
+                  <Plus className="h-7 w-7 stroke-[3.5px]" />
                 </div>
               </button>
             </DialogTrigger>
@@ -376,11 +391,11 @@ export default function DashboardScreen({ user }: { user: User }) {
           </Dialog>
 
           <button onClick={() => setActiveTab("call")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Video className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Call</span>
+            <Video className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">Call</span>
           </button>
           
           <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Settings className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">System</span>
+            <Settings className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">System</span>
           </button>
         </div>
       </nav>
