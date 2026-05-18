@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -11,15 +10,11 @@ import {
   Home, 
   Users, 
   Image as ImageIcon, 
-  FileText,
   RotateCcw,
-  Download,
   Bell,
   User as UserIcon,
   MessageCircle,
-  Video,
   Settings,
-  Moon,
   Building2,
   ChevronDown,
   CloudSun,
@@ -41,23 +36,6 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
 
-const DEFAULT_MEMBERS = [
-  "Mr. Dulal", 
-  "Mr. Omar Faruk", 
-  "Mr. Sulaiman badshah", 
-  "Mr. Abdul qayum", 
-  "Mr. Mohammed Jamshed", 
-  "Mr. Milad", 
-  "Mr. Ala uddin", 
-  "Mr. Shahid", 
-  "Mr. Shohag", 
-  "Mr. Abul Hussain", 
-  "Mr. Sakib", 
-  "Mr. Ronnie", 
-  "Mr. Jonye", 
-  "Mr. Aqib"
-];
-
 const MONTHS = [
   "January", "February", "March", "April", "May", "June", 
   "July", "August", "September", "October", "November", "December"
@@ -71,24 +49,20 @@ const APP_FEATURES_REPORT = `
 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - APP OVERVIEW
 
 [ ডিজাইন ও থিম ]
-- Primary Color: Navy Blue (#002366) - পেশাদারিত্ব ও আভিজাত্যের প্রতীক।
-- Accent Color: Premium Gold (#C4A052) - মেম্বারশিপ ও আভিজাত্য প্রকাশে।
-- Background: Light Sky Blue (#F8FAFF) - চোখের প্রশান্তির জন্য।
-- UI Style: Modern Mobile-First Design, Rounded Corners (2.5rem), Soft Shadows.
+- Primary Color: Navy Blue (#002366)
+- Accent Color: Premium Gold (#C4A052)
+- Background: Light Sky Blue (#F8FAFF)
+- UI Style: Modern Mobile-First Design, Rounded Corners (2.5rem).
 
 [ প্রধান ফিচারসমূহ ]
-১. লাইভ সিস্টেম হেডার: রিয়েল-টাইম সিটি লোকেশন এবং তাপমাত্রা প্রদর্শন।
-২. মেইন অ্যাসেট ট্র্যাকার: ফিল্টার অনুযায়ী মোট জমার হিসাব প্রদর্শনকারী স্মার্ট কার্ড।
-৩. মেম্বার ডিরেক্টরি: মেম্বার লিস্ট ম্যানেজমেন্ট, সার্চ এবং ডিলিট অপশন।
-৪. সেন্ট্রাল ডিপোজিট বাটন: নেভিগেশন বারের মাঝখানে বড় প্লাস (+) আইকন দিয়ে দ্রুত এন্ট্রি।
-৫. মান্থলি লগ ফিল্টার: প্রতি মাসের আলাদা হিসাব এবং টোটাল ব্যালেন্স দেখার সুবিধা।
-৬. গুগল ক্লাউড ব্যাকআপ: এক ক্লিকে গুগল শিটে ডাটা ব্যাকআপ (তারিখ, সময় ও টোটাল সহ)।
-৭. এআই লেটার ড্রাফট: ইংরেজি ও বাংলায় পেশাদার ডিমান্ড লেটার তৈরি ও PDF ডাউনলোড।
-৮. এডমিন চ্যাট রুম: ফাউন্ডেশন এডমিনদের জন্য রিয়েল-টাইম চ্যাটিং সুবিধা।
-৯. ডিজিটাল ভল্ট: মেম্বারদের ছবি বা PDF ডকুমেন্ট নিরাপদে রাখার গ্যালারি।
-১০. রিলিজিয়াস কাউন্টডাউন: হজ্জ ২০২৬ (২৫ মে) এবং রমাদান ২০২৬ লাইভ ট্র্যাকার।
-১১. লোগো ম্যানেজার: ফাউন্ডেশনের নিজস্ব লোগো সেট ও ব্র্যান্ডিং সুবিধা।
-১২. সিকিউর এডমিন এক্সেস: শুধুমাত্র নির্ধারিত ইমেইল (kosttoonek7@gmail.com) এর জন্য পূর্ণ এক্সেস।
+১. ওটিপি ভেরিফিকেশন: রেজিস্ট্রেশনের সময় ইউজারের ইমেইলে গোপন কোড যাবে।
+২. লাইভ সিস্টেম হেডার: রিয়েল-টাইম লোকেশন এবং তাপমাত্রা।
+৩. মেইন অ্যাসেট ট্র্যাকার: ফিল্টার অনুযায়ী মোট জমার স্মার্ট কার্ড।
+৪. গুগল ক্লাউড ব্যাকআপ: এক ক্লিকে গুগল শিটে ডাটা ব্যাকআপ।
+৫. এআই ডিমান্ড লেটার: ইংরেজি ও বাংলায় পেশাদার লেটার তৈরি।
+৬. এডমিন চ্যাট রুম: রিয়েল-টাইম চ্যাটিং সুবিধা।
+৭. ডিজিটাল ভল্ট: মেম্বারদের ছবি বা PDF জমানোর গ্যালারি।
+৮. রিলিজিয়াস কাউন্টডাউন: হজ্জ ও রমাদান ২০২৬ লাইভ ট্র্যাকার।
 `.trim();
 
 type Tab = "home" | "members" | "chat" | "gallery" | "setting" | "tools";
@@ -149,7 +123,7 @@ export default function DashboardScreen({ user }: { user: User }) {
         snapshot.forEach((child) => {
           list.push({ id: child.key, ...child.val() });
         });
-        setTransactions(list.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime()));
+        setTransactions(list);
       }
     });
 
@@ -160,12 +134,12 @@ export default function DashboardScreen({ user }: { user: User }) {
         return;
       }
       const data = snapshot.val();
-      if (data && data.n) {
+      if (data) {
         const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
         audio.play().catch(() => {});
         toast({
-          title: "নতুন জমা জমা হয়েছে! 🔔",
-          description: `${data.n} আজ ৳${data.a} জমা দিয়েছেন।`,
+          title: "New Deposit Recorded! 🔔",
+          description: `${data.n} deposited ৳${data.a}`,
         });
       }
     });
@@ -175,15 +149,9 @@ export default function DashboardScreen({ user }: { user: User }) {
       const list: MGMember[] = [];
       if (snapshot.exists()) {
         snapshot.forEach((child) => {
-          const val = child.val();
-          list.push({ id: child.key!, name: val.name || "Unknown" });
+          list.push({ id: child.key!, name: child.val().name });
         });
         setMembers(list);
-      } else if (user.email === ADMIN_EMAIL) {
-        DEFAULT_MEMBERS.forEach(m => {
-          const newMemberRef = push(membersRef);
-          set(newMemberRef, { name: m, createdAt: new Date().toISOString() });
-        });
       }
     });
 
@@ -195,83 +163,57 @@ export default function DashboardScreen({ user }: { user: User }) {
       unsubscribeTrans();
       unsubscribeNotify();
     };
-  }, [toast, user.email]);
+  }, [toast]);
 
   const filteredTotal = useMemo(() => {
     if (filterMonth === "All") {
       return transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
     }
     return transactions.reduce((acc, curr) => {
-      try {
-        const tDate = new Date(curr.d);
-        if (MONTHS[tDate.getMonth()] === filterMonth) {
-          return acc + (parseFloat(curr.a) || 0);
-        }
-      } catch (e) {}
+      const tDate = new Date(curr.d);
+      if (MONTHS[tDate.getMonth()] === filterMonth) {
+        return acc + (parseFloat(curr.a) || 0);
+      }
       return acc;
     }, 0);
   }, [transactions, filterMonth]);
 
   const handleCloudBackup = async () => {
-    if (transactions.length === 0) {
-      toast({ title: "No Data", description: "There are no transactions to backup.", variant: "destructive" });
-      return;
-    }
-
     setBackupLoading(true);
     const now = new Date();
     const timestampStr = format(now, "dd/MM/yyyy HH:mm:ss");
-    const total = transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
     
-    const sessionHeader = [`--- BACKUP SESSION: ${timestampStr} ---`, "", ""];
-    const tableHeaders = ["Member Name", "Date", "Amount (Tk)"];
-    const dataRows = transactions.map(t => [t.n, t.d, t.a]);
-    const totalRow = ["TOTAL ASSETS", "", total.toLocaleString()];
-    const separator = ["", "", ""];
-
-    const backupData = {
-      spreadsheetId: SPREADSHEET_ID,
-      sheetName: "MinarGo_Backup",
-      rows: [sessionHeader, tableHeaders, ...dataRows, totalRow, separator]
-    };
+    const rows = transactions.map(t => [t.n, t.d, t.a]);
+    rows.unshift([`--- BACKUP SESSION: ${timestampStr} ---`, "", ""]);
+    rows.push(["TOTAL ASSETS", "", filteredTotal.toLocaleString()]);
 
     try {
       await fetch(SCRIPT_URL, {
         method: "POST",
-        mode: "no-cors", 
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(backupData)
+        mode: "no-cors",
+        body: JSON.stringify({
+          spreadsheetId: SPREADSHEET_ID,
+          rows: rows
+        })
       });
-      
-      toast({ 
-        title: "Backup Success!", 
-        description: "Data appended to Google Sheet with timestamp and total." 
-      });
+      toast({ title: "Backup Success!", description: "Data saved to Google Sheet." });
     } catch (error) {
-      toast({ 
-        title: "Backup Failed", 
-        description: "Could not connect to Google Cloud.",
-        variant: "destructive"
-      });
+      toast({ title: "Backup Failed", variant: "destructive" });
     } finally {
       setBackupLoading(false);
     }
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-  };
-
   const copyFeaturesToClipboard = () => {
     navigator.clipboard.writeText(APP_FEATURES_REPORT);
-    toast({ title: "Copied!", description: "Feature report copied to clipboard." });
+    toast({ title: "Copied!", description: "Feature report copied." });
   };
 
   return (
     <div className="min-h-screen bg-[#F8FAFF] flex flex-col font-body pb-32">
       <header className="px-6 py-5 flex items-center justify-between bg-white shadow-sm border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center gap-4">
-          <div className="relative w-12 h-12 rounded-2xl bg-primary border-2 border-accent/20 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/10 transition-transform active:scale-95 cursor-pointer" onClick={() => setActiveTab("setting")}>
+          <div className="relative w-12 h-12 rounded-2xl bg-primary border-2 border-accent/20 flex items-center justify-center overflow-hidden shadow-lg transition-transform active:scale-95 cursor-pointer" onClick={() => setActiveTab("setting")}>
             {logo ? (
               <Image src={logo} alt="Logo" fill className="object-cover" />
             ) : (
@@ -279,10 +221,10 @@ export default function DashboardScreen({ user }: { user: User }) {
             )}
           </div>
           <div>
-            <h1 className="text-[12px] font-black text-primary leading-tight uppercase tracking-tight">Minar Go Expatriate</h1>
+            <h1 className="text-[12px] font-black text-primary leading-tight uppercase tracking-tight">Minar Go Foundation</h1>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <CloudSun className="h-3 w-3 text-[#C4A052]" />
-              <div className="text-[9px] text-[#C4A052] font-bold uppercase tracking-widest">{weather.city} • {weather.temp}°C</div>
+              <CloudSun className="h-3 w-3 text-accent" />
+              <div className="text-[9px] text-accent font-bold uppercase tracking-widest">{weather.city} • {weather.temp}°C</div>
             </div>
           </div>
         </div>
@@ -306,41 +248,39 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "home" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-1 gap-4">
-              <Card className="border-none shadow-xl shadow-slate-200/50 rounded-[2.5rem] bg-primary overflow-hidden relative group p-1">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 group-hover:scale-125 transition-transform duration-700" />
+              <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative group p-1">
                 <CardContent className="p-8 text-center relative z-10">
-                  <p className="text-[10px] uppercase font-black text-[#C4A052] tracking-[0.3em] mb-4">
+                  <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-4">
                     {filterMonth === "All" ? "Total Foundation Assets" : `Total ${filterMonth} Assets`}
                   </p>
                   <h3 className="text-4xl font-black text-white mb-2">৳{filteredTotal.toLocaleString()}</h3>
                   <div className="flex justify-center items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Live System Active</span>
+                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Live Cloud Sync</span>
                   </div>
                 </CardContent>
               </Card>
               
               <div className="grid grid-cols-2 gap-4">
-                <Card className="border-none shadow-lg shadow-slate-200/50 rounded-[2.2rem] bg-white overflow-hidden">
+                <Card className="border-none shadow-lg rounded-[2.2rem] bg-white">
                   <CardContent className="p-6 text-center">
-                    <Users className="h-5 w-5 text-[#C4A052] mx-auto mb-2" />
+                    <Users className="h-5 w-5 text-accent mx-auto mb-2" />
                     <p className="text-[9px] uppercase font-black text-slate-400 tracking-wider mb-1">Members</p>
                     <h3 className="text-2xl font-black text-primary">{members.length}</h3>
                   </CardContent>
                 </Card>
-                <Card className="border-none shadow-lg shadow-slate-200/50 rounded-[2.2rem] bg-white overflow-hidden">
+                <Card className="border-none shadow-lg rounded-[2.2rem] bg-white">
                   <CardContent className="p-6 text-center">
                     <Building2 className="h-5 w-5 text-primary mx-auto mb-2" />
                     <p className="text-[9px] uppercase font-black text-slate-400 tracking-wider mb-1">Growth</p>
-                    <h3 className="text-2xl font-black text-[#C4A052]">+8.2%</h3>
+                    <h3 className="text-2xl font-black text-accent">+8.2%</h3>
                   </CardContent>
                 </Card>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 bg-[#002366] rounded-[2.2rem] text-white shadow-2xl relative overflow-hidden group border border-white/5">
-                <div className="absolute bottom-0 left-0 w-20 h-20 bg-accent/10 rounded-full -ml-10 -mb-10 blur-2xl" />
+              <div className="p-6 bg-primary rounded-[2.2rem] text-white shadow-2xl relative overflow-hidden border border-white/5">
                 <div className="text-[8px] font-black uppercase text-accent tracking-[0.2em] mb-3 flex items-center gap-2">
                   <div className="w-1 h-1 bg-accent rounded-full" /> Hajj 2026
                 </div>
@@ -349,7 +289,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                   <span className="text-lg font-black text-accent">{countdown.hajj} Days Left</span>
                 </h4>
               </div>
-              <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl relative overflow-hidden group">
+              <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl relative overflow-hidden">
                 <div className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-2">
                    <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan 2026
                 </div>
@@ -362,12 +302,12 @@ export default function DashboardScreen({ user }: { user: User }) {
 
             <div className="flex items-center justify-between px-2">
               <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Transaction Log</h3>
-              <Button variant="ghost" className="text-[9px] font-black text-[#C4A052] uppercase p-0 h-auto tracking-widest hover:bg-transparent" onClick={() => setActiveTab("tools")}>
-                Agreement Tools <ChevronDown className="h-3 w-3 ml-1" />
+              <Button variant="ghost" className="text-[9px] font-black text-accent uppercase p-0 h-auto tracking-widest" onClick={() => setActiveTab("tools")}>
+                Tools <ChevronDown className="h-3 w-3 ml-1" />
               </Button>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50 transition-all hover:shadow-2xl hover:shadow-primary/5">
+            <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50">
               <TransactionManager 
                 members={members} 
                 transactions={transactions} 
@@ -390,20 +330,16 @@ export default function DashboardScreen({ user }: { user: User }) {
               <div className="flex flex-col items-center gap-8">
                 <div className="p-6 bg-slate-50 rounded-[2rem] w-full flex flex-col items-center gap-4 border border-slate-100">
                   <LogoManager currentLogo={logo} onUpdate={setLogo} />
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Foundation Identity</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Foundation Branding</p>
                 </div>
                 
                 <div className="w-full space-y-3">
                    <Button 
-                    className="w-full h-14 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-md hover:bg-[#C8E6C9] flex items-center justify-center gap-3 group"
+                    className="w-full h-14 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-md hover:bg-[#C8E6C9] flex items-center justify-center gap-3"
                     onClick={handleCloudBackup}
                     disabled={backupLoading}
                    >
-                     {backupLoading ? (
-                       <RotateCcw className="h-5 w-5 animate-spin" />
-                     ) : (
-                       <Cloud className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                     )}
+                     {backupLoading ? <RotateCcw className="h-5 w-5 animate-spin" /> : <Cloud className="h-5 w-5" />}
                      GOOGLE CLOUD BACKUP
                    </Button>
 
@@ -411,33 +347,23 @@ export default function DashboardScreen({ user }: { user: User }) {
                      <ImageIcon className="mr-2 h-5 w-5" /> DIGITAL GALLERY
                    </Button>
 
-                   <Button variant="destructive" className="w-full h-14 rounded-2xl font-black shadow-xl shadow-red-100 mt-4" onClick={handleLogout}>
+                   <Button variant="destructive" className="w-full h-14 rounded-2xl font-black shadow-xl mt-4" onClick={() => signOut(auth)}>
                     <LogOut className="mr-2 h-5 w-5" /> SECURE LOGOUT
                   </Button>
                 </div>
               </div>
             </Card>
 
-            <Card className="rounded-[2.5rem] border-none shadow-xl p-8 bg-white overflow-hidden">
+            <Card className="rounded-[2.5rem] border-none shadow-xl p-8 bg-white">
                <div className="flex items-center gap-3 mb-6">
                  <div className="p-2 bg-primary/10 rounded-xl">
                    <Info className="h-5 w-5 text-primary" />
                  </div>
-                 <h4 className="text-xs font-black uppercase text-primary tracking-tight">App Feature Guide</h4>
+                 <h4 className="text-xs font-black uppercase text-primary tracking-tight">Feature Guide</h4>
                </div>
-               
-               <Textarea 
-                readOnly 
-                value={APP_FEATURES_REPORT} 
-                className="h-64 rounded-2xl bg-slate-50 border-none text-[10px] font-medium leading-relaxed mb-4 scrollbar-hide"
-               />
-               
-               <Button 
-                variant="outline" 
-                className="w-full h-12 rounded-xl font-black text-[10px] border-primary/20 hover:bg-primary/5 uppercase tracking-widest flex items-center justify-center gap-2"
-                onClick={copyFeaturesToClipboard}
-               >
-                 <ClipboardCheck className="h-4 w-4" /> Copy Feature Report
+               <Textarea readOnly value={APP_FEATURES_REPORT} className="h-64 rounded-2xl bg-slate-50 border-none text-[10px] font-medium leading-relaxed mb-4" />
+               <Button variant="outline" className="w-full h-12 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2" onClick={copyFeaturesToClipboard}>
+                 <ClipboardCheck className="h-4 w-4" /> Copy Report
                </Button>
             </Card>
           </div>
@@ -445,28 +371,28 @@ export default function DashboardScreen({ user }: { user: User }) {
       </main>
 
       <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 pt-4 z-50 pointer-events-none">
-        <div className="max-w-md mx-auto bg-white/90 rounded-[3rem] shadow-[0_25px_60px_rgba(0,35,102,0.2)] flex items-center justify-between px-3 py-3 border border-white/60 backdrop-blur-xl pointer-events-auto">
-          <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}>
-            <Home className={`h-6 w-6 ${activeTab === "home" ? "stroke-[2.5px]" : "stroke-[1.5px]"}`} />
+        <div className="max-w-md mx-auto bg-white/90 rounded-[3rem] shadow-2xl flex items-center justify-between px-3 py-3 border border-white/60 backdrop-blur-xl pointer-events-auto">
+          <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}>
+            <Home className="h-6 w-6" />
             <span className="text-[8px] font-black uppercase tracking-widest">Home</span>
           </button>
           
-          <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}>
-            <Users className={`h-6 w-6 ${activeTab === "members" ? "stroke-[2.5px]" : "stroke-[1.5px]"}`} />
+          <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}>
+            <Users className="h-6 w-6" />
             <span className="text-[8px] font-black uppercase tracking-widest">Members</span>
           </button>
 
           <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
             <DialogTrigger asChild>
               <button className="flex flex-col items-center justify-center -mt-14 mx-2 group">
-                <div className="w-18 h-18 rounded-full bg-primary border-[6px] border-[#F8FAFF] shadow-[0_15px_30px_rgba(0,35,102,0.4)] flex items-center justify-center text-white transition-all group-active:scale-90 ring-4 ring-primary/5">
+                <div className="w-18 h-18 rounded-full bg-primary border-[6px] border-[#F8FAFF] shadow-2xl flex items-center justify-center text-white transition-all group-active:scale-90 ring-4 ring-primary/5">
                   <Plus className="h-9 w-9 stroke-[3.5px]" />
                 </div>
               </button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] rounded-[3rem] p-8 border-none shadow-2xl">
               <DialogHeader>
-                <DialogTitle className="text-center font-black uppercase text-primary text-xl tracking-tight">Record New Deposit</DialogTitle>
+                <DialogTitle className="text-center font-black uppercase text-primary text-xl tracking-tight">New Deposit</DialogTitle>
               </DialogHeader>
               <TransactionManager 
                 members={members} 
@@ -477,13 +403,13 @@ export default function DashboardScreen({ user }: { user: User }) {
             </DialogContent>
           </Dialog>
 
-          <button onClick={() => setActiveTab("chat")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}>
-            <MessageCircle className={`h-6 w-6 ${activeTab === "chat" ? "stroke-[2.5px]" : "stroke-[1.5px]"}`} />
+          <button onClick={() => setActiveTab("chat")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}>
+            <MessageCircle className="h-6 w-6" />
             <span className="text-[8px] font-black uppercase tracking-widest">Chat</span>
           </button>
 
-          <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}>
-            <Settings className={`h-6 w-6 ${activeTab === "setting" ? "stroke-[2.5px]" : "stroke-[1.5px]"}`} />
+          <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}>
+            <Settings className="h-6 w-6" />
             <span className="text-[8px] font-black uppercase tracking-widest">System</span>
           </button>
         </div>

@@ -9,14 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, ShieldCheck, User } from "lucide-react";
+import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw } from "lucide-react";
 import Image from "next/image";
+
+const WEB3FORMS_ACCESS_KEY = "1bd54ce8-4288-43d-9b71-929c9b829e12";
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
+  const [step, setStep] = useState<"auth" | "otp">("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [otpInput, setOtpInput] = useState("");
+  const [generatedOtp, setGeneratedOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [logo, setLogo] = useState<string | null>(null);
   const { toast } = useToast();
@@ -25,6 +30,30 @@ export default function AuthScreen() {
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
   }, []);
+
+  const sendOtp = async (targetEmail: string, otp: string) => {
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: "Email Verification Code - Minar Go Foundation",
+          from_name: "Minar Go Foundation",
+          email: targetEmail,
+          message: `Your account verification code is: ${otp}. Please use this code to complete your registration.`,
+        }),
+      });
+      const result = await response.json();
+      return result.success;
+    } catch (error) {
+      console.error("OTP Error:", error);
+      return false;
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,20 +64,24 @@ export default function AuthScreen() {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "Welcome back!", description: "Logged in successfully." });
       } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName: name });
+        // Registration Flow: Start OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const sent = await sendOtp(email, otp);
         
-        await set(ref(database, `admin_users/${userCredential.user.uid}`), {
-          name,
-          email,
-          createdAt: new Date().toISOString()
-        });
-        
-        toast({ title: "Account created!", description: "You can now manage the foundation." });
+        if (sent) {
+          setGeneratedOtp(otp);
+          setStep("otp");
+          toast({ 
+            title: "Verification Sent!", 
+            description: `A 6-digit code has been sent to ${email}.` 
+          });
+        } else {
+          throw new Error("Failed to send OTP. Please check your email address.");
+        }
       }
     } catch (error: any) {
       toast({ 
-        title: "Authentication Error", 
+        title: "Auth Error", 
         description: error.message, 
         variant: "destructive" 
       });
@@ -57,12 +90,84 @@ export default function AuthScreen() {
     }
   };
 
+  const handleVerifyAndRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otpInput !== generatedOtp) {
+      toast({ title: "Invalid Code", description: "The OTP you entered is incorrect.", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      
+      await set(ref(database, `admin_users/${userCredential.user.uid}`), {
+        name,
+        email,
+        createdAt: new Date().toISOString()
+      });
+      
+      toast({ title: "Account Verified!", description: "Account created successfully." });
+    } catch (error: any) {
+      toast({ title: "Registration Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (step === "otp") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50">
+        <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
+          <div className="text-center space-y-4 mb-8">
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+              <ShieldCheck className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-xl font-black text-primary uppercase">Verify Email</h2>
+            <p className="text-xs font-bold text-slate-400 leading-relaxed">
+              ENTER THE 6-DIGIT CODE SENT TO<br/>
+              <span className="text-primary">{email}</span>
+            </p>
+          </div>
+
+          <form onSubmit={handleVerifyAndRegister} className="space-y-6">
+            <div className="relative">
+              <Input 
+                placeholder="000000" 
+                value={otpInput}
+                onChange={(e) => setOtpInput(e.target.value)}
+                maxLength={6}
+                required
+                className="h-16 text-center text-2xl font-black tracking-[0.5em] rounded-2xl bg-slate-50 border-none shadow-inner"
+              />
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20"
+              disabled={loading}
+            >
+              {loading ? "VERIFYING..." : "COMPLETE REGISTRATION"}
+            </Button>
+
+            <button 
+              type="button"
+              onClick={() => setStep("auth")}
+              className="w-full text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-2"
+            >
+              <RefreshCcw className="h-3 w-3" /> Edit Email Address
+            </button>
+          </form>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-between min-h-screen p-6 bg-slate-50 font-body">
-      {/* Top Background Design */}
       <div className="absolute top-0 left-0 w-full h-32 bg-white rounded-b-[3rem] shadow-sm -z-10" />
 
-      {/* Header Branding */}
       <div className="mt-12 flex flex-col items-center text-center">
         <div className="relative w-24 h-24 mb-6 rounded-full border-[3px] border-accent p-1 bg-white shadow-lg flex items-center justify-center overflow-hidden">
           {logo ? (
@@ -81,11 +186,10 @@ export default function AuthScreen() {
         </p>
       </div>
 
-      {/* Auth Card */}
       <div className="w-full max-w-sm mt-8 flex-1">
         <form onSubmit={handleAuth} className="space-y-6">
           {!isLogin && (
-            <div className="space-y-2">
+            <div className="space-y-2 animate-in fade-in duration-300">
               <Label htmlFor="name" className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Admin Name</Label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -145,8 +249,8 @@ export default function AuthScreen() {
           >
             {loading ? "PROCESSING..." : (
               <>
-                {isLogin ? "SECURE LOGIN" : "CREATE ACCOUNT"}
-                <ShieldCheck className="h-5 w-5" />
+                {isLogin ? "SECURE LOGIN" : "GET VERIFICATION CODE"}
+                <ArrowRight className="h-5 w-5" />
               </>
             )}
           </Button>
@@ -166,7 +270,6 @@ export default function AuthScreen() {
         </form>
       </div>
 
-      {/* Footer Branding */}
       <div className="w-full max-w-sm text-center py-6 space-y-4">
         <div className="space-y-1">
           <p className="text-[8px] text-muted-foreground font-bold leading-tight">
