@@ -19,7 +19,8 @@ import {
   ChevronDown,
   CloudSun,
   ClipboardCheck,
-  Info
+  Info,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,7 +32,7 @@ import LogoManager from "./logo-manager";
 import ChatScreen from "./chat-screen";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Image from "next/image";
-import { format } from "date-fns";
+import { format, differenceInDays, isAfter, addYears } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
 
 const MONTHS = [
@@ -55,6 +56,7 @@ MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - APP OVERVIEW
 ২. মেম্বার ম্যানেজমেন্ট: সব মেম্বারদের ডাটাবেজ।
 ৩. স্মার্ট ব্যাকআপ: গুগল শিটে সয়ংক্রিয় ডাটা সেভ।
 ৪. এডমিন চ্যাট: রিয়েল-টাইম অফিশিয়াল চ্যাট রুম।
+৫. লাইভ ক্লক ও কাউন্টডাউন: হজ্জ ও রমাদানের সয়ংক্রিয় হিসাব।
 `.trim();
 
 type Tab = "home" | "members" | "chat" | "gallery" | "setting";
@@ -64,6 +66,17 @@ export interface MGMember {
   name: string;
 }
 
+// Estimates for Hajj and Ramadan (Approximate based on Lunar Calendar shift of ~11 days)
+const GET_NEXT_DATE = (baseDate: Date) => {
+  const now = new Date();
+  let target = baseDate;
+  while (isAfter(now, target)) {
+    // Roughly subtract 11 days and add a year for Islamic dates in Gregorian
+    target = new Date(target.getFullYear() + 1, target.getMonth(), target.getDate() - 11);
+  }
+  return target;
+};
+
 export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [members, setMembers] = useState<MGMember[]>([]);
@@ -72,22 +85,22 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [weather, setWeather] = useState({ city: "Detecting...", temp: "--" });
   const [backupLoading, setBackupLoading] = useState(false);
-  const [countdown, setCountdown] = useState({ hajj: 0, ramadan: 0 });
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
   const { toast } = useToast();
   
   const isInitialLoad = useRef(true);
 
-  useEffect(() => {
-    const hajjDate = new Date("2026-05-25");
-    const ramadanDate = new Date("2026-02-18");
-    const now = new Date();
-    
-    setCountdown({
-      hajj: Math.max(0, Math.ceil((hajjDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))),
-      ramadan: Math.max(0, Math.ceil((ramadanDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
-    });
+  // Dynamic Dates
+  const nextHajj = useMemo(() => GET_NEXT_DATE(new Date("2025-06-04")), []);
+  const nextRamadan = useMemo(() => GET_NEXT_DATE(new Date("2025-03-01")), []);
 
+  useEffect(() => {
+    // Clock Timer
+    setCurrentTime(new Date());
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+
+    // Weather Fetching
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         try {
@@ -100,6 +113,8 @@ export default function DashboardScreen({ user }: { user: User }) {
         }
       }, () => setWeather({ city: "Global", temp: "24" }));
     }
+
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -178,9 +193,19 @@ export default function DashboardScreen({ user }: { user: User }) {
           </div>
           <div>
             <h1 className="text-[12px] font-black text-primary leading-tight uppercase tracking-tight">Minar Go Foundation</h1>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <CloudSun className="h-3 w-3 text-accent" />
-              <div className="text-[9px] text-accent font-bold uppercase tracking-widest">{weather.city} • {weather.temp}°C</div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-1">
+                <CloudSun className="h-3 w-3 text-accent" />
+                <span className="text-[8px] text-accent font-bold uppercase tracking-widest">{weather.temp}°C</span>
+              </div>
+              {currentTime && (
+                <div className="flex items-center gap-1 border-l border-slate-200 pl-2">
+                  <Clock className="h-3 w-3 text-primary animate-pulse" />
+                  <span className="text-[9px] font-black text-primary tracking-tighter">
+                    {format(currentTime, "hh:mm:ss a")}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -199,6 +224,14 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className="flex-1 overflow-y-auto px-6 py-6 container max-w-lg mx-auto">
         {activeTab === "home" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Live Clock Banner (Optional secondary visual) */}
+            <div className="px-6 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-between">
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Foundation Local Time</p>
+              <h2 className="text-sm font-black text-primary tracking-tight">
+                {currentTime ? format(currentTime, "EEEE, MMMM dd") : "Loading..."}
+              </h2>
+            </div>
+
             <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative group p-1">
               <CardContent className="p-8 text-center relative z-10">
                 <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-4">
@@ -215,15 +248,25 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-6 bg-primary rounded-[2.2rem] text-white shadow-2xl relative overflow-hidden border border-white/5">
                 <div className="text-[8px] font-black uppercase text-accent tracking-[0.2em] mb-3 flex items-center gap-2">
-                  <div className="w-1 h-1 bg-accent rounded-full" /> Hajj 2026
+                  <div className="w-1 h-1 bg-accent rounded-full" /> Hajj Countdown
                 </div>
-                <h4 className="text-xs font-bold leading-tight">25 May 2026<br/><span className="text-lg font-black text-accent">{countdown.hajj} Days Left</span></h4>
+                <h4 className="text-xs font-bold leading-tight">
+                  {format(nextHajj, "dd MMMM yyyy")}<br/>
+                  <span className="text-lg font-black text-accent">
+                    {differenceInDays(nextHajj, new Date())} Days Left
+                  </span>
+                </h4>
               </div>
               <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl relative overflow-hidden">
                 <div className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-2">
-                   <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan 2026
+                   <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan Countdown
                 </div>
-                <h4 className="text-xs font-bold leading-tight text-slate-500">18 Feb 2026<br/><span className="text-lg font-black text-primary">{countdown.ramadan} Days Left</span></h4>
+                <h4 className="text-xs font-bold leading-tight text-slate-500">
+                  {format(nextRamadan, "dd MMMM yyyy")}<br/>
+                  <span className="text-lg font-black text-primary">
+                    {differenceInDays(nextRamadan, new Date())} Days Left
+                  </span>
+                </h4>
               </div>
             </div>
 
