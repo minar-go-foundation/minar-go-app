@@ -23,7 +23,9 @@ import {
   Building2,
   ChevronDown,
   CloudSun,
-  Cloud
+  Cloud,
+  ClipboardCheck,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +39,7 @@ import ChatScreen from "./chat-screen";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Image from "next/image";
 import { format } from "date-fns";
+import { Textarea } from "@/components/ui/textarea";
 
 const DEFAULT_MEMBERS = [
   "Mr. Dulal", 
@@ -64,6 +67,30 @@ const ADMIN_EMAIL = "kosttoonek7@gmail.com";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
+const APP_FEATURES_REPORT = `
+MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - APP OVERVIEW
+
+[ ডিজাইন ও থিম ]
+- Primary Color: Navy Blue (#002366) - পেশাদারিত্ব ও আভিজাত্যের প্রতীক।
+- Accent Color: Premium Gold (#C4A052) - মেম্বারশিপ ও আভিজাত্য প্রকাশে।
+- Background: Light Sky Blue (#F8FAFF) - চোখের প্রশান্তির জন্য।
+- UI Style: Modern Mobile-First Design, Rounded Corners (2.5rem), Soft Shadows.
+
+[ প্রধান ফিচারসমূহ ]
+১. লাইভ সিস্টেম হেডার: রিয়েল-টাইম সিটি লোকেশন এবং তাপমাত্রা প্রদর্শন।
+২. মেইন অ্যাসেট ট্র্যাকার: ফিল্টার অনুযায়ী মোট জমার হিসাব প্রদর্শনকারী স্মার্ট কার্ড।
+৩. মেম্বার ডিরেক্টরি: মেম্বার লিস্ট ম্যানেজমেন্ট, সার্চ এবং ডিলিট অপশন।
+৪. সেন্ট্রাল ডিপোজিট বাটন: নেভিগেশন বারের মাঝখানে বড় প্লাস (+) আইকন দিয়ে দ্রুত এন্ট্রি।
+৫. মান্থলি লগ ফিল্টার: প্রতি মাসের আলাদা হিসাব এবং টোটাল ব্যালেন্স দেখার সুবিধা।
+৬. গুগল ক্লাউড ব্যাকআপ: এক ক্লিকে গুগল শিটে ডাটা ব্যাকআপ (তারিখ, সময় ও টোটাল সহ)।
+৭. এআই লেটার ড্রাফট: ইংরেজি ও বাংলায় পেশাদার ডিমান্ড লেটার তৈরি ও PDF ডাউনলোড।
+৮. এডমিন চ্যাট রুম: ফাউন্ডেশন এডমিনদের জন্য রিয়েল-টাইম চ্যাটিং সুবিধা।
+৯. ডিজিটাল ভল্ট: মেম্বারদের ছবি বা PDF ডকুমেন্ট নিরাপদে রাখার গ্যালারি।
+১০. রিলিজিয়াস কাউন্টডাউন: হজ্জ ২০২৬ (২৫ মে) এবং রমাদান ২০২৬ লাইভ ট্র্যাকার।
+১১. লোগো ম্যানেজার: ফাউন্ডেশনের নিজস্ব লোগো সেট ও ব্র্যান্ডিং সুবিধা।
+১২. সিকিউর এডমিন এক্সেস: শুধুমাত্র নির্ধারিত ইমেইল (kosttoonek7@gmail.com) এর জন্য পূর্ণ এক্সেস।
+`.trim();
+
 type Tab = "home" | "members" | "chat" | "gallery" | "setting" | "tools";
 
 export interface MGMember {
@@ -86,7 +113,6 @@ export default function DashboardScreen({ user }: { user: User }) {
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    // Calculate countdowns on client side
     const hajjDate = new Date("2026-05-25");
     const ramadanDate = new Date("2026-02-18");
     const now = new Date();
@@ -234,6 +260,11 @@ export default function DashboardScreen({ user }: { user: User }) {
 
   const handleLogout = async () => {
     await signOut(auth);
+  };
+
+  const copyFeaturesToClipboard = () => {
+    navigator.clipboard.writeText(APP_FEATURES_REPORT);
+    toast({ title: "Copied!", description: "Feature report copied to clipboard." });
   };
 
   return (
@@ -385,6 +416,29 @@ export default function DashboardScreen({ user }: { user: User }) {
                   </Button>
                 </div>
               </div>
+            </Card>
+
+            <Card className="rounded-[2.5rem] border-none shadow-xl p-8 bg-white overflow-hidden">
+               <div className="flex items-center gap-3 mb-6">
+                 <div className="p-2 bg-primary/10 rounded-xl">
+                   <Info className="h-5 w-5 text-primary" />
+                 </div>
+                 <h4 className="text-xs font-black uppercase text-primary tracking-tight">App Feature Guide</h4>
+               </div>
+               
+               <Textarea 
+                readOnly 
+                value={APP_FEATURES_REPORT} 
+                className="h-64 rounded-2xl bg-slate-50 border-none text-[10px] font-medium leading-relaxed mb-4 scrollbar-hide"
+               />
+               
+               <Button 
+                variant="outline" 
+                className="w-full h-12 rounded-xl font-black text-[10px] border-primary/20 hover:bg-primary/5 uppercase tracking-widest flex items-center justify-center gap-2"
+                onClick={copyFeaturesToClipboard}
+               >
+                 <ClipboardCheck className="h-4 w-4" /> Copy Feature Report
+               </Button>
             </Card>
           </div>
         )}
