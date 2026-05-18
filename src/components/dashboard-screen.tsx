@@ -43,6 +43,8 @@ const DEFAULT_MEMBERS = [
   "Mr. Aqib"
 ];
 
+const ADMIN_EMAIL = "kosttoonek7@gmail.com";
+
 type Tab = "profile" | "members" | "gallery" | "tools";
 
 export interface MGMember {
@@ -98,11 +100,11 @@ export default function DashboardScreen({ user }: { user: User }) {
       }
     });
 
-    // 3. Members Listener - Using robust fetching
+    // 3. Members Listener - Robust Sync
     const membersRef = ref(database, "members");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
+      const list: MGMember[] = [];
       if (snapshot.exists()) {
-        const list: MGMember[] = [];
         snapshot.forEach((child) => {
           const val = child.val();
           list.push({
@@ -111,8 +113,8 @@ export default function DashboardScreen({ user }: { user: User }) {
           });
         });
         setMembers(list);
-      } else {
-        // Seed if database is truly empty
+      } else if (user.email === ADMIN_EMAIL) {
+        // Seed if admin and database is empty
         DEFAULT_MEMBERS.forEach(m => {
           const newMemberRef = push(membersRef);
           set(newMemberRef, { 
@@ -126,7 +128,7 @@ export default function DashboardScreen({ user }: { user: User }) {
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
 
-    // Weather detection - Asking for Location Permission
+    // Weather detection
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
@@ -135,7 +137,7 @@ export default function DashboardScreen({ user }: { user: User }) {
           const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
           const wData = await wRes.json();
           
-          // Fetch City Name via Reverse Geocoding
+          // Fetch City Name
           const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
           const geoData = await geoRes.json();
           const cityName = geoData.city || geoData.locality || "Detected Location";
@@ -145,10 +147,10 @@ export default function DashboardScreen({ user }: { user: User }) {
             city: cityName 
           });
         } catch (e) {
-          console.error("Weather error:", e);
+          console.error("Weather fetch failed:", e);
         }
-      }, (error) => {
-        console.warn("Location permission denied", error);
+      }, (err) => {
+        console.warn("Geolocation access denied:", err);
       });
     }
 
@@ -157,7 +159,7 @@ export default function DashboardScreen({ user }: { user: User }) {
       unsubscribeTrans();
       unsubscribeNotify();
     };
-  }, [toast]);
+  }, [toast, user.email]);
 
   const totalCollected = transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
 
