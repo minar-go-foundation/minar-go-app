@@ -9,10 +9,16 @@ import { Button } from '@/components/ui/button';
 export default function VideoCall({ user }: { user: User }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
+  const initialized = useRef(false);
 
   useEffect(() => {
+    // Prevent double initialization in Strict Mode
+    if (initialized.current) return;
+    
     const initCall = async () => {
       if (!containerRef.current) return;
+      
+      initialized.current = true;
 
       try {
         const { ZegoUIKitPrebuilt } = await import('@zegocloud/zego-uikit-prebuilt');
@@ -51,10 +57,15 @@ export default function VideoCall({ user }: { user: User }) {
         setLoading(false);
       } catch (error) {
         console.error("Zego Error:", error);
+        initialized.current = false;
       }
     };
 
     initCall();
+
+    return () => {
+      // Component unmount cleanup logic can go here if Zego supports a destroy method
+    };
   }, [user]);
 
   return (
