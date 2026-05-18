@@ -100,25 +100,29 @@ export default function DashboardScreen({ user }: { user: User }) {
       }
     });
 
-    // 3. Members Listener and Auto-Seeding
+    // 3. Members Listener and Robust Seeding
     const membersRef = ref(database, "members");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const list: MGMember[] = Object.entries(data).map(([key, value]: [string, any]) => {
-          const nameValue = typeof value === 'object' ? value.name : value;
-          return {
-            id: key,
-            name: nameValue || "Unknown Member"
-          };
-        });
+        const list: MGMember[] = [];
+        // Handle both object and array response from RTDB
+        if (typeof data === 'object') {
+          Object.entries(data).forEach(([key, value]: [string, any]) => {
+            const nameValue = typeof value === 'object' ? value.name : value;
+            list.push({
+              id: key,
+              name: nameValue || "Unknown Member"
+            });
+          });
+        }
         setMembers(list);
       } else {
-        // Only seed if empty
-        console.log("Database empty, seeding default members...");
+        // Only seed if database path is empty
+        console.log("Member list empty, seeding defaults...");
         DEFAULT_MEMBERS.forEach(m => {
-          const newMemberRef = push(membersRef);
-          set(newMemberRef, { 
+          const newRef = push(membersRef);
+          set(newRef, { 
             name: m, 
             createdAt: new Date().toISOString() 
           });
