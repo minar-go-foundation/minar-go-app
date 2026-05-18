@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -109,12 +108,12 @@ export default function DashboardScreen({ user }: { user: User }) {
           const val = child.val();
           list.push({
             id: child.key!,
-            name: (typeof val === 'object' ? val.name : val) || "Unknown Member"
+            name: (typeof val === 'object' ? val.name : val) || val || "Unknown Member"
           });
         });
         setMembers(list);
       } else if (user.email === ADMIN_EMAIL) {
-        // Seed if admin and database is empty
+        // Only seed if strictly admin and database is confirmed empty
         DEFAULT_MEMBERS.forEach(m => {
           const newMemberRef = push(membersRef);
           set(newMemberRef, { 
@@ -128,16 +127,14 @@ export default function DashboardScreen({ user }: { user: User }) {
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
 
-    // Weather detection
-    if ("geolocation" in navigator) {
+    // Weather detection with immediate request
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          // Fetch Weather
           const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
           const wData = await wRes.json();
           
-          // Fetch City Name
           const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
           const geoData = await geoRes.json();
           const cityName = geoData.city || geoData.locality || "Detected Location";
