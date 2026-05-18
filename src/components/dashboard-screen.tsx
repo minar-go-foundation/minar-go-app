@@ -365,22 +365,39 @@ export default function DashboardScreen({ user }: { user: User }) {
       </main>
 
       <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 pt-4 z-50 pointer-events-none">
-        <div className="max-w-md mx-auto bg-white/90 rounded-[3rem] shadow-2xl flex items-center justify-around px-3 py-3 border border-white/60 backdrop-blur-xl pointer-events-auto">
-          <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Home className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">Home</span>
+        <div className="max-w-md mx-auto bg-white/90 rounded-[3rem] shadow-2xl flex items-center justify-around px-4 py-3 border border-white/60 backdrop-blur-xl pointer-events-auto">
+          <button 
+            onClick={() => setActiveTab("home")} 
+            className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all duration-300 ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}
+          >
+            <Home className="h-5 w-5" />
+            <span className="text-[7px] font-black uppercase tracking-widest">Home</span>
+            {activeTab === "home" && <div className="w-1 h-1 bg-primary rounded-full -mb-1" />}
           </button>
-          <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Users className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">Members</span>
+          
+          <button 
+            onClick={() => setActiveTab("members")} 
+            className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all duration-300 ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}
+          >
+            <Users className="h-5 w-5" />
+            <span className="text-[7px] font-black uppercase tracking-widest">Members</span>
+            {activeTab === "members" && <div className="w-1 h-1 bg-primary rounded-full -mb-1" />}
           </button>
-          <button onClick={() => setActiveTab("chat")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <MessageSquare className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">Chat</span>
+
+          <button 
+            onClick={() => setActiveTab("chat")} 
+            className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all duration-300 ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}
+          >
+            <MessageSquare className="h-5 w-5" />
+            <span className="text-[7px] font-black uppercase tracking-widest">Chat</span>
+            {activeTab === "chat" && <div className="w-1 h-1 bg-primary rounded-full -mb-1" />}
           </button>
 
           <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
             <DialogTrigger asChild>
-              <button className="flex flex-col items-center justify-center -mt-12 mx-1 group">
-                <div className="w-14 h-14 rounded-full bg-primary border-[4px] border-[#F8FAFF] shadow-2xl flex items-center justify-center text-white transition-all group-active:scale-90 ring-4 ring-primary/5">
-                  <Plus className="h-7 w-7 stroke-[3.5px]" />
+              <button className="flex flex-col items-center justify-center -mt-14 mx-1 group outline-none">
+                <div className="w-14 h-14 rounded-full bg-primary border-[4px] border-[#F8FAFF] shadow-[0_10px_30px_rgba(0,35,102,0.3)] flex items-center justify-center text-white transition-all duration-300 group-hover:scale-110 group-active:scale-90 group-hover:shadow-[0_15px_40px_rgba(0,35,102,0.4)]">
+                  <Plus className="h-7 w-7 stroke-[4px]" />
                 </div>
               </button>
             </DialogTrigger>
@@ -390,12 +407,22 @@ export default function DashboardScreen({ user }: { user: User }) {
             </DialogContent>
           </Dialog>
 
-          <button onClick={() => setActiveTab("call")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Video className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">Call</span>
+          <button 
+            onClick={() => setActiveTab("call")} 
+            className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all duration-300 ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}
+          >
+            <Video className="h-5 w-5" />
+            <span className="text-[7px] font-black uppercase tracking-widest">Call</span>
+            {activeTab === "call" && <div className="w-1 h-1 bg-primary rounded-full -mb-1" />}
           </button>
           
-          <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Settings className="h-5 w-5" /><span className="text-[7px] font-black uppercase tracking-widest">System</span>
+          <button 
+            onClick={() => setActiveTab("setting")} 
+            className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all duration-300 ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300 hover:text-slate-400"}`}
+          >
+            <Settings className="h-5 w-5" />
+            <span className="text-[7px] font-black uppercase tracking-widest">System</span>
+            {activeTab === "setting" && <div className="w-1 h-1 bg-primary rounded-full -mb-1" />}
           </button>
         </div>
       </nav>
