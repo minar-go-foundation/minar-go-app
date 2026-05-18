@@ -332,10 +332,10 @@ export default function TransactionManager({
           <Table>
             <TableHeader className="bg-slate-50/80">
               <TableRow className="border-b border-slate-100">
-                <TableHead className="text-[9px] font-black uppercase text-slate-400 pl-8">Member Name</TableHead>
+                <TableHead className="w-16 pl-8"></TableHead>
+                <TableHead className="text-[9px] font-black uppercase text-slate-400">Member Name</TableHead>
                 <TableHead className="text-[9px] font-black uppercase text-slate-400">Date</TableHead>
                 <TableHead className="text-[9px] font-black uppercase text-slate-400">Total Amount</TableHead>
-                <TableHead className="text-right pr-8"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -351,10 +351,7 @@ export default function TransactionManager({
               ) : (
                 filteredTransactions.slice(0, mode === "summary" ? 8 : undefined).map(t => (
                   <TableRow key={t.id} className="border-b border-slate-50 hover:bg-slate-50/30 transition-colors group">
-                    <TableCell className="font-black text-[12px] text-slate-700 pl-8">{t.n}</TableCell>
-                    <TableCell className="text-[10px] font-bold text-slate-400">{t.d}</TableCell>
-                    <TableCell className="font-black text-[13px] text-primary">৳{parseFloat(t.a).toLocaleString()}</TableCell>
-                    <TableCell className="text-right pr-8">
+                    <TableCell className="pl-8">
                       <Button 
                         variant="ghost" 
                         size="icon" 
@@ -367,6 +364,9 @@ export default function TransactionManager({
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
+                    <TableCell className="font-black text-[12px] text-slate-700">{t.n}</TableCell>
+                    <TableCell className="text-[10px] font-bold text-slate-400">{t.d}</TableCell>
+                    <TableCell className="font-black text-[13px] text-primary">৳{parseFloat(t.a).toLocaleString()}</TableCell>
                   </TableRow>
                 ))
               )}
