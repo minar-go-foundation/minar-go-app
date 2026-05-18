@@ -120,8 +120,8 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
-      // For security, Firebase requires sending an actual reset email link.
-      // We trigger this after verifying the user's OTP to ensure they are the owner.
+      // Firebase requires an actual reset link for security.
+      // We trigger this after custom OTP verification to bridge the gap.
       await sendPasswordResetEmail(auth, email);
       setStep("reset-success");
       toast({ 
@@ -163,7 +163,7 @@ export default function AuthScreen() {
 
   if (step === "reset-success") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50">
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 font-body">
         <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white text-center">
           <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="h-10 w-10 text-green-500" />
@@ -185,7 +185,7 @@ export default function AuthScreen() {
 
   if (step === "new-password-setup") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50">
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 font-body">
         <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
           <div className="text-center space-y-4 mb-8">
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
@@ -247,7 +247,7 @@ export default function AuthScreen() {
 
   if (step === "otp" || step === "otp-reset") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50">
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 font-body">
         <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
           <div className="text-center space-y-4 mb-8">
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
@@ -297,7 +297,7 @@ export default function AuthScreen() {
 
   if (step === "forgot-password") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50">
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 font-body">
         <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
           <div className="text-center space-y-4 mb-8">
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
