@@ -3,12 +3,13 @@
 
 import { useState } from "react";
 import { database } from "@/lib/firebase";
-import { ref, push, remove, get } from "firebase/database";
+import { ref, push, remove } from "firebase/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Users, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { MGMember } from "./dashboard-screen";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,9 +21,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export default function MemberManager({ members }: { members: any[] }) {
+export default function MemberManager({ members }: { members: MGMember[] }) {
   const [newMember, setNewMember] = useState("");
-  const [deleteMember, setDeleteMember] = useState<any | null>(null);
+  const [deleteMember, setDeleteMember] = useState<MGMember | null>(null);
   const { toast } = useToast();
 
   const handleAddMember = async (e: React.FormEvent) => {
@@ -37,29 +38,16 @@ export default function MemberManager({ members }: { members: any[] }) {
       setNewMember("");
       toast({ title: "Member added", description: `${newMember} has been joined.` });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to add member", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to add member. Please check permissions.", variant: "destructive" });
     }
   };
 
   const confirmDelete = async () => {
     if (!deleteMember) return;
-    const name = typeof deleteMember === 'string' ? deleteMember : deleteMember?.name;
     
     try {
-      const membersRef = ref(database, "members");
-      const snapshot = await get(membersRef);
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        const keyToDelete = Object.keys(data).find(key => {
-          const val = data[key];
-          return val === name || (typeof val === 'object' && val?.name === name);
-        });
-        
-        if (keyToDelete) {
-          await remove(ref(database, `members/${keyToDelete}`));
-          toast({ title: "Member removed", description: `${name} was deleted successfully.` });
-        }
-      }
+      await remove(ref(database, `members/${deleteMember.id}`));
+      toast({ title: "Member removed", description: `${deleteMember.name} was deleted successfully.` });
     } catch (error) {
       toast({ title: "Error", description: "Failed to remove member", variant: "destructive" });
     } finally {
@@ -89,14 +77,17 @@ export default function MemberManager({ members }: { members: any[] }) {
         </form>
 
         <div className="grid grid-cols-2 md:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
-          {members.map((member, idx) => {
-            const name = typeof member === 'string' ? member : (member?.name || "Unknown");
-            return (
+          {members.length === 0 ? (
+            <div className="col-span-2 text-center py-10 text-muted-foreground text-xs uppercase font-bold tracking-widest">
+              No members found
+            </div>
+          ) : (
+            members.map((member) => (
               <div 
-                key={idx} 
+                key={member.id} 
                 className="group flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-transparent hover:border-primary/20 hover:bg-muted/50 transition-all"
               >
-                <span className="text-sm font-medium truncate pr-2">{name}</span>
+                <span className="text-sm font-medium truncate pr-2">{member.name}</span>
                 <button 
                   onClick={() => setDeleteMember(member)}
                   className="text-destructive hover:scale-110 transition-transform flex items-center justify-center h-8 w-8"
@@ -104,8 +95,8 @@ export default function MemberManager({ members }: { members: any[] }) {
                   <Trash2 className="h-5 w-5" />
                 </button>
               </div>
-            );
-          })}
+            ))
+          )}
         </div>
       </CardContent>
 

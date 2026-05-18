@@ -52,9 +52,14 @@ const DEFAULT_MEMBERS = [
 
 type Tab = "profile" | "members" | "gallery" | "tools";
 
+export interface MGMember {
+  id: string;
+  name: string;
+}
+
 export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<MGMember[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
@@ -112,14 +117,15 @@ export default function DashboardScreen({ user }: { user: User }) {
       Notification.requestPermission();
     }
 
-    // 3. Members Listener with Seeding Logic (Updated to use 'members' path)
+    // 3. Members Listener with Robust Seeding Logic
     const membersRef = ref(database, "members");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const list = Object.entries(data).map(([key, value]: [string, any]) => {
-          return typeof value === 'object' ? value.name : value;
-        });
+        const list: MGMember[] = Object.entries(data).map(([key, value]: [string, any]) => ({
+          id: key,
+          name: typeof value === 'object' ? value.name : value
+        }));
         setMembers(list);
       } else {
         // Seed database if members list is empty

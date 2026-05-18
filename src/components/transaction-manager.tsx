@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { MGMember } from "./dashboard-screen";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,7 +42,7 @@ const CATEGORY_MAP: Record<string, string> = {
 };
 
 interface TransactionManagerProps {
-  members: any[];
+  members: MGMember[];
   transactions: any[];
   mode?: "form" | "summary" | "full";
   onSuccess?: () => void;
@@ -215,10 +216,9 @@ export default function TransactionManager({ members, transactions, mode = "full
               <SelectValue placeholder="Member Name" />
             </SelectTrigger>
             <SelectContent>
-              {members.map((m, idx) => {
-                const name = typeof m === 'object' ? (m.name || "Unknown") : m;
-                return <SelectItem key={idx} value={name}>{name}</SelectItem>;
-              })}
+              {members.map((m) => (
+                <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -270,10 +270,9 @@ export default function TransactionManager({ members, transactions, mode = "full
                     <SelectValue placeholder="Select Member" />
                   </SelectTrigger>
                   <SelectContent>
-                    {members.map((m, idx) => {
-                      const name = typeof m === 'object' ? (m.name || "Unknown") : m;
-                      return <SelectItem key={idx} value={name}>{name}</SelectItem>;
-                    })}
+                    {members.map((m) => (
+                      <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
