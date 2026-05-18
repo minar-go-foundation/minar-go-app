@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -18,16 +19,16 @@ import {
   Building2,
   ChevronDown,
   CloudSun,
-  Cloud,
   ClipboardCheck,
-  Info
+  Info,
+  PenTool
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import MemberManager from "./member-manager";
 import TransactionManager from "./transaction-manager";
-import DemandLetterAssistant from "./demand-letter-assistant";
+import LiveLetterEditor from "./live-letter-editor";
 import DocStorage from "./doc-storage";
 import LogoManager from "./logo-manager";
 import ChatScreen from "./chat-screen";
@@ -41,7 +42,6 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-const ADMIN_EMAIL = "kosttoonek7@gmail.com";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
@@ -51,18 +51,13 @@ MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - APP OVERVIEW
 [ ডিজাইন ও থিম ]
 - Primary Color: Navy Blue (#002366)
 - Accent Color: Premium Gold (#C4A052)
-- Background: Light Sky Blue (#F8FAFF)
-- UI Style: Modern Mobile-First Design, Rounded Corners (2.5rem).
+- UI Style: Modern Mobile-First Design, Rounded Corners.
 
 [ প্রধান ফিচারসমূহ ]
-১. ওটিপি ভেরিফিকেশন: রেজিস্ট্রেশনের সময় ইউজারের ইমেইলে গোপন কোড যাবে।
-২. লাইভ সিস্টেম হেডার: রিয়েল-টাইম লোকেশন এবং তাপমাত্রা।
-৩. মেইন অ্যাসেট ট্র্যাকার: ফিল্টার অনুযায়ী মোট জমার স্মার্ট কার্ড।
-৪. গুগল ক্লাউড ব্যাকআপ: এক ক্লিকে গুগল শিটে ডাটা ব্যাকআপ।
-৫. এআই ডিমান্ড লেটার: ইংরেজি ও বাংলায় পেশাদার লেটার তৈরি।
-৬. এডমিন চ্যাট রুম: রিয়েল-টাইম চ্যাটিং সুবিধা।
-৭. ডিজিটাল ভল্ট: মেম্বারদের ছবি বা PDF জমানোর গ্যালারি।
-৮. রিলিজিয়াস কাউন্টডাউন: হজ্জ ও রমাদান ২০২৬ লাইভ ট্র্যাকার।
+১. ওটিপি ভেরিফিকেশন: রেজিস্ট্রেশনের সময় ইমেইলে গোপন কোড।
+২. লাইভ মেকার: সরাসরি টেক্সট এডিট করে লেটার জেনারেটর।
+৩. স্মার্ট ব্যাকআপ: গুগল শিটে সয়ংক্রিয় ডাটা সেভ।
+৪. এডমিন চ্যাট: রিয়েল-টাইম অফিশিয়াল চ্যাট রুম।
 `.trim();
 
 type Tab = "home" | "members" | "chat" | "gallery" | "setting" | "tools";
@@ -102,16 +97,11 @@ export default function DashboardScreen({ user }: { user: User }) {
           const { latitude, longitude } = position.coords;
           const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
           const data = await res.json();
-          setWeather({ 
-            city: "Live Location", 
-            temp: Math.round(data.current_weather.temperature).toString() 
-          });
+          setWeather({ city: "Live Location", temp: Math.round(data.current_weather.temperature).toString() });
         } catch (e) {
           setWeather({ city: "Location Access", temp: "26" });
         }
-      }, () => {
-        setWeather({ city: "Global", temp: "24" });
-      });
+      }, () => setWeather({ city: "Global", temp: "24" }));
     }
   }, []);
 
@@ -120,27 +110,18 @@ export default function DashboardScreen({ user }: { user: User }) {
     const unsubscribeTrans = onValue(transRef, (snapshot) => {
       const list: any[] = [];
       if (snapshot.exists()) {
-        snapshot.forEach((child) => {
-          list.push({ id: child.key, ...child.val() });
-        });
+        snapshot.forEach((child) => { list.push({ id: child.key, ...child.val() }); });
         setTransactions(list);
       }
     });
 
     const notifyQuery = query(ref(database, "transactions"), limitToLast(1));
     const unsubscribeNotify = onChildAdded(notifyQuery, (snapshot) => {
-      if (isInitialLoad.current) {
-        isInitialLoad.current = false;
-        return;
-      }
+      if (isInitialLoad.current) { isInitialLoad.current = false; return; }
       const data = snapshot.val();
       if (data) {
-        const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-        audio.play().catch(() => {});
-        toast({
-          title: "New Deposit Recorded! 🔔",
-          description: `${data.n} deposited ৳${data.a}`,
-        });
+        new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3").play().catch(() => {});
+        toast({ title: "New Deposit Recorded! 🔔", description: `${data.n} deposited ৳${data.a}` });
       }
     });
 
@@ -148,9 +129,7 @@ export default function DashboardScreen({ user }: { user: User }) {
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const list: MGMember[] = [];
       if (snapshot.exists()) {
-        snapshot.forEach((child) => {
-          list.push({ id: child.key!, name: child.val().name });
-        });
+        snapshot.forEach((child) => { list.push({ id: child.key!, name: child.val().name }); });
         setMembers(list);
       }
     });
@@ -166,14 +145,10 @@ export default function DashboardScreen({ user }: { user: User }) {
   }, [toast]);
 
   const filteredTotal = useMemo(() => {
-    if (filterMonth === "All") {
-      return transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
-    }
+    if (filterMonth === "All") return transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
     return transactions.reduce((acc, curr) => {
       const tDate = new Date(curr.d);
-      if (MONTHS[tDate.getMonth()] === filterMonth) {
-        return acc + (parseFloat(curr.a) || 0);
-      }
+      if (MONTHS[tDate.getMonth()] === filterMonth) return acc + (parseFloat(curr.a) || 0);
       return acc;
     }, 0);
   }, [transactions, filterMonth]);
@@ -181,32 +156,20 @@ export default function DashboardScreen({ user }: { user: User }) {
   const handleCloudBackup = async () => {
     setBackupLoading(true);
     const now = new Date();
-    const timestampStr = format(now, "dd/MM/yyyy HH:mm:ss");
-    
     const rows = transactions.map(t => [t.n, t.d, t.a]);
-    rows.unshift([`--- BACKUP SESSION: ${timestampStr} ---`, "", ""]);
+    rows.unshift([`--- BACKUP SESSION: ${format(now, "dd/MM/yyyy HH:mm:ss")} ---`, "", ""]);
     rows.push(["TOTAL ASSETS", "", filteredTotal.toLocaleString()]);
 
     try {
       await fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
-        body: JSON.stringify({
-          spreadsheetId: SPREADSHEET_ID,
-          rows: rows
-        })
+        body: JSON.stringify({ spreadsheetId: SPREADSHEET_ID, rows: rows })
       });
       toast({ title: "Backup Success!", description: "Data saved to Google Sheet." });
     } catch (error) {
       toast({ title: "Backup Failed", variant: "destructive" });
-    } finally {
-      setBackupLoading(false);
-    }
-  };
-
-  const copyFeaturesToClipboard = () => {
-    navigator.clipboard.writeText(APP_FEATURES_REPORT);
-    toast({ title: "Copied!", description: "Feature report copied." });
+    } finally { setBackupLoading(false); }
   };
 
   return (
@@ -214,11 +177,7 @@ export default function DashboardScreen({ user }: { user: User }) {
       <header className="px-6 py-5 flex items-center justify-between bg-white shadow-sm border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center gap-4">
           <div className="relative w-12 h-12 rounded-2xl bg-primary border-2 border-accent/20 flex items-center justify-center overflow-hidden shadow-lg transition-transform active:scale-95 cursor-pointer" onClick={() => setActiveTab("setting")}>
-            {logo ? (
-              <Image src={logo} alt="Logo" fill className="object-cover" />
-            ) : (
-              <span className="text-white font-black text-lg">MG</span>
-            )}
+            {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <span className="text-white font-black text-lg">MG</span>}
           </div>
           <div>
             <h1 className="text-[12px] font-black text-primary leading-tight uppercase tracking-tight">Minar Go Foundation</h1>
@@ -235,11 +194,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></div>
           </Button>
           <div className="w-10 h-10 bg-slate-100 rounded-full border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
-             {user.photoURL ? (
-               <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" />
-             ) : (
-               <UserIcon className="h-5 w-5 text-slate-400" />
-             )}
+             {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-400" />}
           </div>
         </div>
       </header>
@@ -247,56 +202,31 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className="flex-1 overflow-y-auto px-6 py-6 container max-w-lg mx-auto">
         {activeTab === "home" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid grid-cols-1 gap-4">
-              <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative group p-1">
-                <CardContent className="p-8 text-center relative z-10">
-                  <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-4">
-                    {filterMonth === "All" ? "Total Foundation Assets" : `Total ${filterMonth} Assets`}
-                  </p>
-                  <h3 className="text-4xl font-black text-white mb-2">৳{filteredTotal.toLocaleString()}</h3>
-                  <div className="flex justify-center items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Live Cloud Sync</span>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <Card className="border-none shadow-lg rounded-[2.2rem] bg-white">
-                  <CardContent className="p-6 text-center">
-                    <Users className="h-5 w-5 text-accent mx-auto mb-2" />
-                    <p className="text-[9px] uppercase font-black text-slate-400 tracking-wider mb-1">Members</p>
-                    <h3 className="text-2xl font-black text-primary">{members.length}</h3>
-                  </CardContent>
-                </Card>
-                <Card className="border-none shadow-lg rounded-[2.2rem] bg-white">
-                  <CardContent className="p-6 text-center">
-                    <Building2 className="h-5 w-5 text-primary mx-auto mb-2" />
-                    <p className="text-[9px] uppercase font-black text-slate-400 tracking-wider mb-1">Growth</p>
-                    <h3 className="text-2xl font-black text-accent">+8.2%</h3>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative group p-1">
+              <CardContent className="p-8 text-center relative z-10">
+                <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-4">
+                  {filterMonth === "All" ? "Total Foundation Assets" : `Total ${filterMonth} Assets`}
+                </p>
+                <h3 className="text-4xl font-black text-white mb-2">৳{filteredTotal.toLocaleString()}</h3>
+                <div className="flex justify-center items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Live Cloud Sync</span>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="p-6 bg-primary rounded-[2.2rem] text-white shadow-2xl relative overflow-hidden border border-white/5">
                 <div className="text-[8px] font-black uppercase text-accent tracking-[0.2em] mb-3 flex items-center gap-2">
                   <div className="w-1 h-1 bg-accent rounded-full" /> Hajj 2026
                 </div>
-                <h4 className="text-xs font-bold leading-tight">
-                  25 May 2026<br/>
-                  <span className="text-lg font-black text-accent">{countdown.hajj} Days Left</span>
-                </h4>
+                <h4 className="text-xs font-bold leading-tight">25 May 2026<br/><span className="text-lg font-black text-accent">{countdown.hajj} Days Left</span></h4>
               </div>
               <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl relative overflow-hidden">
                 <div className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-2">
                    <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan 2026
                 </div>
-                <h4 className="text-xs font-bold leading-tight text-slate-500">
-                  18 Feb 2026<br/>
-                  <span className="text-lg font-black text-primary">{countdown.ramadan} Days Left</span>
-                </h4>
+                <h4 className="text-xs font-bold leading-tight text-slate-500">18 Feb 2026<br/><span className="text-lg font-black text-primary">{countdown.ramadan} Days Left</span></h4>
               </div>
             </div>
 
@@ -308,13 +238,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             </div>
 
             <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50">
-              <TransactionManager 
-                members={members} 
-                transactions={transactions} 
-                mode="summary" 
-                filterMonth={filterMonth}
-                onFilterMonthChange={setFilterMonth}
-              />
+              <TransactionManager members={members} transactions={transactions} mode="summary" filterMonth={filterMonth} onFilterMonthChange={setFilterMonth} />
             </div>
           </div>
         )}
@@ -322,7 +246,11 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "members" && <MemberManager members={members} />}
         {activeTab === "chat" && <ChatScreen user={user} />}
         {activeTab === "gallery" && <DocStorage />}
-        {activeTab === "tools" && <DemandLetterAssistant />}
+        {activeTab === "tools" && (
+          <div className="animate-in fade-in duration-700">
+            <LiveLetterEditor />
+          </div>
+        )}
         {activeTab === "setting" && (
           <div className="space-y-6 animate-in fade-in duration-500">
             <Card className="rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
@@ -332,21 +260,13 @@ export default function DashboardScreen({ user }: { user: User }) {
                   <LogoManager currentLogo={logo} onUpdate={setLogo} />
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Foundation Branding</p>
                 </div>
-                
                 <div className="w-full space-y-3">
-                   <Button 
-                    className="w-full h-14 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-md hover:bg-[#C8E6C9] flex items-center justify-center gap-3"
-                    onClick={handleCloudBackup}
-                    disabled={backupLoading}
-                   >
-                     {backupLoading ? <RotateCcw className="h-5 w-5 animate-spin" /> : <Cloud className="h-5 w-5" />}
-                     GOOGLE CLOUD BACKUP
+                   <Button className="w-full h-14 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-md hover:bg-[#C8E6C9] flex items-center justify-center gap-3" onClick={handleCloudBackup} disabled={backupLoading}>
+                     {backupLoading ? <RotateCcw className="h-5 w-5 animate-spin" /> : <RotateCcw className="h-5 w-5" />} GOOGLE CLOUD BACKUP
                    </Button>
-
                    <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-slate-200" onClick={() => setActiveTab("gallery")}>
                      <ImageIcon className="mr-2 h-5 w-5" /> DIGITAL GALLERY
                    </Button>
-
                    <Button variant="destructive" className="w-full h-14 rounded-2xl font-black shadow-xl mt-4" onClick={() => signOut(auth)}>
                     <LogOut className="mr-2 h-5 w-5" /> SECURE LOGOUT
                   </Button>
@@ -356,13 +276,11 @@ export default function DashboardScreen({ user }: { user: User }) {
 
             <Card className="rounded-[2.5rem] border-none shadow-xl p-8 bg-white">
                <div className="flex items-center gap-3 mb-6">
-                 <div className="p-2 bg-primary/10 rounded-xl">
-                   <Info className="h-5 w-5 text-primary" />
-                 </div>
+                 <div className="p-2 bg-primary/10 rounded-xl"><Info className="h-5 w-5 text-primary" /></div>
                  <h4 className="text-xs font-black uppercase text-primary tracking-tight">Feature Guide</h4>
                </div>
                <Textarea readOnly value={APP_FEATURES_REPORT} className="h-64 rounded-2xl bg-slate-50 border-none text-[10px] font-medium leading-relaxed mb-4" />
-               <Button variant="outline" className="w-full h-12 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2" onClick={copyFeaturesToClipboard}>
+               <Button variant="outline" className="w-full h-12 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2" onClick={() => {navigator.clipboard.writeText(APP_FEATURES_REPORT); toast({title: "Copied!"})}}>
                  <ClipboardCheck className="h-4 w-4" /> Copy Report
                </Button>
             </Card>
@@ -373,13 +291,10 @@ export default function DashboardScreen({ user }: { user: User }) {
       <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 pt-4 z-50 pointer-events-none">
         <div className="max-w-md mx-auto bg-white/90 rounded-[3rem] shadow-2xl flex items-center justify-between px-3 py-3 border border-white/60 backdrop-blur-xl pointer-events-auto">
           <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Home className="h-6 w-6" />
-            <span className="text-[8px] font-black uppercase tracking-widest">Home</span>
+            <Home className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Home</span>
           </button>
-          
           <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Users className="h-6 w-6" />
-            <span className="text-[8px] font-black uppercase tracking-widest">Members</span>
+            <Users className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Members</span>
           </button>
 
           <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
@@ -391,26 +306,16 @@ export default function DashboardScreen({ user }: { user: User }) {
               </button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] rounded-[3rem] p-8 border-none shadow-2xl">
-              <DialogHeader>
-                <DialogTitle className="text-center font-black uppercase text-primary text-xl tracking-tight">New Deposit</DialogTitle>
-              </DialogHeader>
-              <TransactionManager 
-                members={members} 
-                transactions={transactions} 
-                mode="form" 
-                onSuccess={() => setIsDepositOpen(false)} 
-              />
+              <DialogHeader><DialogTitle className="text-center font-black uppercase text-primary text-xl tracking-tight">New Deposit</DialogTitle></DialogHeader>
+              <TransactionManager members={members} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
             </DialogContent>
           </Dialog>
 
-          <button onClick={() => setActiveTab("chat")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <MessageCircle className="h-6 w-6" />
-            <span className="text-[8px] font-black uppercase tracking-widest">Chat</span>
+          <button onClick={() => setActiveTab("tools")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "tools" ? "text-primary scale-110" : "text-slate-300"}`}>
+            <PenTool className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Maker</span>
           </button>
-
           <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <Settings className="h-6 w-6" />
-            <span className="text-[8px] font-black uppercase tracking-widest">System</span>
+            <Settings className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">System</span>
           </button>
         </div>
       </nav>
