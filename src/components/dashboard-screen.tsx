@@ -14,21 +14,18 @@ import {
   RotateCcw,
   Bell,
   User as UserIcon,
-  MessageCircle,
   Settings,
   Building2,
   ChevronDown,
   CloudSun,
   ClipboardCheck,
-  Info,
-  PenTool
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import MemberManager from "./member-manager";
 import TransactionManager from "./transaction-manager";
-import LiveLetterEditor from "./live-letter-editor";
 import DocStorage from "./doc-storage";
 import LogoManager from "./logo-manager";
 import ChatScreen from "./chat-screen";
@@ -55,12 +52,12 @@ MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - APP OVERVIEW
 
 [ প্রধান ফিচারসমূহ ]
 ১. ওটিপি ভেরিফিকেশন: রেজিস্ট্রেশনের সময় ইমেইলে গোপন কোড।
-২. লাইভ মেকার: সরাসরি টেক্সট এডিট করে লেটার জেনারেটর।
+২. মেম্বার ম্যানেজমেন্ট: সব মেম্বারদের ডাটাবেজ।
 ৩. স্মার্ট ব্যাকআপ: গুগল শিটে সয়ংক্রিয় ডাটা সেভ।
 ৪. এডমিন চ্যাট: রিয়েল-টাইম অফিশিয়াল চ্যাট রুম।
 `.trim();
 
-type Tab = "home" | "members" | "chat" | "gallery" | "setting" | "tools";
+type Tab = "home" | "members" | "chat" | "gallery" | "setting";
 
 export interface MGMember {
   id: string;
@@ -232,9 +229,6 @@ export default function DashboardScreen({ user }: { user: User }) {
 
             <div className="flex items-center justify-between px-2">
               <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Transaction Log</h3>
-              <Button variant="ghost" className="text-[9px] font-black text-accent uppercase p-0 h-auto tracking-widest" onClick={() => setActiveTab("tools")}>
-                Tools <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
             </div>
 
             <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50">
@@ -246,11 +240,6 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "members" && <MemberManager members={members} />}
         {activeTab === "chat" && <ChatScreen user={user} />}
         {activeTab === "gallery" && <DocStorage />}
-        {activeTab === "tools" && (
-          <div className="animate-in fade-in duration-700">
-            <LiveLetterEditor />
-          </div>
-        )}
         {activeTab === "setting" && (
           <div className="space-y-6 animate-in fade-in duration-500">
             <Card className="rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
@@ -289,11 +278,11 @@ export default function DashboardScreen({ user }: { user: User }) {
       </main>
 
       <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 pt-4 z-50 pointer-events-none">
-        <div className="max-w-md mx-auto bg-white/90 rounded-[3rem] shadow-2xl flex items-center justify-between px-3 py-3 border border-white/60 backdrop-blur-xl pointer-events-auto">
-          <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}>
+        <div className="max-w-md mx-auto bg-white/90 rounded-[3rem] shadow-2xl flex items-center justify-around px-3 py-3 border border-white/60 backdrop-blur-xl pointer-events-auto">
+          <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}>
             <Home className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Home</span>
           </button>
-          <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}>
+          <button onClick={() => setActiveTab("members")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}>
             <Users className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Members</span>
           </button>
 
@@ -311,10 +300,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             </DialogContent>
           </Dialog>
 
-          <button onClick={() => setActiveTab("tools")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "tools" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <PenTool className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Maker</span>
-          </button>
-          <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 transition-all ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}>
+          <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}>
             <Settings className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">System</span>
           </button>
         </div>
