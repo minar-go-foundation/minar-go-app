@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { User, signOut } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
-import { ref, onValue, push, query, limitToLast, onChildAdded, get, set } from "firebase/database";
+import { ref, onValue, push, query, limitToLast, onChildAdded, set } from "firebase/database";
 import { 
   LogOut, 
   Plus, 
@@ -13,9 +13,7 @@ import {
   Image as ImageIcon, 
   FileText,
   CloudUpload,
-  CloudSun,
-  ShieldCheck,
-  BellRing
+  CloudSun
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,12 +64,11 @@ export default function DashboardScreen({ user }: { user: User }) {
     // 1. Transactions Listener
     const transRef = ref(database, "transactions");
     const unsubscribeTrans = onValue(transRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const list = Object.entries(data).map(([key, value]: [string, any]) => ({
-          id: key,
-          ...value
-        }));
+      const list: any[] = [];
+      if (snapshot.exists()) {
+        snapshot.forEach((child) => {
+          list.push({ id: child.key, ...child.val() });
+        });
         setTransactions(list.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime()));
       } else {
         setTransactions([]);
@@ -100,29 +97,24 @@ export default function DashboardScreen({ user }: { user: User }) {
       }
     });
 
-    // 3. Members Listener and Robust Seeding
+    // 3. Members Listener - Using robust forEach iteration
     const membersRef = ref(database, "members");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
+      if (snapshot.exists()) {
         const list: MGMember[] = [];
-        // Handle both object and array response from RTDB
-        if (typeof data === 'object') {
-          Object.entries(data).forEach(([key, value]: [string, any]) => {
-            const nameValue = typeof value === 'object' ? value.name : value;
-            list.push({
-              id: key,
-              name: nameValue || "Unknown Member"
-            });
+        snapshot.forEach((child) => {
+          const val = child.val();
+          list.push({
+            id: child.key!,
+            name: (typeof val === 'object' ? val.name : val) || "Unknown Member"
           });
-        }
+        });
         setMembers(list);
       } else {
-        // Only seed if database path is empty
-        console.log("Member list empty, seeding defaults...");
+        // Seed if empty
         DEFAULT_MEMBERS.forEach(m => {
-          const newRef = push(membersRef);
-          set(newRef, { 
+          const newMemberRef = push(membersRef);
+          set(newMemberRef, { 
             name: m, 
             createdAt: new Date().toISOString() 
           });
@@ -237,7 +229,6 @@ export default function DashboardScreen({ user }: { user: User }) {
                 </CardContent>
               </Card>
 
-              {/* Explicit Backup Card for Visibility */}
               <Card className="border-none shadow-md bg-white rounded-3xl overflow-hidden">
                 <CardContent className="p-6 flex items-center justify-between">
                   <div className="flex items-center gap-3">
