@@ -30,7 +30,10 @@ export default function MemberManager({ members }: { members: any[] }) {
     if (!newMember.trim()) return;
     
     try {
-      await push(ref(database, "member_list"), newMember.trim());
+      await push(ref(database, "members"), {
+        name: newMember.trim(),
+        createdAt: new Date().toISOString()
+      });
       setNewMember("");
       toast({ title: "Member added", description: `${newMember} has been joined.` });
     } catch (error) {
@@ -43,7 +46,7 @@ export default function MemberManager({ members }: { members: any[] }) {
     const name = typeof deleteMember === 'string' ? deleteMember : deleteMember?.name;
     
     try {
-      const membersRef = ref(database, "member_list");
+      const membersRef = ref(database, "members");
       const snapshot = await get(membersRef);
       if (snapshot.exists()) {
         const data = snapshot.val();
@@ -53,7 +56,7 @@ export default function MemberManager({ members }: { members: any[] }) {
         });
         
         if (keyToDelete) {
-          await remove(ref(database, `member_list/${keyToDelete}`));
+          await remove(ref(database, `members/${keyToDelete}`));
           toast({ title: "Member removed", description: `${name} was deleted successfully.` });
         }
       }

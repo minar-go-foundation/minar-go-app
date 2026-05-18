@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { User, signOut } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
-import { ref, onValue, push, onChildAdded, query, limitToLast, get } from "firebase/database";
+import { ref, onValue, push, onChildAdded, query, limitToLast, get, set } from "firebase/database";
 import { 
   LogOut, 
   Plus, 
@@ -112,18 +112,20 @@ export default function DashboardScreen({ user }: { user: User }) {
       Notification.requestPermission();
     }
 
-    // 3. Members Listener with Seeding Logic
-    const membersRef = ref(database, "member_list");
+    // 3. Members Listener with Seeding Logic (Updated to use 'members' path)
+    const membersRef = ref(database, "members");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const list = Object.values(data).map(m => 
-          typeof m === 'object' ? (m as any).name : m
-        );
+        const list = Object.entries(data).map(([key, value]: [string, any]) => {
+          return typeof value === 'object' ? value.name : value;
+        });
         setMembers(list);
       } else {
-        // Seed database if member list is empty
-        DEFAULT_MEMBERS.forEach(m => push(membersRef, m));
+        // Seed database if members list is empty
+        DEFAULT_MEMBERS.forEach(m => {
+          push(membersRef, { name: m, createdAt: new Date().toISOString() });
+        });
       }
     });
 
