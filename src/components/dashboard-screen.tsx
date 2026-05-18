@@ -56,7 +56,7 @@ const DEFAULT_MEMBERS = [
 ];
 
 const ADMIN_EMAIL = "kosttoonek7@gmail.com";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8F4e_ceTa0kN0ujcr7ihNJ986FHn9W01yrCn4h2T-ZjlcqQtiEHC9PXftSLPxGgSU/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
 type Tab = "home" | "members" | "chat" | "gallery" | "setting" | "tools";
@@ -78,7 +78,6 @@ export default function DashboardScreen({ user }: { user: User }) {
   
   const isInitialLoad = useRef(true);
 
-  // Weather Logic
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
@@ -166,7 +165,6 @@ export default function DashboardScreen({ user }: { user: User }) {
     const timestampStr = format(now, "dd/MM/yyyy HH:mm:ss");
     const total = transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
     
-    // Constructing a structured log for the backup
     const sessionHeader = [`--- BACKUP SESSION: ${timestampStr} ---`, "", ""];
     const tableHeaders = ["Member Name", "Date", "Amount (Tk)"];
     const dataRows = transactions.map(t => [t.n, t.d, t.a]);
@@ -212,7 +210,7 @@ export default function DashboardScreen({ user }: { user: User }) {
     <div className="min-h-screen bg-[#F8FAFF] flex flex-col font-body pb-32">
       <header className="px-6 py-5 flex items-center justify-between bg-white shadow-sm border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center gap-4">
-          <div className="relative w-12 h-12 rounded-2xl bg-primary border-2 border-accent/20 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/10 transition-transform active:scale-95" onClick={() => setActiveTab("setting")}>
+          <div className="relative w-12 h-12 rounded-2xl bg-primary border-2 border-accent/20 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/10 transition-transform active:scale-95 cursor-pointer" onClick={() => setActiveTab("setting")}>
             {logo ? (
               <Image src={logo} alt="Logo" fill className="object-cover" />
             ) : (
