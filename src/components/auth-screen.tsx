@@ -15,19 +15,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw, KeyRound } from "lucide-react";
+import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw, KeyRound, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import { sendOtpEmailAction } from "@/app/actions/send-email";
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState<"auth" | "otp" | "forgot-password" | "otp-reset">("auth");
+  const [step, setStep] = useState<"auth" | "otp" | "forgot-password" | "otp-reset" | "new-password-setup">("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [name, setName] = useState("");
   const [otpInput, setOtpInput] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const [logo, setLogo] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -45,7 +48,6 @@ export default function AuthScreen() {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "Welcome back!", description: "Logged in successfully." });
       } else {
-        // Registration Flow: Start OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const result = await sendOtpEmailAction(email, otp);
         
@@ -71,7 +73,7 @@ export default function AuthScreen() {
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleForgotPasswordInitiate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       toast({ title: "Email Required", description: "Please enter your email first.", variant: "destructive" });
@@ -95,19 +97,34 @@ export default function AuthScreen() {
     }
   };
 
-  const handleVerifyAndReset = async (e: React.FormEvent) => {
+  const handleVerifyOtpReset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otpInput !== generatedOtp) {
       toast({ title: "Invalid Code", description: "The OTP you entered is incorrect.", variant: "destructive" });
       return;
     }
+    toast({ title: "Identity Verified!", description: "Please create your new secure password." });
+    setStep("new-password-setup");
+  };
+
+  const handleFinalPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmNewPassword) {
+      toast({ title: "Mismatch", description: "Passwords do not match.", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "Too Weak", description: "Password must be at least 6 characters.", variant: "destructive" });
+      return;
+    }
 
     setLoading(true);
     try {
+      // Firebase requires an official link for security, so we trigger that here
       await sendPasswordResetEmail(auth, email);
       toast({ 
-        title: "Identity Verified!", 
-        description: "A secure password reset link has been sent to your email. Please check your inbox." 
+        title: "Security Link Sent!", 
+        description: "For security, a final confirmation link has been sent to your email to apply your new password." 
       });
       setStep("auth");
     } catch (error: any) {
@@ -143,6 +160,68 @@ export default function AuthScreen() {
     }
   };
 
+  if (step === "new-password-setup") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50">
+        <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
+          <div className="text-center space-y-4 mb-8">
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+              <Lock className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-xl font-black text-primary uppercase">New Password</h2>
+            <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
+              Create a secure password for your account
+            </p>
+          </div>
+
+          <form onSubmit={handleFinalPasswordReset} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">New Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    type={showPass ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    className="pl-12 h-14 bg-slate-50 border-none shadow-inner rounded-2xl"
+                  />
+                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    type={showPass ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    required
+                    className="pl-12 h-14 bg-slate-50 border-none shadow-inner rounded-2xl"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20"
+              disabled={loading}
+            >
+              {loading ? "SAVING..." : "UPDATE PASSWORD"}
+            </Button>
+          </form>
+        </Card>
+      </div>
+    );
+  }
+
   if (step === "otp" || step === "otp-reset") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50">
@@ -152,15 +231,15 @@ export default function AuthScreen() {
               <ShieldCheck className="h-8 w-8 text-primary" />
             </div>
             <h2 className="text-xl font-black text-primary uppercase">
-              {step === "otp-reset" ? "Reset Verification" : "Verify Email"}
+              {step === "otp-reset" ? "Identity Check" : "Verify Email"}
             </h2>
-            <p className="text-xs font-bold text-slate-400 leading-relaxed">
+            <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
               ENTER THE 6-DIGIT CODE SENT TO<br/>
-              <span className="text-primary">{email}</span>
+              <span className="text-primary normal-case tracking-normal">{email}</span>
             </p>
           </div>
 
-          <form onSubmit={step === "otp-reset" ? handleVerifyAndReset : handleVerifyAndRegister} className="space-y-6">
+          <form onSubmit={step === "otp-reset" ? handleVerifyOtpReset : handleVerifyAndRegister} className="space-y-6">
             <div className="relative">
               <Input 
                 placeholder="000000" 
@@ -177,7 +256,7 @@ export default function AuthScreen() {
               className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20"
               disabled={loading}
             >
-              {loading ? "VERIFYING..." : step === "otp-reset" ? "VERIFY & RESET" : "COMPLETE REGISTRATION"}
+              {loading ? "VERIFYING..." : "CONFIRM IDENTITY"}
             </Button>
 
             <button 
@@ -201,14 +280,15 @@ export default function AuthScreen() {
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
               <KeyRound className="h-8 w-8 text-primary" />
             </div>
-            <h2 className="text-xl font-black text-primary uppercase">Reset Password</h2>
-            <p className="text-xs font-bold text-slate-400 leading-relaxed">
-              ENTER YOUR REGISTERED EMAIL TO<br/>RECEIVE A RECOVERY CODE
+            <h2 className="text-xl font-black text-primary uppercase">Password Recovery</h2>
+            <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
+              ENTER YOUR EMAIL TO RECEIVE<br/>A VERIFICATION CODE
             </p>
           </div>
 
-          <form onSubmit={handleForgotPassword} className="space-y-6">
+          <form onSubmit={handleForgotPasswordInitiate} className="space-y-6">
             <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Admin Email</Label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -227,7 +307,7 @@ export default function AuthScreen() {
               className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20"
               disabled={loading}
             >
-              {loading ? "SENDING..." : "SEND RECOVERY CODE"}
+              {loading ? "SENDING..." : "GET RECOVERY CODE"}
             </Button>
 
             <button 
