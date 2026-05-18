@@ -1,50 +1,57 @@
 
-"use client";
+'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { User } from 'firebase/auth';
-import { ShieldCheck, Video, VideoOff, Mic, PhoneOff } from 'lucide-react';
+import { ShieldCheck, Video, RefreshCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function VideoCall({ user }: { user: User }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const initCall = async () => {
       if (!containerRef.current) return;
 
-      const { ZegoUIKitPrebuilt } = await import('@zegocloud/zego-uikit-prebuilt');
+      try {
+        const { ZegoUIKitPrebuilt } = await import('@zegocloud/zego-uikit-prebuilt');
 
-      const appID = 1192208819;
-      const serverSecret = "63038b3400305f63d76378e906c27189";
-      const roomID = "minargo_hq_room"; // Shared room for Foundation HQ
-      
-      const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-        appID,
-        serverSecret,
-        roomID,
-        user.uid,
-        user.displayName || "Foundation Admin"
-      );
+        const appID = 1192208819;
+        const serverSecret = "63038b3400305f63d76378e906c27189";
+        const roomID = "minargo_hq_room"; 
+        
+        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+          appID,
+          serverSecret,
+          roomID,
+          user.uid,
+          user.displayName || "Foundation Admin"
+        );
 
-      const zp = ZegoUIKitPrebuilt.create(kitToken);
-      
-      zp.joinRoom({
-        container: containerRef.current,
-        scenario: {
-          mode: ZegoUIKitPrebuilt.OneONoneCall,
-        },
-        showScreenSharingButton: true,
-        showMyCameraToggleButton: true,
-        showAudioVideoSettingsButton: true,
-        turnOnCameraWhenJoining: true,
-        turnOnMicrophoneWhenJoining: true,
-        prejoinViewConfig: {
-            title: "Foundation Video Gateway",
-        },
-        branding: {
-            logoURL: "/logo.png",
-        }
-      });
+        const zp = ZegoUIKitPrebuilt.create(kitToken);
+        
+        zp.joinRoom({
+          container: containerRef.current,
+          scenario: {
+            mode: ZegoUIKitPrebuilt.OneONoneCall,
+          },
+          showScreenSharingButton: true,
+          showMyCameraToggleButton: true,
+          showAudioVideoSettingsButton: true,
+          turnOnCameraWhenJoining: true,
+          turnOnMicrophoneWhenJoining: true,
+          prejoinViewConfig: {
+              title: "Foundation Video Gateway",
+          },
+          branding: {
+              logoURL: "/logo.png",
+          }
+        });
+        setLoading(false);
+      } catch (error) {
+        console.error("Zego Error:", error);
+      }
     };
 
     initCall();
@@ -65,16 +72,20 @@ export default function VideoCall({ user }: { user: User }) {
             </p>
           </div>
         </div>
+        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => window.location.reload()}>
+           <RefreshCcw className="h-4 w-4" />
+        </Button>
       </div>
       
       <div className="flex-1 bg-slate-900 relative">
         <div ref={containerRef} className="w-full h-full" />
         
-        {/* Placeholder UI if kit takes time to load */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-20">
-            <ShieldCheck className="h-24 w-24 text-white mb-4" />
-            <p className="text-white text-xs font-black uppercase tracking-widest">Establishing Secure Connection...</p>
-        </div>
+        {loading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none bg-slate-900/50 z-10">
+              <ShieldCheck className="h-24 w-24 text-white/20 mb-4 animate-pulse" />
+              <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Establishing Gateway...</p>
+          </div>
+        )}
       </div>
     </div>
   );
