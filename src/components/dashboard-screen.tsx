@@ -23,7 +23,8 @@ import {
   Clock,
   ShieldCheck,
   LayoutDashboard,
-  FileText
+  FileText,
+  Video
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +34,7 @@ import TransactionManager from "./transaction-manager";
 import DocStorage from "./doc-storage";
 import LogoManager from "./logo-manager";
 import ChatScreen from "./chat-screen";
+import VideoCall from "./video-call";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Image from "next/image";
 import { format, differenceInDays, isAfter, addYears } from "date-fns";
@@ -57,7 +59,7 @@ MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - SYSTEM PROFILE
 
 [ ২. নিরাপত্তা (Security) ]
 - ওটিপি ভেরিফিকেশন: Nodemailer ও Gmail SMTP ব্যবহার করে সরাসরি ইমেইলে ৬-ডিজিটের কোড।
-- সিকিউর লগইন: ফায়ারবেস অথেন্টিকেশন সিস্টেম।
+- ভিডিও কল: ZegoCloud UIKit এনক্রিপ্টেড গেটওয়ে।
 
 [ ৩. ম্যানেজমেন্ট (Management) ]
 - মেম্বার ডিরেক্টরি: রিয়েল-টাইম মেম্বার ডাটাবেজ (Add/Remove)।
@@ -71,10 +73,10 @@ MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - SYSTEM PROFILE
 
 [ ৫. কমিউনিকেশন ]
 - এডমিন চ্যাট: ফাউন্ডেশনের কর্মকর্তাদের জন্য নিরাপদ রিয়েল-টাইম চ্যাট রুম।
-- লাইভ নোটিফিকেশন: নতুন জমা হলে সাথে সাথে অডিও অ্যালার্ট ও টোস্ট মেসেজ।
+- ভিডিও কানেক্ট: হাই-ডেফিনিশন ভিডিও ও অডিও কনফারেন্সিং।
 `.trim();
 
-type Tab = "home" | "members" | "chat" | "gallery" | "setting";
+type Tab = "home" | "members" | "chat" | "gallery" | "setting" | "call";
 
 export interface MGMember {
   id: string;
@@ -224,9 +226,9 @@ export default function DashboardScreen({ user }: { user: User }) {
         </div>
         
         <div className="flex items-center gap-2.5">
-          <Button variant="ghost" size="icon" className="h-10 w-10 relative bg-slate-50 rounded-xl" onClick={() => setActiveTab("chat")}>
-            <Bell className="h-5 w-5 text-slate-400" />
-            <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></div>
+          <Button variant="ghost" size="icon" className="h-10 w-10 relative bg-slate-50 rounded-xl" onClick={() => setActiveTab("call")}>
+            <Video className="h-5 w-5 text-primary" />
+            <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-green-500 rounded-full border border-white"></div>
           </Button>
           <div className="w-10 h-10 bg-slate-100 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center overflow-hidden">
              {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-400" />}
@@ -290,6 +292,7 @@ export default function DashboardScreen({ user }: { user: User }) {
 
         {activeTab === "members" && <MemberManager members={members} />}
         {activeTab === "chat" && <ChatScreen user={user} />}
+        {activeTab === "call" && <VideoCall user={user} />}
         {activeTab === "gallery" && <DocStorage />}
         {activeTab === "setting" && (
           <div className="space-y-6 animate-in fade-in duration-500">
@@ -372,8 +375,8 @@ export default function DashboardScreen({ user }: { user: User }) {
             </DialogContent>
           </Dialog>
 
-          <button onClick={() => setActiveTab("chat")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}>
-            <LayoutDashboard className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Chat</span>
+          <button onClick={() => setActiveTab("call")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300"}`}>
+            <Video className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Call</span>
           </button>
           
           <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}>
