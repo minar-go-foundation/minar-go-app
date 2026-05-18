@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { User, signOut } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
-import { ref, onValue, push, query, limitToLast, onChildAdded, set } from "firebase/database";
+import { ref, onValue, push, query, limitToLast, onChildAdded, set, get } from "firebase/database";
 import { 
   LogOut, 
   Plus, 
@@ -112,16 +113,26 @@ export default function DashboardScreen({ user }: { user: User }) {
           });
         });
         setMembers(list);
-      } else if (user.email === ADMIN_EMAIL) {
-        // Only seed if strictly admin and database is confirmed empty
-        DEFAULT_MEMBERS.forEach(m => {
-          const newMemberRef = push(membersRef);
-          set(newMemberRef, { 
-            name: m, 
-            createdAt: new Date().toISOString() 
+      } else {
+        setMembers([]);
+        // Auto-seed if empty and is admin
+        if (user.email === ADMIN_EMAIL) {
+          DEFAULT_MEMBERS.forEach(m => {
+            const newMemberRef = push(membersRef);
+            set(newMemberRef, { 
+              name: m, 
+              createdAt: new Date().toISOString() 
+            });
           });
-        });
+        }
       }
+    }, (error) => {
+      console.error("Member List Fetch Error:", error);
+      toast({
+        title: "Database Access Error",
+        description: "মেম্বার লিস্ট পাওয়া যাচ্ছে না। আপনার সিকিউরিটি রুলস চেক করুন।",
+        variant: "destructive"
+      });
     });
 
     const storedLogo = localStorage.getItem("mg_logo");

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -34,6 +35,7 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
     try {
       const membersRef = ref(database, "members");
       const newMemberRef = push(membersRef);
+      // Directly await the set operation to catch permission errors immediately
       await set(newMemberRef, {
         name: newMember.trim(),
         createdAt: new Date().toISOString()
@@ -43,8 +45,8 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
     } catch (error: any) {
       console.error("Add Member Error:", error);
       toast({ 
-        title: "Error", 
-        description: error.message || "মেম্বার যুক্ত করা সম্ভব হয়নি।", 
+        title: "Database Permission Denied", 
+        description: "আপনার সিকিউরিটি রুলসে সমস্যা হতে পারে। এডমিন প্যানেল থেকে রাইট পারমিশন চেক করুন।", 
         variant: "destructive" 
       });
     } finally {
@@ -59,7 +61,7 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
       await remove(ref(database, `members/${deleteMember.id}`));
       toast({ title: "Member removed", description: `${deleteMember.name} deleted successfully.` });
     } catch (error: any) {
-      toast({ title: "Error", description: "Failed to remove member", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to remove member. Check permissions.", variant: "destructive" });
     } finally {
       setDeleteMember(null);
     }
@@ -100,7 +102,7 @@ export default function MemberManager({ members }: { members: MGMember[] }) {
             <div className="text-center py-24 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
               <Users className="h-14 w-14 mx-auto text-slate-200 mb-3" />
               <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">No members found</p>
-              <p className="text-[10px] text-slate-400 mt-1 uppercase">Database sync in progress...</p>
+              <p className="text-[10px] text-slate-400 mt-1 uppercase">Database Sync in Progress...</p>
             </div>
           ) : (
             members.sort((a,b) => a.name.localeCompare(b.name)).map((member) => (
