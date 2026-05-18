@@ -34,10 +34,20 @@ import LogoManager from "./logo-manager";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const DEFAULT_MEMBERS = [
-  "Mr. Dulal", "Mr. Omar Faruk", "Mr. Sulaiman badshah", "Mr. Abdul qayum", 
-  "Mr. Mohammed Jamshed", "Mr. Milad", "Mr. Ala uddin", "Mr. Shahid", 
-  "Mr. Shohag", "Mr. Abul Hussain", "Mr. Sakib", "Mr. Ronnie", 
-  "Mr. Jonye", "Mr. Aqib", "Mr. Shahid (Member)"
+  "Mr. Dulal", 
+  "Mr. Omar Faruk", 
+  "Mr. Sulaiman badshah", 
+  "Mr. Abdul qayum", 
+  "Mr. Mohammed Jamshed", 
+  "Mr. Milad", 
+  "Mr. Ala uddin", 
+  "Mr. Shahid", 
+  "Mr. Shohag", 
+  "Mr. Abul Hussain", 
+  "Mr. Sakib", 
+  "Mr. Ronnie", 
+  "Mr. Jonye", 
+  "Mr. Aqib"
 ];
 
 type Tab = "profile" | "members" | "gallery" | "tools";
