@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { User, signOut } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
-import { ref, onValue, push, query, limitToLast, onChildAdded, set, get } from "firebase/database";
+import { ref, onValue, push, query, limitToLast, onChildAdded, set } from "firebase/database";
 import { 
   LogOut, 
   Plus, 
@@ -14,7 +13,8 @@ import {
   FileText,
   CloudUpload,
   CloudSun,
-  MapPin
+  MapPin,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -127,7 +127,6 @@ export default function DashboardScreen({ user }: { user: User }) {
         }
       }
     }, (error) => {
-      console.error("Member List Fetch Error:", error);
       toast({
         title: "Database Access Error",
         description: "মেম্বার লিস্ট পাওয়া যাচ্ছে না। আপনার সিকিউরিটি রুলস চেক করুন।",
