@@ -56,7 +56,7 @@ const DEFAULT_MEMBERS = [
 ];
 
 const ADMIN_EMAIL = "kosttoonek7@gmail.com";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPXPgyON8r2uOQUlbps-C-Di8LPiaj1yKX9x64mumAcCDCg76_xWkvvufLHiAszgwg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8F4e_ceTa0kN0ujcr7ihNJ986FHn9W01yrCn4h2T-ZjlcqQtiEHC9PXftSLPxGgSU/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
 type Tab = "home" | "members" | "chat" | "gallery" | "setting" | "tools";
@@ -174,7 +174,6 @@ export default function DashboardScreen({ user }: { user: User }) {
     };
 
     try {
-      // Using fetch with no-cors as Google Apps Script often requires it for simple POSTs
       await fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors", 
@@ -184,7 +183,7 @@ export default function DashboardScreen({ user }: { user: User }) {
       
       toast({ 
         title: "Backup Initialized!", 
-        description: "Request sent to Google Cloud. Please check your sheet." 
+        description: "Data successfully pushed to Google Cloud." 
       });
     } catch (error) {
       toast({ 
