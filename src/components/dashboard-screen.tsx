@@ -277,15 +277,15 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-6 bg-[#002366] rounded-[2.2rem] text-white shadow-2xl relative overflow-hidden group border border-white/5">
                 <div className="absolute bottom-0 left-0 w-20 h-20 bg-accent/10 rounded-full -ml-10 -mb-10 blur-2xl" />
-                <p className="text-[8px] font-black uppercase text-accent tracking-[0.2em] mb-3 flex items-center gap-2">
+                <div className="text-[8px] font-black uppercase text-accent tracking-[0.2em] mb-3 flex items-center gap-2">
                   <div className="w-1 h-1 bg-accent rounded-full" /> Hajj 2026
-                </p>
+                </div>
                 <h4 className="text-xs font-bold leading-tight">Departure in<br/><span className="text-lg font-black text-accent">450 Days</span></h4>
               </div>
               <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl relative overflow-hidden group">
-                <p className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-2">
+                <div className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-2">
                    <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan 2026
-                </p>
+                </div>
                 <h4 className="text-xs font-bold leading-tight text-slate-500">Scheduled on<br/><span className="text-lg font-black text-primary">18 February</span></h4>
               </div>
             </div>
@@ -390,4 +390,3 @@ export default function DashboardScreen({ user }: { user: User }) {
     </div>
   );
 }
-
