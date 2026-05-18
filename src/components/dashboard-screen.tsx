@@ -20,7 +20,10 @@ import {
   CloudSun,
   ClipboardCheck,
   Info,
-  Clock
+  Clock,
+  ShieldCheck,
+  LayoutDashboard,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,20 +46,32 @@ const MONTHS = [
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
-const APP_FEATURES_REPORT = `
-MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - APP OVERVIEW
+const APP_SYSTEM_PROFILE = `
+MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - SYSTEM PROFILE
 
-[ ডিজাইন ও থিম ]
-- Primary Color: Navy Blue (#002366)
-- Accent Color: Premium Gold (#C4A052)
-- UI Style: Modern Mobile-First Design, Rounded Corners.
+[ ১. ব্র্যান্ডিং ও ডিজাইন (Identity) ]
+- নাম: মিনার গো এক্সপ্যাট্রিয়েট ডেভেলপমেন্ট ফাউন্ডেশন
+- থিম: নেভি ব্লু (#002366) ও প্রিমিয়াম গোল্ড (#C4A052)
+- ফন্ট: ইন্টার (ইংরেজি) এবং নটো সানস বেঙ্গলি (বাংলা)
+- স্টাইল: মডার্ন কার্ড-বেসড ডিজাইন, রাউন্ডেড কর্নার এবং গ্লাস-মর্ফিজম।
 
-[ প্রধান ফিচারসমূহ ]
-১. ওটিপি ভেরিফিকেশন: রেজিস্ট্রেশনের সময় ইমেইলে গোপন কোড।
-২. মেম্বার ম্যানেজমেন্ট: সব মেম্বারদের ডাটাবেজ।
-৩. স্মার্ট ব্যাকআপ: গুগল শিটে সয়ংক্রিয় ডাটা সেভ।
-৪. এডমিন চ্যাট: রিয়েল-টাইম অফিশিয়াল চ্যাট রুম।
-৫. লাইভ ক্লক ও কাউন্টডাউন: হজ্জ ও রমাদানের সয়ংক্রিয় হিসাব।
+[ ২. নিরাপত্তা (Security) ]
+- ওটিপি ভেরিফিকেশন: Nodemailer ও Gmail SMTP ব্যবহার করে সরাসরি ইমেইলে ৬-ডিজিটের কোড।
+- সিকিউর লগইন: ফায়ারবেস অথেন্টিকেশন সিস্টেম।
+
+[ ৩. ম্যানেজমেন্ট (Management) ]
+- মেম্বার ডিরেক্টরি: রিয়েল-টাইম মেম্বার ডাটাবেজ (Add/Remove)।
+- ট্রানজ্যাকশন লগ: প্রতি মাসের আলাদা হিসাব এবং অটোমেটিক মান্থলি ফিল্টার।
+- ডিজিটাল গ্যালারি: ৫ মেগাবাইট পর্যন্ত ফাইল আপলোড ও স্টোরেজ সুবিধা।
+
+[ ৪. অটোমেশন ও ডাইনামিক ফিচার ]
+- লাইভ ক্লক: হেডারে প্রতি সেকেন্ডে আপডেট হওয়া ডিজিটাল ঘড়ি।
+- স্মার্ট কাউন্টডাউন: হজ্জ ও রমাদানের তারিখ সয়ংক্রিয়ভাবে পরবর্তী বছরের জন্য আপডেট হয়।
+- ক্লাউড ব্যাকআপ: গুগল শিটে নির্ভুল তারিখ ও সময়ের স্ট্যাম্পসহ সয়ংক্রিয় ব্যাকআপ।
+
+[ ৫. কমিউনিকেশন ]
+- এডমিন চ্যাট: ফাউন্ডেশনের কর্মকর্তাদের জন্য নিরাপদ রিয়েল-টাইম চ্যাট রুম।
+- লাইভ নোটিফিকেশন: নতুন জমা হলে সাথে সাথে অডিও অ্যালার্ট ও টোস্ট মেসেজ।
 `.trim();
 
 type Tab = "home" | "members" | "chat" | "gallery" | "setting";
@@ -66,12 +81,10 @@ export interface MGMember {
   name: string;
 }
 
-// Estimates for Hajj and Ramadan (Approximate based on Lunar Calendar shift of ~11 days)
 const GET_NEXT_DATE = (baseDate: Date) => {
   const now = new Date();
   let target = baseDate;
   while (isAfter(now, target)) {
-    // Roughly subtract 11 days and add a year for Islamic dates in Gregorian
     target = new Date(target.getFullYear() + 1, target.getMonth(), target.getDate() - 11);
   }
   return target;
@@ -91,25 +104,22 @@ export default function DashboardScreen({ user }: { user: User }) {
   
   const isInitialLoad = useRef(true);
 
-  // Dynamic Dates
-  const nextHajj = useMemo(() => GET_NEXT_DATE(new Date("2025-06-04")), []);
-  const nextRamadan = useMemo(() => GET_NEXT_DATE(new Date("2025-03-01")), []);
+  const nextHajj = useMemo(() => GET_NEXT_DATE(new Date("2026-05-25")), []);
+  const nextRamadan = useMemo(() => GET_NEXT_DATE(new Date("2026-02-18")), []);
 
   useEffect(() => {
-    // Clock Timer
     setCurrentTime(new Date());
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
 
-    // Weather Fetching
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         try {
           const { latitude, longitude } = position.coords;
           const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
           const data = await res.json();
-          setWeather({ city: "Live Location", temp: Math.round(data.current_weather.temperature).toString() });
+          setWeather({ city: "Live", temp: Math.round(data.current_weather.temperature).toString() });
         } catch (e) {
-          setWeather({ city: "Location Access", temp: "26" });
+          setWeather({ city: "Global", temp: "26" });
         }
       }, () => setWeather({ city: "Global", temp: "24" }));
     }
@@ -133,7 +143,7 @@ export default function DashboardScreen({ user }: { user: User }) {
       const data = snapshot.val();
       if (data) {
         new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3").play().catch(() => {});
-        toast({ title: "New Deposit Recorded! 🔔", description: `${data.n} deposited ৳${data.a}` });
+        toast({ title: "নতুন জমা হয়েছে! 🔔", description: `${data.n} থেকে ৳${data.a} জমা হয়েছে।` });
       }
     });
 
@@ -160,6 +170,15 @@ export default function DashboardScreen({ user }: { user: User }) {
     if (filterMonth === "All") return transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
     return transactions.reduce((acc, curr) => {
       const tDate = new Date(curr.d);
+      if (MONTHS[tDate.getMonth()] === filterMonth) return acc + (parseFloat(curr.a) || 0), 0;
+      return acc;
+    }, 0);
+  }, [transactions, filterMonth]);
+
+  const dashboardTotal = useMemo(() => {
+    if (filterMonth === "All") return transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
+    return transactions.reduce((acc, curr) => {
+      const tDate = new Date(curr.d);
       if (MONTHS[tDate.getMonth()] === filterMonth) return acc + (parseFloat(curr.a) || 0);
       return acc;
     }, 0);
@@ -170,7 +189,7 @@ export default function DashboardScreen({ user }: { user: User }) {
     const now = new Date();
     const rows = transactions.map(t => [t.n, t.d, t.a]);
     rows.unshift([`--- BACKUP SESSION: ${format(now, "dd/MM/yyyy HH:mm:ss")} ---`, "", ""]);
-    rows.push(["TOTAL ASSETS", "", filteredTotal.toLocaleString()]);
+    rows.push(["TOTAL FOUNDATION ASSETS", "", dashboardTotal.toLocaleString()]);
 
     try {
       await fetch(SCRIPT_URL, {
@@ -178,9 +197,9 @@ export default function DashboardScreen({ user }: { user: User }) {
         mode: "no-cors",
         body: JSON.stringify({ spreadsheetId: SPREADSHEET_ID, rows: rows })
       });
-      toast({ title: "Backup Success!", description: "Data saved to Google Sheet." });
+      toast({ title: "ব্যাকআপ সফল হয়েছে!", description: "ডাটা এখন গুগল শিটে সংরক্ষিত।" });
     } catch (error) {
-      toast({ title: "Backup Failed", variant: "destructive" });
+      toast({ title: "ব্যাকআপ ব্যর্থ", variant: "destructive" });
     } finally { setBackupLoading(false); }
   };
 
@@ -224,9 +243,8 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className="flex-1 overflow-y-auto px-6 py-6 container max-w-lg mx-auto">
         {activeTab === "home" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Live Clock Banner (Optional secondary visual) */}
             <div className="px-6 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-between">
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Foundation Local Time</p>
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Today's Date</p>
               <h2 className="text-sm font-black text-primary tracking-tight">
                 {currentTime ? format(currentTime, "EEEE, MMMM dd") : "Loading..."}
               </h2>
@@ -235,12 +253,12 @@ export default function DashboardScreen({ user }: { user: User }) {
             <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative group p-1">
               <CardContent className="p-8 text-center relative z-10">
                 <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-4">
-                  {filterMonth === "All" ? "Total Foundation Assets" : `Total ${filterMonth} Assets`}
+                  {filterMonth === "All" ? "Total Assets" : `${filterMonth} Assets`}
                 </p>
-                <h3 className="text-4xl font-black text-white mb-2">৳{filteredTotal.toLocaleString()}</h3>
+                <h3 className="text-4xl font-black text-white mb-2">৳{dashboardTotal.toLocaleString()}</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Live Cloud Sync</span>
+                  <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Active System</span>
                 </div>
               </CardContent>
             </Card>
@@ -253,7 +271,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <h4 className="text-xs font-bold leading-tight">
                   {format(nextHajj, "dd MMMM yyyy")}<br/>
                   <span className="text-lg font-black text-accent">
-                    {differenceInDays(nextHajj, new Date())} Days Left
+                    {differenceInDays(nextHajj, new Date())} Days
                   </span>
                 </h4>
               </div>
@@ -264,14 +282,10 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <h4 className="text-xs font-bold leading-tight text-slate-500">
                   {format(nextRamadan, "dd MMMM yyyy")}<br/>
                   <span className="text-lg font-black text-primary">
-                    {differenceInDays(nextRamadan, new Date())} Days Left
+                    {differenceInDays(nextRamadan, new Date())} Days
                   </span>
                 </h4>
               </div>
-            </div>
-
-            <div className="flex items-center justify-between px-2">
-              <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Transaction Log</h3>
             </div>
 
             <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50">
@@ -285,19 +299,23 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "gallery" && <DocStorage />}
         {activeTab === "setting" && (
           <div className="space-y-6 animate-in fade-in duration-500">
-            <Card className="rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
-              <h3 className="font-black text-primary uppercase mb-8 text-center text-xl tracking-tight">System Settings</h3>
-              <div className="flex flex-col items-center gap-8">
+            <Card className="rounded-[2.5rem] border-none shadow-2xl p-8 bg-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+              <div className="flex flex-col items-center gap-8 relative z-10">
                 <div className="p-6 bg-slate-50 rounded-[2rem] w-full flex flex-col items-center gap-4 border border-slate-100">
                   <LogoManager currentLogo={logo} onUpdate={setLogo} />
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Foundation Branding</p>
+                  <div className="text-center">
+                    <h3 className="font-black text-primary uppercase text-lg tracking-tight">Admin System</h3>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Foundation Settings</p>
+                  </div>
                 </div>
+
                 <div className="w-full space-y-3">
                    <Button className="w-full h-14 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-md hover:bg-[#C8E6C9] flex items-center justify-center gap-3" onClick={handleCloudBackup} disabled={backupLoading}>
                      {backupLoading ? <RotateCcw className="h-5 w-5 animate-spin" /> : <RotateCcw className="h-5 w-5" />} GOOGLE CLOUD BACKUP
                    </Button>
                    <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-slate-200" onClick={() => setActiveTab("gallery")}>
-                     <ImageIcon className="mr-2 h-5 w-5" /> DIGITAL GALLERY
+                     <ImageIcon className="mr-2 h-5 w-5" /> DIGITAL VAULT
                    </Button>
                    <Button variant="destructive" className="w-full h-14 rounded-2xl font-black shadow-xl mt-4" onClick={() => signOut(auth)}>
                     <LogOut className="mr-2 h-5 w-5" /> SECURE LOGOUT
@@ -308,12 +326,29 @@ export default function DashboardScreen({ user }: { user: User }) {
 
             <Card className="rounded-[2.5rem] border-none shadow-xl p-8 bg-white">
                <div className="flex items-center gap-3 mb-6">
-                 <div className="p-2 bg-primary/10 rounded-xl"><Info className="h-5 w-5 text-primary" /></div>
-                 <h4 className="text-xs font-black uppercase text-primary tracking-tight">Feature Guide</h4>
+                 <div className="p-2 bg-primary/10 rounded-xl"><ShieldCheck className="h-5 w-5 text-primary" /></div>
+                 <div>
+                   <h4 className="text-xs font-black uppercase text-primary tracking-tight">System Profile</h4>
+                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Full Feature Report</p>
+                 </div>
                </div>
-               <Textarea readOnly value={APP_FEATURES_REPORT} className="h-64 rounded-2xl bg-slate-50 border-none text-[10px] font-medium leading-relaxed mb-4" />
-               <Button variant="outline" className="w-full h-12 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2" onClick={() => {navigator.clipboard.writeText(APP_FEATURES_REPORT); toast({title: "Copied!"})}}>
-                 <ClipboardCheck className="h-4 w-4" /> Copy Report
+               <div className="relative group">
+                 <Textarea 
+                   readOnly 
+                   value={APP_SYSTEM_PROFILE} 
+                   className="h-80 rounded-2xl bg-slate-50 border-none text-[10px] font-medium leading-relaxed mb-4 scrollbar-hide focus:ring-0" 
+                 />
+                 <div className="absolute inset-0 bg-gradient-to-t from-slate-50/50 to-transparent pointer-events-none h-12 bottom-4 rounded-b-2xl" />
+               </div>
+               <Button 
+                variant="outline" 
+                className="w-full h-12 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 border-slate-200" 
+                onClick={() => {
+                  navigator.clipboard.writeText(APP_SYSTEM_PROFILE); 
+                  toast({title: "Report Copied!", description: "System profile has been copied to clipboard."})
+                }}
+               >
+                 <ClipboardCheck className="h-4 w-4" /> Copy System Report
                </Button>
             </Card>
           </div>
@@ -343,6 +378,10 @@ export default function DashboardScreen({ user }: { user: User }) {
             </DialogContent>
           </Dialog>
 
+          <button onClick={() => setActiveTab("chat")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}>
+            <LayoutDashboard className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">Chat</span>
+          </button>
+          
           <button onClick={() => setActiveTab("setting")} className={`flex flex-col items-center justify-center gap-1.5 py-2 transition-all ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}>
             <Settings className="h-6 w-6" /><span className="text-[8px] font-black uppercase tracking-widest">System</span>
           </button>
