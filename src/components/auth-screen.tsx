@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw, KeyRound, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw, KeyRound, Eye, EyeOff, CheckCircle2, AlertTriangle } from "lucide-react";
 import Image from "next/image";
 import { sendOtpEmailAction } from "@/app/actions/send-email";
 
@@ -82,11 +82,12 @@ export default function AuthScreen() {
     setLoading(true);
     try {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      // Using custom SMTP to send OTP to ensure it arrives
       const result = await sendOtpEmailAction(email, otp);
       if (result.success) {
         setGeneratedOtp(otp);
         setStep("otp-reset");
-        toast({ title: "Code Sent!", description: "Check your email for the recovery code." });
+        toast({ title: "Verification Code Sent!", description: "Check your email for the recovery code." });
       } else {
         throw new Error(result.error);
       }
@@ -120,13 +121,12 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
-      // Firebase requires an actual reset link for security.
-      // We trigger this after custom OTP verification to bridge the gap.
+      // Firebase standard security: triggers official reset link
       await sendPasswordResetEmail(auth, email);
       setStep("reset-success");
       toast({ 
-        title: "Security Link Sent!", 
-        description: "A final verification link has been sent to your email to apply the change." 
+        title: "Security Link Triggered!", 
+        description: "The final reset link has been dispatched to your email." 
       });
     } catch (error: any) {
       toast({ title: "Reset Error", description: error.message, variant: "destructive" });
@@ -169,9 +169,17 @@ export default function AuthScreen() {
             <CheckCircle2 className="h-10 w-10 text-green-500" />
           </div>
           <h2 className="text-xl font-black text-primary uppercase mb-2">Check Your Email</h2>
-          <p className="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-wider mb-8">
-            নিরাপত্তার স্বার্থে আপনার ইমেইলে একটি লিঙ্ক পাঠানো হয়েছে। ওই লিঙ্কে ক্লিক করলেই আপনার নতুন পাসওয়ার্ডটি সক্রিয় হয়ে যাবে।
-          </p>
+          <div className="space-y-4 mb-8">
+            <p className="text-[11px] font-bold text-slate-500 leading-relaxed uppercase tracking-wider">
+              নিরাপত্তার স্বার্থে আপনার ইমেইলে একটি চূড়ান্ত ভেরিফিকেশন লিঙ্ক পাঠানো হয়েছে। 
+            </p>
+            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-3">
+              <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-[9px] text-left font-bold text-amber-700 uppercase leading-normal">
+                যদি লিঙ্কটি না পান, তবে আপনার ইমেইলের "Spam" ফোল্ডার চেক করুন। অথবা ফায়ারবেস কনসোলে ইমেইল টেমপ্লেট সক্রিয় আছে কিনা নিশ্চিত করুন।
+              </p>
+            </div>
+          </div>
           <Button 
             onClick={() => setStep("auth")} 
             className="w-full bg-primary h-14 rounded-2xl font-black text-base"
@@ -191,9 +199,9 @@ export default function AuthScreen() {
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
               <Lock className="h-8 w-8 text-primary" />
             </div>
-            <h2 className="text-xl font-black text-primary uppercase">New Password</h2>
+            <h2 className="text-xl font-black text-primary uppercase">Set New Password</h2>
             <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
-              Set your new secure security password
+              Please enter your new secure security password
             </p>
           </div>
 
@@ -305,7 +313,7 @@ export default function AuthScreen() {
             </div>
             <h2 className="text-xl font-black text-primary uppercase">Password Recovery</h2>
             <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
-              ENTER YOUR EMAIL TO RECEIVE<br/>A VERIFICATION CODE
+              ENTER YOUR REGISTERED EMAIL TO<br/>RECEIVE A VERIFICATION CODE
             </p>
           </div>
 
