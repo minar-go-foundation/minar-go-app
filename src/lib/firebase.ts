@@ -3,13 +3,13 @@ import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBbJKxN9RURA4wege2VXHSId5uyR2eZ7ec",
-    authDomain: "minar-go-app.firebaseapp.com",
-    databaseURL: "https://minar-go-app-default-rtdb.firebaseio.com",
-    projectId: "minar-go-app",
-    storageBucket: "minar-go-app.firebasestorage.app",
-    messagingSenderId: "1066873493886",
-    appId: "1:1066873493886:web:8e82362fca362f512bbb2f"
+  apiKey: "AIzaSyBTDKW1cg_RC7Ep0gzEC8i3n8F9Fh9ACF0",
+  authDomain: "minar-go-foundation.firebaseapp.com",
+  databaseURL: "https://minar-go-foundation-default-rtdb.firebaseio.com",
+  projectId: "minar-go-foundation",
+  storageBucket: "minar-go-foundation.firebasestorage.app",
+  messagingSenderId: "268764593174",
+  appId: "1:268764593174:web:a28f1e6244c71a9aee0937"
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
