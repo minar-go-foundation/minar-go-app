@@ -13,7 +13,8 @@ import {
   Image as ImageIcon, 
   FileText,
   CloudUpload,
-  CloudSun
+  CloudSun,
+  MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -97,7 +98,7 @@ export default function DashboardScreen({ user }: { user: User }) {
       }
     });
 
-    // 3. Members Listener - Using robust forEach iteration
+    // 3. Members Listener - Using robust fetching
     const membersRef = ref(database, "members");
     const unsubscribeMembers = onValue(membersRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -111,7 +112,7 @@ export default function DashboardScreen({ user }: { user: User }) {
         });
         setMembers(list);
       } else {
-        // Seed if empty
+        // Seed if database is truly empty
         DEFAULT_MEMBERS.forEach(m => {
           const newMemberRef = push(membersRef);
           set(newMemberRef, { 
@@ -125,15 +126,29 @@ export default function DashboardScreen({ user }: { user: User }) {
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
 
-    // Weather detection
+    // Weather detection - Asking for Location Permission
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
         try {
+          // Fetch Weather
           const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
           const wData = await wRes.json();
-          setWeather({ temp: Math.round(wData.current_weather.temperature), city: "Detected Location" });
-        } catch (e) {}
+          
+          // Fetch City Name via Reverse Geocoding
+          const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          const geoData = await geoRes.json();
+          const cityName = geoData.city || geoData.locality || "Detected Location";
+          
+          setWeather({ 
+            temp: Math.round(wData.current_weather.temperature), 
+            city: cityName 
+          });
+        } catch (e) {
+          console.error("Weather error:", e);
+        }
+      }, (error) => {
+        console.warn("Location permission denied", error);
       });
     }
 
@@ -180,11 +195,15 @@ export default function DashboardScreen({ user }: { user: User }) {
             <p className="text-[8px] text-accent font-bold uppercase tracking-widest leading-none mt-0.5">Expatriate Foundation</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        
+        <div className="flex items-center gap-3">
           {weather && (
-            <div className="hidden md:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full">
-              <CloudSun className="h-4 w-4 text-primary" />
-              <span className="text-[10px] font-black text-slate-600">{weather.temp}°C • {weather.city}</span>
+            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+              <CloudSun className="h-4 w-4 text-orange-500" />
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-primary leading-none uppercase">{weather.city}</span>
+                <span className="text-[10px] font-bold text-slate-600 leading-tight">{weather.temp}°C</span>
+              </div>
             </div>
           )}
           <Button variant="ghost" size="icon" className="text-blue-600 hover:bg-blue-50" onClick={backupToSheets}>
@@ -233,16 +252,17 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <CardContent className="p-6 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
-                      <CloudUpload className="h-6 w-6" />
+                      <MapPin className="h-6 w-6" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black uppercase text-slate-800">Cloud Data Backup</h4>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase">Sync with Google Sheets</p>
+                      <h4 className="text-sm font-black uppercase text-slate-800">Location Sync</h4>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">Live Weather Monitoring</p>
                     </div>
                   </div>
-                  <Button onClick={backupToSheets} className="bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl">
-                    SYNC NOW
-                  </Button>
+                  <div className="text-right">
+                    <p className="text-xs font-black text-primary uppercase">{weather?.city || "Detecting..."}</p>
+                    <p className="text-[10px] font-bold text-slate-400">{weather ? `${weather.temp}°C` : "Allow Permission"}</p>
+                  </div>
                 </CardContent>
               </Card>
 
