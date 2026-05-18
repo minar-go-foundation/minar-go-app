@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef } from "react";
-import { Camera } from "lucide-react";
+import { Camera, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 interface LogoManagerProps {
   currentLogo: string | null;
@@ -37,17 +38,22 @@ export default function LogoManager({ currentLogo, onUpdate }: LogoManagerProps)
   };
 
   return (
-    <div 
-      className="relative w-10 h-10 rounded-lg overflow-hidden border border-white/30 bg-white/10 flex items-center justify-center cursor-pointer group active:scale-95 transition-transform"
-      onClick={handleLogoClick}
-    >
-      {currentLogo ? (
-        <Image src={currentLogo} alt="Logo" fill className="object-cover" />
-      ) : (
-        <span className="text-accent font-black text-sm">MG</span>
-      )}
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-        <Camera className="text-white w-4 h-4" />
+    <div className="flex flex-col items-center gap-4">
+      <div 
+        className="relative w-24 h-24 rounded-[2rem] overflow-hidden border-4 border-white bg-slate-100 flex items-center justify-center cursor-pointer group shadow-2xl transition-transform active:scale-95"
+        onClick={handleLogoClick}
+      >
+        {currentLogo ? (
+          <Image src={currentLogo} alt="Logo" fill className="object-cover" />
+        ) : (
+          <div className="text-primary/20 flex flex-col items-center">
+            <Camera className="w-8 h-8 mb-1" />
+            <span className="text-[10px] font-black uppercase">Upload</span>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-sm">
+          <RefreshCw className="text-white w-6 h-6 animate-spin-slow" />
+        </div>
       </div>
       <input 
         type="file" 
