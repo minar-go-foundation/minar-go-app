@@ -358,47 +358,48 @@ export default function DashboardScreen({ user }: { user: User }) {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50">
-        <div className="max-w-md mx-auto relative">
-          <div className="bg-white rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-slate-100 flex items-center justify-between px-2 py-2">
+      {/* Unique Dynamic Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50 pointer-events-none">
+        <div className="max-w-md mx-auto relative pointer-events-auto">
+          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_15px_50px_-12px_rgba(0,35,102,0.25)] border border-slate-100 flex items-center justify-between px-3 py-3 ring-1 ring-black/5">
             
             <div className="flex items-center justify-around flex-1">
               <button 
                 onClick={() => setActiveTab("home")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Home className={`h-6 w-6 ${activeTab === "home" ? "stroke-[2.5px]" : "stroke-[2px]"}`} />
-                <span className={`text-[9px] font-black uppercase tracking-tighter mt-1 ${activeTab === "home" ? "opacity-100" : "opacity-60"}`}>Home</span>
+                <Home className={`h-7 w-7 transition-all ${activeTab === "home" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "home" ? "opacity-100" : "opacity-60"}`}>Home</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("members")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Users className={`h-6 w-6 ${activeTab === "members" ? "stroke-[2.5px]" : "stroke-[2px]"}`} />
-                <span className={`text-[9px] font-black uppercase tracking-tighter mt-1 ${activeTab === "members" ? "opacity-100" : "opacity-60"}`}>Members</span>
+                <Users className={`h-7 w-7 transition-all ${activeTab === "members" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "members" ? "opacity-100" : "opacity-60"}`}>Members</span>
               </button>
 
               <button 
                 onClick={() => setActiveTab("chat")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <MessageSquare className={`h-6 w-6 ${activeTab === "chat" ? "stroke-[2.5px]" : "stroke-[2px]"}`} />
-                <span className={`text-[9px] font-black uppercase tracking-tighter mt-1 ${activeTab === "chat" ? "opacity-100" : "opacity-60"}`}>Chat</span>
+                <MessageSquare className={`h-7 w-7 transition-all ${activeTab === "chat" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "chat" ? "opacity-100" : "opacity-60"}`}>Chat</span>
               </button>
             </div>
 
-            <div className="px-4 -mt-10">
+            <div className="px-5 -mt-12 relative">
               <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                 <DialogTrigger asChild>
-                  <button className="group relative focus:outline-none">
-                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl group-hover:blur-2xl transition-all" />
-                    <div className="w-16 h-16 rounded-full bg-primary border-[5px] border-white shadow-[0_8px_25px_rgba(0,35,102,0.3)] flex items-center justify-center text-white relative z-10 transition-transform active:scale-90 group-hover:scale-105">
-                      <Plus className="h-8 w-8 stroke-[4px]" />
+                  <button className="group relative focus:outline-none focus:ring-0">
+                    <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl group-hover:blur-3xl transition-all animate-pulse" />
+                    <div className="w-18 h-18 rounded-full bg-primary border-[6px] border-white shadow-[0_12px_30px_rgba(0,35,102,0.4)] flex items-center justify-center text-white relative z-10 transition-all active:scale-90 active:rotate-90 hover:scale-110 hover:-translate-y-2">
+                      <Plus className="h-10 w-10 stroke-[4px]" />
                     </div>
                   </button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[95vw] rounded-[3rem] p-8 border-none shadow-2xl">
+                <DialogContent className="max-w-[95vw] rounded-[3rem] p-8 border-none shadow-2xl animate-in zoom-in-95 duration-300">
                   <DialogHeader><DialogTitle className="text-center font-black uppercase text-primary text-xl tracking-tight">New Deposit</DialogTitle></DialogHeader>
                   <TransactionManager members={members} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
                 </DialogContent>
@@ -408,18 +409,18 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="flex items-center justify-around flex-1">
               <button 
                 onClick={() => setActiveTab("call")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Video className={`h-6 w-6 ${activeTab === "call" ? "stroke-[2.5px]" : "stroke-[2px]"}`} />
-                <span className={`text-[9px] font-black uppercase tracking-tighter mt-1 ${activeTab === "call" ? "opacity-100" : "opacity-60"}`}>Call</span>
+                <Video className={`h-7 w-7 transition-all ${activeTab === "call" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "call" ? "opacity-100" : "opacity-60"}`}>Call</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("setting")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Settings className={`h-6 w-6 ${activeTab === "setting" ? "stroke-[2.5px]" : "stroke-[2px]"}`} />
-                <span className={`text-[9px] font-black uppercase tracking-tighter mt-1 ${activeTab === "setting" ? "opacity-100" : "opacity-60"}`}>System</span>
+                <Settings className={`h-7 w-7 transition-all ${activeTab === "setting" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
+                <span className={`text-[10px] font-black uppercase tracking-tighter mt-1 ${activeTab === "setting" ? "opacity-100" : "opacity-60"}`}>System</span>
               </button>
             </div>
 
