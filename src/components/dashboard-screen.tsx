@@ -45,10 +45,6 @@ const MONTHS = [
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
-const APP_SYSTEM_PROFILE = `
-MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION - SECURE PROFILE
-`.trim();
-
 type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call";
 
 export interface MGMember {
@@ -249,9 +245,13 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "members" && <MemberManager members={members as MGMember[]} />}
         {activeTab === "history" && (
           <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-50">
-              <TransactionManager members={members as MGMember[]} transactions={transactions} mode="full" filterMonth={filterMonth} onFilterMonthChange={setFilterMonth} />
-            </div>
+            <TransactionManager 
+              members={members as MGMember[]} 
+              transactions={transactions} 
+              mode="history" 
+              filterMonth={filterMonth} 
+              onFilterMonthChange={setFilterMonth} 
+            />
           </div>
         )}
         {activeTab === "chat" && <ChatScreen user={user} />}

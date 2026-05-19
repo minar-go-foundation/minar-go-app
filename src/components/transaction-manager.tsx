@@ -45,7 +45,7 @@ const CATEGORY_MAP: Record<string, string> = {
 interface TransactionManagerProps {
   members: MGMember[];
   transactions: any[];
-  mode?: "form" | "summary" | "full";
+  mode?: "form" | "summary" | "full" | "history";
   onSuccess?: () => void;
   filterMonth?: string;
   onFilterMonthChange?: (month: string) => void;
