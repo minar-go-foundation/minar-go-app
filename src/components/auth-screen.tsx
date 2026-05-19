@@ -2,15 +2,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { auth, database } from "@/lib/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   updateProfile, 
   sendPasswordResetEmail 
 } from "firebase/auth";
-import { ref, set } from "firebase/database";
-import { Card, CardContent } from "@/components/ui/card";
+import { doc, setDoc } from "firebase/firestore";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, ShieldCheck, User, ArrowRight, RefreshCcw, KeyRound, Eye, EyeOff, CheckCircle2, UserPlus } from "lucide-react";
 import Image from "next/image";
 import { sendOtpEmailAction } from "@/app/actions/send-email";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -33,6 +35,9 @@ export default function AuthScreen() {
   const [showPass, setShowPass] = useState(false);
   const [logo, setLogo] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  const auth = useAuth();
+  const db = useFirestore();
 
   useEffect(() => {
     const storedLogo = localStorage.getItem("mg_logo");
@@ -41,6 +46,7 @@ export default function AuthScreen() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) return;
     setLoading(true);
 
     try {
@@ -48,7 +54,6 @@ export default function AuthScreen() {
         await signInWithEmailAndPassword(auth, email, password);
         toast({ title: "Welcome back!", description: "Logged in successfully." });
       } else {
-        // registration flow with OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const result = await sendOtpEmailAction(email, otp);
         
@@ -110,6 +115,7 @@ export default function AuthScreen() {
 
   const handleFinalPasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) return;
     if (newPassword !== confirmNewPassword) {
       toast({ title: "Mismatch", description: "Passwords do not match.", variant: "destructive" });
       return;
@@ -136,6 +142,7 @@ export default function AuthScreen() {
 
   const handleVerifyAndRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth || !db) return;
     if (otpInput !== generatedOtp) {
       toast({ title: "Invalid Code", description: "The OTP you entered is incorrect.", variant: "destructive" });
       return;
@@ -146,11 +153,21 @@ export default function AuthScreen() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
       
-      await set(ref(database, `admin_users/${userCredential.user.uid}`), {
+      const adminData = {
         name,
         email,
         createdAt: new Date().toISOString()
-      });
+      };
+
+      setDoc(doc(db, "admin_users", userCredential.user.uid), adminData)
+        .catch(async (err) => {
+           const permissionError = new FirestorePermissionError({
+             path: `admin_users/${userCredential.user.uid}`,
+             operation: 'create',
+             requestResourceData: adminData
+           });
+           errorEmitter.emit('permission-error', permissionError);
+        });
       
       toast({ title: "Account Verified!", description: "New Admin email added successfully." });
     } catch (error: any) {
@@ -167,26 +184,11 @@ export default function AuthScreen() {
           <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8">
             <CheckCircle2 className="h-10 w-10 text-green-500" />
           </div>
-          
-          <h2 className="text-xl font-black text-[#002366] uppercase mb-4 tracking-tight">
-            CHECK YOUR EMAIL
-          </h2>
-          
+          <h2 className="text-xl font-black text-[#002366] uppercase mb-4 tracking-tight">CHECK YOUR EMAIL</h2>
           <div className="space-y-4 mb-10 px-2">
-            <p className="text-[13px] font-bold text-slate-500 leading-relaxed font-bengali">
-              নিরাপত্তার স্বার্থে আপনার ইমেইলে একটি লিঙ্ক পাঠানো হয়েছে। ওই লিঙ্কে ক্লিক করলেই আপনার নতুন পাসওয়ার্ডটি সক্রিয় হয়ে যাবে।
-            </p>
+            <p className="text-[13px] font-bold text-slate-500 leading-relaxed font-bengali">নিরাপত্তার স্বার্থে আপনার ইমেইলে একটি লিঙ্ক পাঠানো হয়েছে। ওই লিঙ্কে ক্লিক করলেই আপনার নতুন পাসওয়ার্ডটি সক্রিয় হয়ে যাবে।</p>
           </div>
-
-          <Button 
-            onClick={() => {
-              setStep("auth");
-              setIsLogin(true);
-            }} 
-            className="w-full bg-[#002366] hover:bg-[#001a4d] h-14 rounded-2xl font-black text-sm tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20"
-          >
-            BACK TO LOGIN
-          </Button>
+          <Button onClick={() => { setStep("auth"); setIsLogin(true); }} className="w-full bg-[#002366] hover:bg-[#001a4d] h-14 rounded-2xl font-black text-sm tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20">BACK TO LOGIN</Button>
         </Card>
       </div>
     );
@@ -197,57 +199,28 @@ export default function AuthScreen() {
       <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 font-body">
         <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
           <div className="text-center space-y-4 mb-8">
-            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-              <Lock className="h-8 w-8 text-primary" />
-            </div>
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto"><Lock className="h-8 w-8 text-primary" /></div>
             <h2 className="text-xl font-black text-primary uppercase">Set New Password</h2>
-            <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
-              Please enter your new secure security password
-            </p>
           </div>
-
           <form onSubmit={handleFinalPasswordReset} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">New Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type={showPass ? "text" : "password"} 
-                    placeholder="••••••••" 
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                    className="pl-12 h-14 bg-slate-50 border-none shadow-inner rounded-2xl"
-                  />
-                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  <Input type={showPass ? "text" : "password"} placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required className="pl-12 h-14 bg-slate-50 border-none shadow-inner rounded-2xl" />
+                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">{showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Confirm Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type={showPass ? "text" : "password"} 
-                    placeholder="••••••••" 
-                    value={confirmNewPassword}
-                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    required
-                    className="pl-12 h-14 bg-slate-50 border-none shadow-inner rounded-2xl"
-                  />
+                  <Input type={showPass ? "text" : "password"} placeholder="••••••••" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} required className="pl-12 h-14 bg-slate-50 border-none shadow-inner rounded-2xl" />
                 </div>
               </div>
             </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20"
-              disabled={loading}
-            >
-              {loading ? "SAVING..." : "UPDATE & ACTIVATE"}
-            </Button>
+            <Button type="submit" className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20" disabled={loading}>{loading ? "SAVING..." : "UPDATE & ACTIVATE"}</Button>
           </form>
         </Card>
       </div>
@@ -259,45 +232,13 @@ export default function AuthScreen() {
       <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 font-body">
         <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
           <div className="text-center space-y-4 mb-8">
-            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-              <ShieldCheck className="h-8 w-8 text-primary" />
-            </div>
-            <h2 className="text-xl font-black text-primary uppercase">
-              {step === "otp-reset" ? "Identity Check" : "Verify Email"}
-            </h2>
-            <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
-              ENTER THE 6-DIGIT CODE SENT TO<br/>
-              <span className="text-primary normal-case tracking-normal">{email}</span>
-            </p>
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto"><ShieldCheck className="h-8 w-8 text-primary" /></div>
+            <h2 className="text-xl font-black text-primary uppercase">{step === "otp-reset" ? "Identity Check" : "Verify Email"}</h2>
           </div>
-
           <form onSubmit={step === "otp-reset" ? handleVerifyOtpReset : handleVerifyAndRegister} className="space-y-6">
-            <div className="relative">
-              <Input 
-                placeholder="000000" 
-                value={otpInput}
-                onChange={(e) => setOtpInput(e.target.value)}
-                maxLength={6}
-                required
-                className="h-16 text-center text-2xl font-black tracking-[0.5em] rounded-2xl bg-slate-50 border-none shadow-inner"
-              />
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20"
-              disabled={loading}
-            >
-              {loading ? "VERIFYING..." : "CONFIRM IDENTITY"}
-            </Button>
-
-            <button 
-              type="button"
-              onClick={() => setStep("auth")}
-              className="w-full text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-2"
-            >
-              <RefreshCcw className="h-3 w-3" /> Go Back
-            </button>
+            <Input placeholder="000000" value={otpInput} onChange={(e) => setOtpInput(e.target.value)} maxLength={6} required className="h-16 text-center text-2xl font-black tracking-[0.5em] rounded-2xl bg-slate-50 border-none shadow-inner" />
+            <Button type="submit" className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20" disabled={loading}>{loading ? "VERIFYING..." : "CONFIRM IDENTITY"}</Button>
+            <button type="button" onClick={() => setStep("auth")} className="w-full text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-2"><RefreshCcw className="h-3 w-3" /> Go Back</button>
           </form>
         </Card>
       </div>
@@ -305,193 +246,77 @@ export default function AuthScreen() {
   }
 
   if (step === "forgot-password") {
-    return (
+    return (step === "forgot-password" && (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 font-body">
         <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
           <div className="text-center space-y-4 mb-8">
-            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-              <KeyRound className="h-8 w-8 text-primary" />
-            </div>
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto"><KeyRound className="h-8 w-8 text-primary" /></div>
             <h2 className="text-xl font-black text-primary uppercase">Password Recovery</h2>
-            <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
-              ENTER YOUR REGISTERED EMAIL TO<br/>RECEIVE A VERIFICATION CODE
-            </p>
           </div>
-
           <form onSubmit={handleForgotPasswordInitiate} className="space-y-6">
             <div className="space-y-2">
               <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Admin Email</Label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="email" 
-                  placeholder="Email Address" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required 
-                  className="pl-12 h-14 bg-slate-50 border-none shadow-inner rounded-2xl"
-                />
+                <Input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-12 h-14 bg-slate-50 border-none shadow-inner rounded-2xl" />
               </div>
             </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20"
-              disabled={loading}
-            >
-              {loading ? "SENDING..." : "GET RECOVERY CODE"}
-            </Button>
-
-            <button 
-              type="button"
-              onClick={() => setStep("auth")}
-              className="w-full text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-2"
-            >
-              <ArrowRight className="h-3 w-3 rotate-180" /> Back to Login
-            </button>
+            <Button type="submit" className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20" disabled={loading}>{loading ? "SENDING..." : "GET RECOVERY CODE"}</Button>
+            <button type="button" onClick={() => setStep("auth")} className="w-full text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-2"><ArrowRight className="h-3 w-3 rotate-180" /> Back to Login</button>
           </form>
         </Card>
       </div>
-    );
+    ));
   }
 
   return (
     <div className="flex flex-col items-center justify-between min-h-screen p-6 bg-slate-50 font-body">
-      <div className="absolute top-0 left-0 w-full h-32 bg-white rounded-b-[3rem] shadow-sm -z-10" />
-
       <div className="mt-12 flex flex-col items-center text-center">
         <div className="relative w-24 h-24 mb-6 rounded-full border-[3px] border-accent p-1 bg-white shadow-lg flex items-center justify-center overflow-hidden">
-          {logo ? (
-            <Image src={logo} alt="Foundation Logo" fill className="object-cover" />
-          ) : (
-            <div className="w-full h-full bg-primary rounded-full flex items-center justify-center text-accent text-2xl font-black">
-              MG
-            </div>
-          )}
+          {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary rounded-full flex items-center justify-center text-accent text-2xl font-black">MG</div>}
         </div>
-        <h1 className="text-xl font-extrabold text-primary tracking-tight leading-none uppercase">
-          Minar Go Expatriate
-        </h1>
-        <p className="text-[10px] text-accent font-bold uppercase tracking-[0.2em] mt-1">
-          Development Foundation
-        </p>
+        <h1 className="text-xl font-extrabold text-primary uppercase">Minar Go Expatriate</h1>
+        <p className="text-[10px] text-accent font-bold uppercase tracking-[0.2em] mt-1">Development Foundation</p>
       </div>
 
       <div className="w-full max-w-sm mt-8 flex-1">
-        <div className="text-center mb-6">
-          <h2 className="text-lg font-black text-primary uppercase tracking-tight">
-            {isLogin ? "Secure System Login" : "New Admin Registration"}
-          </h2>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-            {isLogin ? "Enter your official credentials" : "Create a new administrative identity"}
-          </p>
-        </div>
-
         <form onSubmit={handleAuth} className="space-y-6">
           {!isLogin && (
-            <div className="space-y-2 animate-in fade-in duration-300">
-              <Label htmlFor="name" className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Admin Full Name</Label>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Admin Full Name</Label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  id="name" 
-                  placeholder="Full Name" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
-                  required 
-                  className="pl-12 h-14 bg-white border-none shadow-sm rounded-2xl placeholder:text-muted-foreground/60"
-                />
+                <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className="pl-12 h-14 bg-white border-none shadow-sm rounded-2xl" />
               </div>
             </div>
           )}
-          
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-wider">Email Access</Label>
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Email Access</Label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="Email Address" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                required 
-                className="pl-12 h-14 bg-white border-none shadow-sm rounded-2xl placeholder:text-muted-foreground/60"
-              />
+              <Input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-12 h-14 bg-white border-none shadow-sm rounded-2xl" />
             </div>
           </div>
-
           <div className="space-y-2">
             <div className="flex justify-between items-center px-1">
-              <Label htmlFor="password" className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Security Password</Label>
-              {isLogin && (
-                <button 
-                  type="button" 
-                  onClick={() => setStep("forgot-password")}
-                  className="text-[9px] font-bold text-primary uppercase hover:underline tracking-tight"
-                >
-                  Forgot Password?
-                </button>
-              )}
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Security Password</Label>
+              {isLogin && <button type="button" onClick={() => setStep("forgot-password")} className="text-[9px] font-bold text-primary uppercase hover:underline">Forgot Password?</button>}
             </div>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="••••••••" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                required 
-                className="pl-12 h-14 bg-white border-none shadow-sm rounded-2xl placeholder:text-muted-foreground/60"
-              />
+              <Input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-12 h-14 bg-white border-none shadow-sm rounded-2xl" />
             </div>
           </div>
-
-          <Button 
-            type="submit" 
-            className="w-full bg-primary hover:bg-primary/95 text-white font-black h-14 rounded-2xl text-base shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2" 
-            disabled={loading}
-          >
-            {loading ? "PROCESSING..." : (
-              <>
-                {isLogin ? "SECURE LOGIN" : "GET VERIFICATION CODE"}
-                <ArrowRight className="h-5 w-5" />
-              </>
-            )}
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/95 text-white font-black h-14 rounded-2xl text-base shadow-lg shadow-primary/20 flex items-center justify-center gap-2" disabled={loading}>
+            {loading ? "PROCESSING..." : (isLogin ? "SECURE LOGIN" : "GET VERIFICATION CODE")}
+            <ArrowRight className="h-5 w-5" />
           </Button>
-
           <div className="text-center pt-2">
-            <p className="text-xs text-muted-foreground font-medium">
-              {isLogin ? "Lost access to your email?" : "Back to official access?"}
-              <button 
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="ml-1 text-primary font-bold hover:underline flex items-center justify-center gap-1 mx-auto mt-2"
-              >
-                {!isLogin ? (
-                   <>Return to Login <ArrowRight className="h-3 w-3" /></>
-                ) : (
-                   <><UserPlus className="h-3 w-3" /> Register New Admin Email</>
-                )}
-              </button>
-            </p>
+            <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-xs text-primary font-bold hover:underline flex items-center justify-center gap-1 mx-auto">
+              {isLogin ? <><UserPlus className="h-3 w-3" /> Register New Admin Email</> : <>Return to Login <ArrowRight className="h-3 w-3" /></>}
+            </button>
           </div>
         </form>
-      </div>
-
-      <div className="w-full max-w-sm text-center py-6 space-y-4">
-        <div className="space-y-1">
-          <p className="text-[8px] text-muted-foreground font-bold leading-tight">
-            © 2024 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION.<br />
-            ALL RIGHTS RESERVED.
-          </p>
-        </div>
-        <div className="pt-4 border-t border-slate-200">
-          <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em]">
-            System Connection
-          </p>
-        </div>
       </div>
     </div>
   );
