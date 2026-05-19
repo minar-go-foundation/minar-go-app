@@ -27,19 +27,22 @@ export default function MemberManager({ members: initialMembers }: { members: MG
   const [newMember, setNewMember] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteMember, setDeleteMember] = useState<MGMember | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const { toast } = useToast();
   const db = useFirestore();
 
-  const membersRef = useMemo(() => db ? collection(db, "members") : null, [db]);
-  const membersQuery = useMemo(() => membersRef ? query(membersRef, orderBy("name", "asc")) : null, [membersRef]);
-  const { data: members = [] } = useCollection(membersQuery);
+  const membersQuery = useMemo(() => {
+    if (!db) return null;
+    return query(collection(db, "members"), orderBy("name", "asc"));
+  }, [db]);
+
+  const { data: members = [], loading } = useCollection(membersQuery);
 
   const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMember.trim() || !db) return;
     
-    setLoading(true);
+    setIsAdding(true);
     const data = {
       name: newMember.trim(),
       createdAt: new Date().toISOString()
@@ -58,7 +61,7 @@ export default function MemberManager({ members: initialMembers }: { members: MG
         });
         errorEmitter.emit("permission-error", permissionError);
       })
-      .finally(() => setLoading(false));
+      .finally(() => setIsAdding(false));
   };
 
   const confirmDelete = () => {
@@ -102,11 +105,11 @@ export default function MemberManager({ members: initialMembers }: { members: MG
               placeholder="Enter new member name..." 
               value={newMember} 
               onChange={(e) => setNewMember(e.target.value)}
-              disabled={loading}
+              disabled={isAdding}
               className="flex-1 h-14 rounded-2xl bg-slate-50 border-none shadow-inner font-bold px-6 text-primary"
             />
-            <Button type="submit" className="bg-primary hover:bg-primary/95 h-14 w-14 rounded-2xl shadow-xl active:scale-90 transition-all" disabled={loading}>
-              {loading ? <div className="animate-spin h-5 w-5 border-2 border-white rounded-full border-b-transparent" /> : <Plus className="h-6 w-6 stroke-[3px]" />}
+            <Button type="submit" className="bg-primary hover:bg-primary/95 h-14 w-14 rounded-2xl shadow-xl active:scale-90 transition-all" disabled={isAdding}>
+              {isAdding ? <div className="animate-spin h-5 w-5 border-2 border-white rounded-full border-b-transparent" /> : <Plus className="h-6 w-6 stroke-[3px]" />}
             </Button>
           </form>
 
@@ -121,10 +124,14 @@ export default function MemberManager({ members: initialMembers }: { members: MG
           </div>
 
           <div className="space-y-3 max-h-[45vh] overflow-y-auto pr-2 scrollbar-hide">
-            {filteredMembers.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              </div>
+            ) : filteredMembers.length === 0 ? (
               <div className="text-center py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
                 <Users className="h-16 w-16 mx-auto text-slate-200 mb-4" />
-                <p className="text-xs font-black text-slate-300 uppercase tracking-widest">No members matching search</p>
+                <p className="text-xs font-black text-slate-300 uppercase tracking-widest">No members found</p>
               </div>
             ) : (
               filteredMembers.map((member) => (

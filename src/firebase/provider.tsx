@@ -43,6 +43,6 @@ export const useFirestore = () => useContext(FirebaseContext).firestore;
 export const useAuth = () => useContext(FirebaseContext).auth;
 
 export const useUser = () => {
-  const { auth } = useContext(FirebaseContext);
-  return useUserHook(auth);
+  const context = useContext(FirebaseContext);
+  return useUserHook(context.auth);
 };
