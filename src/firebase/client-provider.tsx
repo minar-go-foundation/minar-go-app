@@ -11,7 +11,6 @@ export function FirebaseClientProvider({
 }: {
   children: React.ReactNode;
 }) {
-  // Initialize Firebase on the client side to avoid serialization errors
   const { app, firestore, auth } = useMemo(() => initializeFirebase(), []);
 
   return (

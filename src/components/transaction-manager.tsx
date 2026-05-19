@@ -137,62 +137,21 @@ export default function TransactionManager({
   const exportPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-    
     doc.setFillColor(0, 35, 102); 
     doc.rect(0, 0, pageWidth, 45, 'F');
-    
     doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 18, { align: "center" });
     doc.setFontSize(16);
     doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 28, { align: "center" });
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(220, 220, 220);
-    doc.text(`Collection Summary Report - ${filterMonth === 'All' ? 'Yearly' : filterMonth} Period`, pageWidth / 2, 38, { align: "center" });
-    
-    const tableData = filteredTransactions.map(t => [
-      t.n, 
-      t.d, 
-      CATEGORY_MAP[t.c] || t.c, 
-      `BDT ${parseFloat(t.a).toLocaleString()}`
-    ]);
-    
+    const tableData = filteredTransactions.map(t => [t.n, t.d, CATEGORY_MAP[t.c] || t.c, `BDT ${parseFloat(t.a).toLocaleString()}`]);
     autoTable(doc, {
       startY: 55,
       head: [["Member Name", "Date", "Category", "Amount"]],
       body: tableData,
-      foot: [["TOTAL COLLECTION", "", "", `BDT ${totalFiltered.toLocaleString()}`]],
       theme: "striped",
-      headStyles: { 
-        fillColor: [0, 35, 102], 
-        textColor: [255, 255, 255], 
-        fontStyle: 'bold',
-        fontSize: 11,
-        cellPadding: 4
-      },
-      footStyles: { 
-        fillColor: [0, 35, 102], 
-        textColor: [255, 255, 255], 
-        fontStyle: 'bold',
-        fontSize: 12,
-        cellPadding: 4
-      },
-      styles: { 
-        fontSize: 10, 
-        cellPadding: 4,
-        overflow: 'linebreak',
-        font: 'helvetica'
-      },
-      columnStyles: {
-        3: { halign: 'right', fontStyle: 'bold' }
-      },
-      margin: { left: 15, right: 15, bottom: 30 }
+      headStyles: { fillColor: [0, 35, 102] }
     });
-    
     doc.save(`MinarGo_Report_${format(new Date(), "yyyyMMdd")}.pdf`);
   };
 
@@ -200,7 +159,7 @@ export default function TransactionManager({
     return (
       <form onSubmit={handleAddDeposit} className="space-y-4 py-4">
         <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Select Member</label>
+          <label className="text-[10px] font-bold uppercase text-slate-400">Select Member</label>
           <Select onValueChange={setSelectedMember} value={selectedMember}>
             <SelectTrigger className="h-12 rounded-xl border-slate-100 bg-slate-50">
               <SelectValue placeholder="Member Name" />
@@ -213,7 +172,7 @@ export default function TransactionManager({
           </Select>
         </div>
         <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Purpose/Category</label>
+          <label className="text-[10px] font-bold uppercase text-slate-400">Purpose/Category</label>
           <Select onValueChange={setCategory} value={category}>
             <SelectTrigger className="h-12 rounded-xl border-slate-100 bg-slate-50">
               <SelectValue placeholder="Select Category" />
@@ -227,98 +186,45 @@ export default function TransactionManager({
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Amount (৳)</label>
-            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-12 rounded-xl border-slate-100 bg-slate-50 font-black text-primary" />
+            <label className="text-[10px] font-bold uppercase text-slate-400">Amount (৳)</label>
+            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-12 rounded-xl bg-slate-50" />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Date</label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-12 rounded-xl border-slate-100 bg-slate-50" />
+            <label className="text-[10px] font-bold uppercase text-slate-400">Date</label>
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-12 rounded-xl bg-slate-50" />
           </div>
         </div>
-        <Button type="submit" className="w-full bg-primary h-14 rounded-2xl text-lg font-black shadow-lg shadow-primary/20 mt-4 active:scale-95 transition-all">
-          CONFIRM DEPOSIT
-        </Button>
+        <Button type="submit" className="w-full bg-primary h-14 rounded-2xl text-lg font-black mt-4">CONFIRM DEPOSIT</Button>
       </form>
     );
   }
 
   return (
     <div className="space-y-6">
-      {mode === "full" && (
-        <Card className="shadow-lg border-none overflow-hidden rounded-3xl">
-          <CardHeader className="bg-primary text-white p-6">
-            <CardTitle className="flex items-center gap-2 text-lg uppercase font-black tracking-tight">
-              <Plus className="h-5 w-5" /> New Deposit Entry
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <form onSubmit={handleAddDeposit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-slate-400">Member</label>
-                <Select onValueChange={setSelectedMember} value={selectedMember}>
-                  <SelectTrigger className="h-12 rounded-xl border-slate-100 bg-slate-50">
-                    <SelectValue placeholder="Select Member" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {members.map((m) => (
-                      <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-slate-400">Category</label>
-                <Select onValueChange={setCategory} value={category}>
-                  <SelectTrigger className="h-12 rounded-xl border-slate-100 bg-slate-50">
-                    <SelectValue placeholder="Select Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map(c => (
-                      <SelectItem key={c} value={c} className="font-bengali">{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-slate-400">Amount (৳)</label>
-                <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-12 rounded-xl border-slate-100 bg-slate-50 font-black text-primary" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-slate-400">Date</label>
-                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-12 rounded-xl border-slate-100 bg-slate-50" />
-              </div>
-              <Button type="submit" className="md:col-span-2 bg-primary hover:bg-primary/90 h-14 rounded-2xl text-lg font-black active:scale-95 transition-all mt-2">
-                SUBMIT RECORD
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
       <Card className="shadow-lg border-none bg-white rounded-[2.5rem] overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between p-8 bg-slate-50/50">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white rounded-2xl text-primary shadow-sm border border-slate-100">
+            <div className="p-3 bg-white rounded-2xl text-primary shadow-sm">
               <Filter className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-[12px] font-black text-primary uppercase tracking-tight">Monthly Log History</CardTitle>
-              <CardDescription className="text-[9px] font-bold uppercase text-slate-400 tracking-widest">{filterMonth === 'All' ? 'All Records' : `Records for ${filterMonth}`}</CardDescription>
+              <CardTitle className="text-[12px] font-black text-primary uppercase">Monthly Log History</CardTitle>
+              <CardDescription className="text-[9px] font-bold uppercase text-slate-400">{filterMonth === 'All' ? 'All Records' : `Records for ${filterMonth}`}</CardDescription>
             </div>
           </div>
           <div className="flex gap-2">
             <Select onValueChange={(val) => onFilterMonthChange?.(val)} value={filterMonth}>
-              <SelectTrigger className="w-[120px] h-10 text-[10px] font-black rounded-xl border-slate-200 bg-white shadow-sm uppercase">
+              <SelectTrigger className="w-[120px] h-10 text-[10px] font-black rounded-xl border-slate-200">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All" className="text-[10px] font-bold uppercase">All Months</SelectItem>
+                <SelectItem value="All">All Months</SelectItem>
                 {MONTHS.map(m => (
-                  <SelectItem key={m} value={m} className="text-[10px] font-bold uppercase">{m}</SelectItem>
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button size="icon" variant="outline" className="h-10 w-10 rounded-xl border-slate-200 bg-white shadow-sm" onClick={exportPDF}>
+            <Button size="icon" variant="outline" className="h-10 w-10 rounded-xl" onClick={exportPDF}>
               <Download className="h-4 w-4" />
             </Button>
           </div>
@@ -326,7 +232,7 @@ export default function TransactionManager({
         <CardContent className="p-0 overflow-x-auto min-h-[300px]">
           <Table>
             <TableHeader className="bg-slate-50/80">
-              <TableRow className="border-b border-slate-100">
+              <TableRow>
                 <TableHead className="w-16 pl-8"></TableHead>
                 <TableHead className="text-[9px] font-black uppercase text-slate-400">Member Name</TableHead>
                 <TableHead className="text-[9px] font-black uppercase text-slate-400">Date</TableHead>
@@ -336,26 +242,13 @@ export default function TransactionManager({
             <TableBody>
               {filteredTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-20">
-                    <div className="flex flex-col items-center gap-2 opacity-20">
-                      <Calendar className="h-12 w-12" />
-                      <p className="text-[10px] font-black uppercase tracking-widest">No records for {filterMonth}</p>
-                    </div>
-                  </TableCell>
+                  <TableCell colSpan={4} className="text-center py-20 text-slate-300">No records found</TableCell>
                 </TableRow>
               ) : (
-                filteredTransactions.slice(0, mode === "summary" ? 8 : undefined).map(t => (
-                  <TableRow key={t.id} className="border-b border-slate-50 hover:bg-slate-50/30 transition-colors group">
+                filteredTransactions.map(t => (
+                  <TableRow key={t.id} className="hover:bg-slate-50/30">
                     <TableCell className="pl-8">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-10 w-10 text-slate-200 hover:text-destructive hover:bg-destructive/5 rounded-full transition-all" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteId(t.id);
-                        }}
-                      >
+                      <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-200 hover:text-destructive" onClick={() => setDeleteId(t.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -368,33 +261,23 @@ export default function TransactionManager({
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="bg-primary p-8 font-black flex justify-between items-center rounded-b-[2.5rem] shadow-[0_-10px_30px_rgba(0,35,102,0.1)]">
+        <CardFooter className="bg-primary p-8 font-black flex justify-between items-center rounded-b-[2.5rem]">
           <div>
-             <p className="text-[9px] uppercase text-white/50 tracking-[0.2em] mb-1">Total {filterMonth === 'All' ? 'Foundation' : filterMonth} Assets</p>
+             <p className="text-[9px] uppercase text-white/50 mb-1">Total Assets</p>
              <h4 className="text-white text-2xl font-black">৳{totalFiltered.toLocaleString()}</h4>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Filtered Summary</span>
           </div>
         </CardFooter>
       </Card>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent className="rounded-[2.5rem] p-10 border-none">
+        <AlertDialogContent className="rounded-[2.5rem] p-10">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-3 text-xl font-black text-primary">
-              <AlertCircle className="text-destructive h-6 w-6" /> REMOVE RECORD?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm font-bold text-slate-500">
-              Are you sure you want to delete this transaction record?
-            </AlertDialogDescription>
+            <AlertDialogTitle className="font-black text-primary uppercase">REMOVE RECORD?</AlertDialogTitle>
+            <AlertDialogDescription className="font-bold text-slate-500">Are you sure you want to delete this record?</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 gap-3">
-            <AlertDialogCancel className="h-12 rounded-xl font-black text-[10px] uppercase tracking-widest border-2">CANCEL</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white h-12 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-100">
-              DELETE NOW
-            </AlertDialogAction>
+            <AlertDialogCancel className="h-12 rounded-xl font-black">CANCEL</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white h-12 rounded-xl font-black">DELETE NOW</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

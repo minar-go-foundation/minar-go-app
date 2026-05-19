@@ -15,7 +15,6 @@ import {
   User as UserIcon,
   Settings,
   CloudSun,
-  ClipboardCheck,
   Clock,
   ShieldCheck,
   Video,
@@ -35,7 +34,6 @@ import VideoCall from "./video-call";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Image from "next/image";
 import { format, differenceInDays, isAfter } from "date-fns";
-import { Textarea } from "@/components/ui/textarea";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June", 
@@ -135,9 +133,9 @@ export default function DashboardScreen({ user }: { user: User }) {
 
   return (
     <div className="min-h-screen bg-[#F8FAFF] flex flex-col font-body pb-32">
-      <header className="px-6 py-4 flex items-center justify-between bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] sticky top-0 z-40">
+      <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="relative w-11 h-11 rounded-xl border border-primary/10 flex items-center justify-center overflow-hidden shadow-sm transition-transform active:scale-95 cursor-pointer" onClick={() => setActiveTab("setting")}>
+          <div className="relative w-11 h-11 rounded-xl border border-primary/10 flex items-center justify-center overflow-hidden shadow-sm" onClick={() => setActiveTab("setting")}>
             {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black">MG</div>}
           </div>
           <div className="flex flex-col">
@@ -166,23 +164,21 @@ export default function DashboardScreen({ user }: { user: User }) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-10 w-10 bg-red-50 hover:bg-red-100 rounded-xl group transition-all" 
+            className="h-10 w-10 bg-red-50 hover:bg-red-100 rounded-xl" 
             onClick={() => {
               signOut(auth!);
               toast({title: "Security Lockout", description: "You have been securely logged out."});
             }}
-            title="Security Lockout"
           >
-            <Lock className="h-5 w-5 text-red-500 group-hover:scale-110 transition-transform" />
+            <Lock className="h-5 w-5 text-red-500" />
           </Button>
-          <div className="h-8 w-[1px] bg-slate-100 mx-1" />
-          <div className="w-10 h-10 bg-slate-100 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center overflow-hidden">
+          <div className="w-10 h-10 bg-slate-100 rounded-xl border border-slate-100 flex items-center justify-center overflow-hidden">
              {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-400" />}
           </div>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 py-6 container max-w-lg mx-auto">
+      <main className="flex-1 px-6 py-6 container max-w-lg mx-auto">
         {activeTab === "home" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="px-6 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-between">
@@ -260,7 +256,6 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "setting" && (
           <div className="space-y-6 animate-in fade-in duration-500">
             <Card className="rounded-[2.5rem] border-none shadow-2xl p-8 bg-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl" />
               <div className="flex flex-col items-center gap-8 relative z-10">
                 <div className="p-6 bg-slate-50 rounded-[2rem] w-full flex flex-col items-center gap-4 border border-slate-100">
                   <LogoManager currentLogo={logo} onUpdate={setLogo} />
@@ -271,7 +266,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                 </div>
 
                 <div className="w-full space-y-3">
-                   <Button className="w-full h-14 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-md hover:bg-[#C8E6C9] flex items-center justify-center gap-3" onClick={handleCloudBackup} disabled={backupLoading}>
+                   <Button className="w-full h-14 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-md" onClick={handleCloudBackup} disabled={backupLoading}>
                      {backupLoading ? <RotateCcw className="h-5 w-5 animate-spin" /> : <RotateCcw className="h-5 w-5" />} GOOGLE CLOUD BACKUP
                    </Button>
                    <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-slate-200" onClick={() => setActiveTab("gallery")}>
@@ -289,45 +284,45 @@ export default function DashboardScreen({ user }: { user: User }) {
 
       <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50 pointer-events-none">
         <div className="max-w-md mx-auto relative pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_15px_50px_-12px_rgba(0,35,102,0.25)] border border-slate-100 flex items-center justify-between px-2 py-3 ring-1 ring-black/5">
+          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_15px_50px_-12px_rgba(0,35,102,0.25)] border border-slate-100 flex items-center justify-between px-2 py-3">
             
             <div className="flex items-center justify-around flex-1 gap-1">
               <button 
                 onClick={() => setActiveTab("home")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Home className={`h-6 w-6 transition-all ${activeTab === "home" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "home" ? "opacity-100" : "opacity-60"}`}>Home</span>
+                <Home className={`h-6 w-6 ${activeTab === "home" ? "stroke-[3px]" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>Home</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("members")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Users className={`h-6 w-6 transition-all ${activeTab === "members" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "members" ? "opacity-100" : "opacity-60"}`}>Members</span>
+                <Users className={`h-6 w-6 ${activeTab === "members" ? "stroke-[3px]" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>Members</span>
               </button>
 
               <button 
                 onClick={() => setActiveTab("history")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "history" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "history" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <History className={`h-6 w-6 transition-all ${activeTab === "history" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "history" ? "opacity-100" : "opacity-60"}`}>History</span>
+                <History className={`h-6 w-6 ${activeTab === "history" ? "stroke-[3px]" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>History</span>
               </button>
             </div>
 
             <div className="px-3 -mt-10 relative">
               <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                 <DialogTrigger asChild>
-                  <button className="group relative focus:outline-none focus:ring-0">
+                  <button className="group relative focus:outline-none">
                     <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl group-hover:blur-3xl transition-all animate-pulse" />
-                    <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-[0_12px_30px_rgba(0,35,102,0.4)] flex items-center justify-center text-white relative z-10 transition-all active:scale-90 active:rotate-90 hover:scale-110 hover:-translate-y-2">
+                    <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-xl flex items-center justify-center text-white relative z-10 transition-all active:scale-90 active:rotate-90 hover:scale-110 hover:-translate-y-2">
                       <Plus className="h-8 w-8 stroke-[4px]" />
                     </div>
                   </button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[95vw] rounded-[3rem] p-8 border-none shadow-2xl animate-in zoom-in-95 duration-300">
+                <DialogContent className="max-w-[95vw] rounded-[3rem] p-8 border-none shadow-2xl">
                   <DialogHeader><DialogTitle className="text-center font-black uppercase text-primary text-xl tracking-tight">New Deposit</DialogTitle></DialogHeader>
                   <TransactionManager members={members as MGMember[]} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
                 </DialogContent>
@@ -337,26 +332,26 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="flex items-center justify-around flex-1 gap-1">
               <button 
                 onClick={() => setActiveTab("chat")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <MessageSquare className={`h-6 w-6 transition-all ${activeTab === "chat" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "chat" ? "opacity-100" : "opacity-60"}`}>Chat</span>
+                <MessageSquare className={`h-6 w-6 ${activeTab === "chat" ? "stroke-[3px]" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>Chat</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("call")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Video className={`h-6 w-6 transition-all ${activeTab === "call" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "call" ? "opacity-100" : "opacity-60"}`}>Call</span>
+                <Video className={`h-6 w-6 ${activeTab === "call" ? "stroke-[3px]" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>Call</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("setting")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 hover:-translate-y-1 ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}
               >
-                <Settings className={`h-6 w-6 transition-all ${activeTab === "setting" ? "stroke-[3px] drop-shadow-md" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${activeTab === "setting" ? "opacity-100" : "opacity-60"}`}>System</span>
+                <Settings className={`h-6 w-6 ${activeTab === "setting" ? "stroke-[3px]" : "stroke-[2px]"}`} />
+                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>System</span>
               </button>
             </div>
 
