@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { User, signOut } from "firebase/auth";
 import { useAuth, useFirestore, useCollection } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
@@ -67,6 +67,11 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [backupLoading, setBackupLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
+  const [hajjDays, setHajjDays] = useState<number>(0);
+  const [ramadanDays, setRamadanDays] = useState<number>(0);
+  const [hajjDateStr, setHajjDateStr] = useState<string>("");
+  const [ramadanDateStr, setRamadanDateStr] = useState<string>("");
+
   const { toast } = useToast();
   const auth = useAuth();
   const db = useFirestore();
@@ -77,11 +82,19 @@ export default function DashboardScreen({ user }: { user: User }) {
   const membersQuery = useMemo(() => db ? query(collection(db, "members"), orderBy("name", "asc")) : null, [db]);
   const { data: members = [] } = useCollection(membersQuery);
 
-  const nextHajj = useMemo(() => GET_NEXT_DATE(new Date("2026-05-25")), []);
-  const nextRamadan = useMemo(() => GET_NEXT_DATE(new Date("2026-02-18")), []);
-
   useEffect(() => {
-    setCurrentTime(new Date());
+    // Prevent hydration errors by calculating time-dependent data on client mount
+    const now = new Date();
+    setCurrentTime(now);
+    
+    const nextHajj = GET_NEXT_DATE(new Date("2026-05-25"));
+    const nextRamadan = GET_NEXT_DATE(new Date("2026-02-18"));
+    
+    setHajjDays(differenceInDays(nextHajj, now));
+    setRamadanDays(differenceInDays(nextRamadan, now));
+    setHajjDateStr(format(nextHajj, "dd MMMM yyyy"));
+    setRamadanDateStr(format(nextRamadan, "dd MMMM yyyy"));
+
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
 
     if ("geolocation" in navigator) {
@@ -131,6 +144,8 @@ export default function DashboardScreen({ user }: { user: User }) {
     } finally { setBackupLoading(false); }
   };
 
+  if (!currentTime) return null; // Wait for client mount to prevent mismatch
+
   return (
     <div className="min-h-screen bg-[#F8FAFF] flex flex-col font-body pb-32">
       <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40">
@@ -148,14 +163,12 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <span className="text-[10px] font-bold text-secondary">{weather.temp}°C</span>
               </div>
               <div className="h-3 w-[1px] bg-slate-200" />
-              {currentTime && (
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-black text-primary">
-                    {format(currentTime, "hh:mm:ss a")}
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3 text-primary" />
+                <span className="text-[10px] font-black text-primary">
+                  {format(currentTime, "hh:mm:ss a")}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -166,7 +179,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             size="icon" 
             className="h-10 w-10 bg-red-50 hover:bg-red-100 rounded-xl" 
             onClick={() => {
-              signOut(auth!);
+              if (auth) signOut(auth);
               toast({title: "Security Lockout", description: "You have been securely logged out."});
             }}
           >
@@ -184,7 +197,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="px-6 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-between">
               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Today's Date</p>
               <h2 className="text-sm font-black text-primary tracking-tight">
-                {currentTime ? format(currentTime, "EEEE, MMMM dd") : "Loading..."}
+                {format(currentTime, "EEEE, MMMM dd")}
               </h2>
             </div>
 
@@ -207,9 +220,9 @@ export default function DashboardScreen({ user }: { user: User }) {
                   <div className="w-1 h-1 bg-accent rounded-full" /> Hajj Countdown
                 </div>
                 <h4 className="text-xs font-bold leading-tight">
-                  {format(nextHajj, "dd MMMM yyyy")}<br/>
+                  {hajjDateStr}<br/>
                   <span className="text-lg font-black text-accent">
-                    {differenceInDays(nextHajj, new Date())} Days
+                    {hajjDays} Days
                   </span>
                 </h4>
               </div>
@@ -218,9 +231,9 @@ export default function DashboardScreen({ user }: { user: User }) {
                    <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan Countdown
                 </div>
                 <h4 className="text-xs font-bold leading-tight text-slate-500">
-                  {format(nextRamadan, "dd MMMM yyyy")}<br/>
+                  {ramadanDateStr}<br/>
                   <span className="text-lg font-black text-primary">
-                    {differenceInDays(nextRamadan, new Date())} Days
+                    {ramadanDays} Days
                   </span>
                 </h4>
               </div>
@@ -272,7 +285,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                    <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-slate-200" onClick={() => setActiveTab("gallery")}>
                      <ImageIcon className="mr-2 h-5 w-5" /> DIGITAL VAULT
                    </Button>
-                   <Button variant="destructive" className="w-full h-14 rounded-2xl font-black shadow-xl mt-4" onClick={() => signOut(auth!)}>
+                   <Button variant="destructive" className="w-full h-14 rounded-2xl font-black shadow-xl mt-4" onClick={() => { if(auth) signOut(auth); }}>
                     <LogOut className="mr-2 h-5 w-5" /> SECURE LOGOUT
                   </Button>
                 </div>
