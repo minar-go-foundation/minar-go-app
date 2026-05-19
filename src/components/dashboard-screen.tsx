@@ -34,6 +34,7 @@ import VideoCall from "./video-call";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Image from "next/image";
 import { format, differenceInDays, isAfter } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June", 
@@ -83,7 +84,6 @@ export default function DashboardScreen({ user }: { user: User }) {
   const { data: members = [] } = useCollection(membersQuery);
 
   useEffect(() => {
-    // Prevent hydration errors by calculating time-dependent data on client mount
     const now = new Date();
     setCurrentTime(now);
     
@@ -144,13 +144,17 @@ export default function DashboardScreen({ user }: { user: User }) {
     } finally { setBackupLoading(false); }
   };
 
-  if (!currentTime) return null; // Wait for client mount to prevent mismatch
+  if (!currentTime) return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#F8FAFF] flex flex-col font-body pb-32">
       <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="relative w-11 h-11 rounded-xl border border-primary/10 flex items-center justify-center overflow-hidden shadow-sm" onClick={() => setActiveTab("setting")}>
+          <div className="relative w-11 h-11 rounded-xl border border-primary/10 flex items-center justify-center overflow-hidden shadow-sm cursor-pointer" onClick={() => setActiveTab("setting")}>
             {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black">MG</div>}
           </div>
           <div className="flex flex-col">
@@ -201,7 +205,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               </h2>
             </div>
 
-            <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative group p-1">
+            <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative p-1">
               <CardContent className="p-8 text-center relative z-10">
                 <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-4">
                   {filterMonth === "All" ? "Total Assets" : `${filterMonth} Assets`}
@@ -302,26 +306,35 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="flex items-center justify-around flex-1 gap-1">
               <button 
                 onClick={() => setActiveTab("home")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "home" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={cn(
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:rotate-3",
+                  activeTab === "home" ? "text-primary scale-110" : "text-slate-300"
+                )}
               >
-                <Home className={`h-6 w-6 ${activeTab === "home" ? "stroke-[3px]" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>Home</span>
+                <Home className={cn("h-6 w-6 transition-all", activeTab === "home" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Home</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("members")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "members" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={cn(
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:-rotate-3",
+                  activeTab === "members" ? "text-primary scale-110" : "text-slate-300"
+                )}
               >
-                <Users className={`h-6 w-6 ${activeTab === "members" ? "stroke-[3px]" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>Members</span>
+                <Users className={cn("h-6 w-6 transition-all", activeTab === "members" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Members</span>
               </button>
 
               <button 
                 onClick={() => setActiveTab("history")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "history" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={cn(
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:rotate-3",
+                  activeTab === "history" ? "text-primary scale-110" : "text-slate-300"
+                )}
               >
-                <History className={`h-6 w-6 ${activeTab === "history" ? "stroke-[3px]" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>History</span>
+                <History className={cn("h-6 w-6 transition-all", activeTab === "history" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">History</span>
               </button>
             </div>
 
@@ -345,26 +358,35 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="flex items-center justify-around flex-1 gap-1">
               <button 
                 onClick={() => setActiveTab("chat")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={cn(
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:-rotate-3",
+                  activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"
+                )}
               >
-                <MessageSquare className={`h-6 w-6 ${activeTab === "chat" ? "stroke-[3px]" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>Chat</span>
+                <MessageSquare className={cn("h-6 w-6 transition-all", activeTab === "chat" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Chat</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("call")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "call" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={cn(
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:rotate-3",
+                  activeTab === "call" ? "text-primary scale-110" : "text-slate-300"
+                )}
               >
-                <Video className={`h-6 w-6 ${activeTab === "call" ? "stroke-[3px]" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>Call</span>
+                <Video className={cn("h-6 w-6 transition-all", activeTab === "call" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Call</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("setting")} 
-                className={`flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-75 ${activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"}`}
+                className={cn(
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:-rotate-3",
+                  activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"
+                )}
               >
-                <Settings className={`h-6 w-6 ${activeTab === "setting" ? "stroke-[3px]" : "stroke-[2px]"}`} />
-                <span className={`text-[8px] font-black uppercase tracking-tighter mt-1`}>System</span>
+                <Settings className={cn("h-6 w-6 transition-all", activeTab === "setting" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">System</span>
               </button>
             </div>
 

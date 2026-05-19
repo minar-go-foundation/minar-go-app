@@ -31,10 +31,11 @@ export default function MemberManager({ members: initialMembers }: { members: MG
   const { toast } = useToast();
   const db = useFirestore();
 
+  const membersRef = useMemo(() => db ? collection(db, "members") : null, [db]);
   const membersQuery = useMemo(() => {
-    if (!db) return null;
-    return query(collection(db, "members"), orderBy("name", "asc"));
-  }, [db]);
+    if (!membersRef) return null;
+    return query(membersRef, orderBy("name", "asc"));
+  }, [membersRef]);
 
   const { data: members = [], loading } = useCollection(membersQuery);
 
@@ -81,9 +82,11 @@ export default function MemberManager({ members: initialMembers }: { members: MG
       .finally(() => setDeleteMember(null));
   };
 
-  const filteredMembers = members.filter(m => 
-    m.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMembers = useMemo(() => {
+    return members.filter(m => 
+      m.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [members, searchQuery]);
 
   return (
     <div className="space-y-6">
