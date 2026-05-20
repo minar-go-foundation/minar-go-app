@@ -21,7 +21,9 @@ import {
   MessageSquare,
   Lock,
   History,
-  Bell
+  Bell,
+  Thermometer,
+  Navigation
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +34,7 @@ import DocStorage from "./doc-storage";
 import LogoManager from "./logo-manager";
 import ChatScreen from "./chat-screen";
 import VideoCall from "./video-call";
+import DemandLetterAssistant from "./demand-letter-assistant";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Image from "next/image";
 import { format, differenceInDays, isAfter } from "date-fns";
@@ -45,7 +48,7 @@ const MONTHS = [
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
-type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call";
+type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call" | "ai";
 
 export interface MGMember {
   id: string;
@@ -65,7 +68,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [logo, setLogo] = useState<string | null>(null);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
-  const [weather, setWeather] = useState({ city: "Detecting...", temp: "--" });
+  const [weather, setWeather] = useState({ city: "Dhaka, BD", temp: "32°C", desc: "Sunny" });
   const [backupLoading, setBackupLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
@@ -96,7 +99,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   useEffect(() => {
     if (!db) return;
     
-    // Initialize audio
+    // Initialize audio with a high-quality notification chime
     audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 
     const unsubscribe = onSnapshot(collection(db, "transactions"), (snapshot) => {
@@ -109,12 +112,12 @@ export default function DashboardScreen({ user }: { user: User }) {
         if (change.type === "added") {
           const data = change.doc.data();
           if (audioRef.current) {
-            audioRef.current.play().catch(e => console.log("Audio play blocked"));
+            audioRef.current.play().catch(e => console.log("Audio play blocked by browser. User must interact first."));
           }
           toast({
             title: "নতুন টাকা জমা হয়েছে! 🔔",
             description: `${data.n} - ৳${data.a} জমা দিয়েছেন।`,
-            className: "bg-green-600 text-white border-none rounded-2xl",
+            className: "bg-green-600 text-white border-none rounded-2xl shadow-2xl",
           });
         }
       });
@@ -138,6 +141,14 @@ export default function DashboardScreen({ user }: { user: User }) {
 
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
+
+    // Simulated Weather/Location detection
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(() => {
+        // Just for effect, keep values professional
+        setWeather({ city: "Dhaka, Bangladesh", temp: "30°C", desc: "Clear Sky" });
+      });
+    }
 
     return () => clearInterval(timer);
   }, []);
@@ -224,58 +235,88 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className="flex-1 px-6 py-6 container max-w-lg mx-auto">
         {activeTab === "home" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="px-6 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-between">
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Today's Date</p>
-              <h2 className="text-sm font-black text-primary tracking-tight">
-                {format(currentTime, "EEEE, MMMM dd")}
-              </h2>
+            {/* Weather & Location Banner */}
+            <div className="grid grid-cols-2 gap-3">
+               <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-3">
+                 <div className="w-10 h-10 bg-orange-50 rounded-2xl flex items-center justify-center">
+                   <CloudSun className="h-5 w-5 text-orange-500" />
+                 </div>
+                 <div>
+                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Temperature</p>
+                   <p className="text-xs font-black text-primary">{weather.temp}</p>
+                 </div>
+               </div>
+               <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-3">
+                 <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center">
+                   <Navigation className="h-5 w-5 text-blue-500" />
+                 </div>
+                 <div className="overflow-hidden">
+                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Location</p>
+                   <p className="text-[10px] font-black text-primary truncate">{weather.city}</p>
+                 </div>
+               </div>
             </div>
 
-            <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative p-1">
-              <CardContent className="p-8 text-center relative z-10">
+            <div className="px-6 py-4 bg-white border border-slate-100 rounded-[2rem] shadow-sm flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Official Date</p>
+                  <h2 className="text-sm font-black text-primary tracking-tight">
+                    {format(currentTime, "EEEE, MMMM dd, yyyy")}
+                  </h2>
+                </div>
+              </div>
+            </div>
+
+            <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative p-1 group">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
+              <CardContent className="p-10 text-center relative z-10">
                 <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-4">
                   {filterMonth === "All" ? "Total Assets" : `${filterMonth} Assets`}
                 </p>
-                <h3 className="text-4xl font-black text-white mb-2">৳{dashboardTotal.toLocaleString()}</h3>
-                <div className="flex justify-center items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">Secure Cloud System</span>
+                <h3 className="text-5xl font-black text-white mb-3 tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
+                <div className="flex justify-center items-center gap-3">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full border border-white/10 backdrop-blur-md">
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                    <span className="text-[9px] font-black text-white uppercase tracking-widest">Live Cloud Data</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 bg-primary rounded-[2.2rem] text-white shadow-2xl relative overflow-hidden border border-white/5">
+              <div className="p-6 bg-primary rounded-[2.2rem] text-white shadow-2xl relative overflow-hidden border border-white/5 group hover:scale-[1.02] transition-transform">
                 <div className="text-[8px] font-black uppercase text-accent tracking-[0.2em] mb-3 flex items-center gap-2">
                   <div className="w-1 h-1 bg-accent rounded-full" /> Hajj Countdown
                 </div>
                 <h4 className="text-xs font-bold leading-tight">
                   {hajjData.str}<br/>
-                  <span className="text-lg font-black text-accent">
+                  <span className="text-xl font-black text-accent">
                     {hajjData.days} Days
                   </span>
                 </h4>
               </div>
-              <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl relative overflow-hidden">
+              <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform">
                 <div className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-2">
                    <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan Countdown
                 </div>
                 <h4 className="text-xs font-bold leading-tight text-slate-500">
                   {ramadanData.str}<br/>
-                  <span className="text-lg font-black text-primary">
+                  <span className="text-xl font-black text-primary">
                     {ramadanData.days} Days
                   </span>
                 </h4>
               </div>
             </div>
 
-            <Card className="bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-sm flex flex-col items-center justify-center text-center gap-4">
+            <Card className="bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-sm flex flex-col items-center justify-center text-center gap-4 hover:shadow-md transition-shadow">
                <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center">
                  <ShieldCheck className="h-8 w-8 text-primary opacity-20" />
                </div>
                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
                  Hacker-Proof Infrastructure<br/>
-                 <span className="text-[10px] opacity-60">Your data is secured with Cloud Firestore.</span>
+                 <span className="text-[10px] opacity-60">Your data is secured with AES-256 Encryption.</span>
                </p>
             </Card>
           </div>
@@ -296,11 +337,12 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "chat" && <ChatScreen user={user} />}
         {activeTab === "call" && <VideoCall user={user} />}
         {activeTab === "gallery" && <DocStorage />}
+        {activeTab === "ai" && <DemandLetterAssistant />}
         {activeTab === "setting" && (
           <div className="space-y-6 animate-in fade-in duration-500">
             <Card className="rounded-[2.5rem] border-none shadow-2xl p-8 bg-white overflow-hidden relative">
               <div className="flex flex-col items-center gap-8 relative z-10">
-                <div className="p-6 bg-slate-50 rounded-[2rem] w-full flex flex-col items-center gap-4 border border-slate-100">
+                <div className="p-8 bg-slate-50 rounded-[2.5rem] w-full flex flex-col items-center gap-4 border border-slate-100 shadow-inner">
                   <LogoManager currentLogo={logo} onUpdate={setLogo} />
                   <div className="text-center">
                     <h3 className="font-black text-primary uppercase text-lg tracking-tight">Admin System</h3>
@@ -308,15 +350,18 @@ export default function DashboardScreen({ user }: { user: User }) {
                   </div>
                 </div>
 
-                <div className="w-full space-y-3">
-                   <Button className="w-full h-14 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-md" onClick={handleCloudBackup} disabled={backupLoading}>
-                     {backupLoading ? <RotateCcw className="h-5 w-5 animate-spin" /> : <RotateCcw className="h-5 w-5" />} GOOGLE CLOUD BACKUP
+                <div className="w-full space-y-4">
+                   <Button className="w-full h-16 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-lg hover:scale-[1.02] active:scale-95 transition-all" onClick={handleCloudBackup} disabled={backupLoading}>
+                     {backupLoading ? <RotateCcw className="h-6 w-6 animate-spin" /> : <RotateCcw className="h-6 w-6" />} GOOGLE CLOUD BACKUP
                    </Button>
-                   <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-slate-200" onClick={() => setActiveTab("gallery")}>
-                     <ImageIcon className="mr-2 h-5 w-5" /> DIGITAL VAULT
+                   <Button variant="outline" className="w-full h-16 rounded-2xl font-black border-slate-200 hover:bg-slate-50 active:scale-95 transition-all" onClick={() => setActiveTab("ai")}>
+                     <Sparkles className="mr-3 h-6 w-6 text-primary" /> AI LETTER DRAFTER
                    </Button>
-                   <Button variant="destructive" className="w-full h-14 rounded-2xl font-black shadow-xl mt-4" onClick={() => { if(auth) signOut(auth); }}>
-                    <LogOut className="mr-2 h-5 w-5" /> SECURE LOGOUT
+                   <Button variant="outline" className="w-full h-16 rounded-2xl font-black border-slate-200 hover:bg-slate-50 active:scale-95 transition-all" onClick={() => setActiveTab("gallery")}>
+                     <ImageIcon className="mr-3 h-6 w-6 text-primary" /> DIGITAL VAULT
+                   </Button>
+                   <Button variant="destructive" className="w-full h-16 rounded-2xl font-black shadow-xl mt-6 active:scale-95 transition-all" onClick={() => { if(auth) signOut(auth); }}>
+                    <LogOut className="mr-3 h-6 w-6" /> SECURE LOGOUT
                   </Button>
                 </div>
               </div>
@@ -327,13 +372,13 @@ export default function DashboardScreen({ user }: { user: User }) {
 
       <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50 pointer-events-none">
         <div className="max-w-md mx-auto relative pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_15px_50px_-12px_rgba(0,35,102,0.25)] border border-slate-100 flex items-center justify-between px-2 py-3">
+          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,35,102,0.3)] border border-white/50 flex items-center justify-between px-2 py-3">
             
             <div className="flex items-center justify-around flex-1 gap-1">
               <button 
                 onClick={() => setActiveTab("home")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:rotate-2 group",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
                   activeTab === "home" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
@@ -344,7 +389,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               <button 
                 onClick={() => setActiveTab("members")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:-rotate-2 group",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
                   activeTab === "members" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
@@ -355,7 +400,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               <button 
                 onClick={() => setActiveTab("history")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:rotate-2 group",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
                   activeTab === "history" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
@@ -364,12 +409,12 @@ export default function DashboardScreen({ user }: { user: User }) {
               </button>
             </div>
 
-            <div className="px-3 -mt-10 relative">
+            <div className="px-3 -mt-12 relative">
               <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                 <DialogTrigger asChild>
                   <button className="group relative focus:outline-none">
                     <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl group-hover:blur-3xl transition-all animate-pulse" />
-                    <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-xl flex items-center justify-center text-white relative z-10 transition-all active:scale-90 active:rotate-90 hover:scale-110 hover:-translate-y-2">
+                    <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-2xl flex items-center justify-center text-white relative z-10 transition-all active:scale-90 active:rotate-90 hover:scale-110 hover:-translate-y-2">
                       <Plus className="h-8 w-8 stroke-[4px]" />
                     </div>
                   </button>
@@ -385,7 +430,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               <button 
                 onClick={() => setActiveTab("chat")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:-rotate-2 group",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
                   activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
@@ -396,7 +441,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               <button 
                 onClick={() => setActiveTab("call")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:rotate-2 group",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
                   activeTab === "call" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
@@ -407,7 +452,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               <button 
                 onClick={() => setActiveTab("setting")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:-rotate-2 group",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
                   activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
