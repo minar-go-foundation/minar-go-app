@@ -211,8 +211,8 @@ export default function DashboardScreen({ user }: { user: User }) {
   }, [currentTime]);
 
   if (!isHydrated || !currentTime) return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    <div className="flex items-center justify-center min-h-screen bg-[#002366]">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
     </div>
   );
 
@@ -265,7 +265,7 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-6")}>
         {activeTab === "home" && (
           <div className="relative min-h-screen flex flex-col items-center pt-8 pb-24 px-6 animate-in fade-in duration-1000">
-            {/* Top Utility Icons (Weather, Clock, Status) - Integrated into Home */}
+            {/* Top Utility Icons (Weather, Clock, Status) */}
             <div className="w-full flex items-center justify-between mb-8">
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-2xl px-4 py-2 border border-white/10">
                 <CloudSun className="h-4 w-4 text-secondary" />
@@ -283,7 +283,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               </button>
             </div>
 
-            {/* Profile Section */}
+            {/* Profile Section with original Navy color theme */}
             <div className="flex flex-col items-center text-center space-y-6 w-full">
               <div className="relative w-36 h-36 rounded-full border-[5px] border-[#C4A052] bg-white shadow-2xl flex items-center justify-center overflow-hidden group">
                 {logo ? (
@@ -440,4 +440,3 @@ export default function DashboardScreen({ user }: { user: User }) {
     </div>
   );
 }
-
