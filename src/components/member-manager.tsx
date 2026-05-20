@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -10,7 +11,7 @@ import { Trash2, Plus, Users, AlertCircle, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
-import { MGMember } from "./dashboard-screen";
+import { MGMember } from "@/lib/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,7 +52,7 @@ export default function MemberManager() {
     addDoc(collection(db, "members"), data)
       .then(() => {
         setNewMember("");
-        toast({ title: "সফলভাবে যুক্ত হয়েছে", description: `${newMember} এখন মেম্বার লিস্টে আছে।` });
+        toast({ title: "Member Added", description: `${newMember} is now in the list.` });
       })
       .catch(async (err) => {
         const permissionError = new FirestorePermissionError({
@@ -69,7 +70,7 @@ export default function MemberManager() {
     const docRef = doc(db, "members", deleteMember.id);
     deleteDoc(docRef)
       .then(() => {
-        toast({ title: "Member removed", description: "Deleted successfully." });
+        toast({ title: "Member Removed" });
       })
       .catch(async (err) => {
         const permissionError = new FirestorePermissionError({
@@ -96,19 +97,19 @@ export default function MemberManager() {
           </div>
           <div>
             <CardTitle className="text-2xl font-[900] uppercase text-primary tracking-tight">Member Directory</CardTitle>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Database: {members.length}</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Members: {members.length}</p>
           </div>
         </CardHeader>
         <CardContent className="p-8 space-y-8">
           <form onSubmit={handleAddMember} className="flex gap-4">
             <Input 
-              placeholder="Enter new member name..." 
+              placeholder="Enter name..." 
               value={newMember} 
               onChange={(e) => setNewMember(e.target.value)}
               disabled={isAdding}
-              className="flex-1 h-14 rounded-2xl bg-white/50 border-none shadow-inner font-bold px-6 text-primary placeholder:text-slate-300"
+              className="flex-1 h-14 rounded-2xl bg-white/50 border-none shadow-inner font-bold px-6 text-primary"
             />
-            <Button type="submit" className="bg-primary hover:bg-primary/95 h-14 w-14 rounded-2xl shadow-xl active:scale-90 transition-all" disabled={isAdding}>
+            <Button type="submit" className="bg-primary hover:bg-primary/95 h-14 w-14 rounded-2xl shadow-xl" disabled={isAdding}>
               {isAdding ? <div className="animate-spin h-5 w-5 border-2 border-white rounded-full border-b-transparent" /> : <Plus className="h-7 w-7 stroke-[3px]" />}
             </Button>
           </form>
@@ -116,10 +117,10 @@ export default function MemberManager() {
           <div className="relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
             <Input 
-              placeholder="Search members..." 
+              placeholder="Search..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-14 h-14 rounded-2xl bg-white/50 border border-white/50 shadow-sm text-sm font-bold placeholder:text-slate-300"
+              className="pl-14 h-14 rounded-2xl bg-white/50 border border-white/50 shadow-sm text-sm font-bold"
             />
           </div>
 
@@ -137,7 +138,7 @@ export default function MemberManager() {
               filteredMembers.map((member) => (
                 <div 
                   key={member.id} 
-                  className="flex items-center justify-between p-6 bg-white/40 border border-white/50 rounded-[2rem] shadow-sm hover:shadow-md hover:border-primary/10 transition-all group"
+                  className="flex items-center justify-between p-6 bg-white/40 border border-white/50 rounded-[2rem] shadow-sm hover:shadow-md transition-all group"
                 >
                   <div className="flex items-center gap-5">
                     <div className="w-14 h-14 rounded-2xl bg-white/60 flex items-center justify-center text-primary font-black text-xl border border-white/50 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
@@ -146,8 +147,8 @@ export default function MemberManager() {
                     <span className="text-base font-black text-slate-700 tracking-tight">{member.name}</span>
                   </div>
                   <button 
-                    onClick={() => setDeleteMember(member as MGMember)}
-                    className="text-slate-200 hover:text-destructive hover:bg-red-50 p-3.5 rounded-2xl transition-all active:scale-90"
+                    onClick={() => setDeleteMember(member)}
+                    className="text-slate-200 hover:text-destructive p-3.5 rounded-2xl transition-all"
                   >
                     <Trash2 className="h-6 w-6" />
                   </button>
@@ -171,7 +172,7 @@ export default function MemberManager() {
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-10 gap-4">
             <AlertDialogCancel className="h-14 rounded-2xl font-black text-sm border-2 border-slate-100 uppercase tracking-widest">CANCEL</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white h-14 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-destructive/90 transition-all">
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-white h-14 rounded-2xl font-black text-sm uppercase tracking-widest">
               REMOVE NOW
             </AlertDialogAction>
           </AlertDialogFooter>

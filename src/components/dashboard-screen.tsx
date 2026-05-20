@@ -33,12 +33,12 @@ import TransactionManager from "./transaction-manager";
 import DocStorage from "./doc-storage";
 import LogoManager from "./logo-manager";
 import ChatScreen from "./chat-screen";
-import VideoCall from "./video-call";
 import DemandLetterAssistant from "./demand-letter-assistant";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Image from "next/image";
 import { format, differenceInDays, isAfter } from "date-fns";
 import { cn } from "@/lib/utils";
+import { MGMember, Tab, Theme } from "@/lib/types";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June", 
@@ -55,11 +55,6 @@ const toBengaliNumber = (num: number | string) => {
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
-
-export interface MGMember {
-  id: string;
-  name: string;
-}
 
 const GET_NEXT_DATE = (baseDate: Date) => {
   const now = new Date();
@@ -81,9 +76,6 @@ const getWeatherDesc = (code: number) => {
   return "Sunny";
 };
 
-type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call" | "ai";
-type Theme = "navy" | "glass" | "gradient" | "midnight" | "emerald" | "royal";
-
 export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [logo, setLogo] = useState<string | null>(null);
@@ -91,7 +83,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [weather, setWeather] = useState({ city: "Detecting...", temp: "--°C", desc: "Loading" });
   const [backupLoading, setBackupLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
-  const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
+  const [filterMonth, setFilterMonth] = useState<string>("All");
   const [hajjData, setHajjData] = useState({ days: 0, date: "" });
   const [ramadanData, setRamadanData] = useState({ days: 0, date: "" });
   const [currentTheme, setCurrentTheme] = useState<Theme>("navy"); 
@@ -129,8 +121,8 @@ export default function DashboardScreen({ user }: { user: User }) {
           const data = change.doc.data();
           if (audioRef.current) audioRef.current.play().catch(() => {});
           toast({
-            title: "নতুন টাকা জমা হয়েছে! 🔔",
-            description: `${data.n} - ৳${data.a} জমা দিয়েছেন।`,
+            title: "New Deposit Alert! 🔔",
+            description: `${data.n} deposited ৳${data.a}.`,
             className: "bg-[#002366] text-white border-none rounded-2xl shadow-2xl",
           });
         }
@@ -143,6 +135,7 @@ export default function DashboardScreen({ user }: { user: User }) {
     setIsHydrated(true);
     const now = new Date();
     setCurrentTime(now);
+    setFilterMonth(MONTHS[now.getMonth()]);
     
     const nextHajj = GET_NEXT_DATE(new Date("2026-05-25"));
     const nextRamadan = GET_NEXT_DATE(new Date("2026-02-18"));
@@ -217,9 +210,9 @@ export default function DashboardScreen({ user }: { user: User }) {
     ];
     try {
       await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", keepalive: true, body: JSON.stringify({ spreadsheetId: SPREADSHEET_ID, rows: finalRows }) });
-      toast({ title: `ব্যাকআপ সফল হয়েছে! (${filterMonth})` });
+      toast({ title: `Backup Successful! (${filterMonth})` });
     } catch (error) {
-      toast({ title: "ব্যাকআপ ব্যর্থ", variant: "destructive" });
+      toast({ title: "Backup Failed", variant: "destructive" });
     } finally { setBackupLoading(false); }
   };
 
@@ -280,10 +273,10 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <p className="text-lg font-bold text-white tracking-[0.3em] uppercase opacity-80">Development Foundation</p>
               </div>
               <div className="grid grid-cols-2 gap-5 w-full pt-4">
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3"><div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest"><Calendar className="h-4 w-4" /> হজ্জ</div><div className="text-xl font-black text-white tracking-tight">{hajjData.date}</div></div>
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3"><div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest"><Sparkles className="h-4 w-4" /> রমজান</div><div className="text-xl font-black text-white tracking-tight">{ramadanData.date}</div></div>
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3"><div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest"><Calendar className="h-4 w-4" /> Hajj</div><div className="text-xl font-black text-white tracking-tight">{hajjData.date}</div></div>
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3"><div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest"><Sparkles className="h-4 w-4" /> Ramadan</div><div className="text-xl font-black text-white tracking-tight">{ramadanData.date}</div></div>
               </div>
-              <div className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] py-5 px-8 text-center"><h2 className="text-xl font-[900] text-white tracking-tight font-bengali uppercase">আজ: <span className="text-[#C4A052]">{currentBn?.dayName}</span> | তারিখ: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span></h2></div>
+              <div className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] py-5 px-8 text-center"><h2 className="text-xl font-[900] text-white tracking-tight font-bengali uppercase">Today: <span className="text-[#C4A052]">{currentBn?.dayName}</span> | Date: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span></h2></div>
               <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-8 text-center hover:shadow-2xl transition-all" onClick={() => setActiveTab("history")}>
                 <p className="text-[10px] uppercase font-black text-white/60 tracking-[0.4em] mb-3">Foundation Assets</p>
                 <h3 className="text-4xl font-[900] text-[#C4A052] tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
