@@ -10,7 +10,6 @@ import {
   Plus, 
   Home, 
   Users, 
-  Image as ImageIcon, 
   RotateCcw,
   User as UserIcon,
   Settings,
@@ -50,8 +49,6 @@ const MONTHS = [
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
-type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call" | "ai";
-
 export interface MGMember {
   id: string;
   name: string;
@@ -65,6 +62,8 @@ const GET_NEXT_DATE = (baseDate: Date) => {
   }
   return target;
 };
+
+type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call" | "ai";
 
 export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
@@ -101,6 +100,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   useEffect(() => {
     if (!db) return;
     
+    // Using a reliable notification sound
     audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 
     const unsubscribe = onSnapshot(collection(db, "transactions"), (snapshot) => {
@@ -113,7 +113,7 @@ export default function DashboardScreen({ user }: { user: User }) {
         if (change.type === "added") {
           const data = change.doc.data();
           if (audioRef.current) {
-            audioRef.current.play().catch(e => console.log("Audio blocked"));
+            audioRef.current.play().catch(e => console.log("Audio blocked by browser policy"));
           }
           toast({
             title: "নতুন টাকা জমা হয়েছে! 🔔",
@@ -157,12 +157,27 @@ export default function DashboardScreen({ user }: { user: User }) {
 
   const handleCloudBackup = async () => {
     setBackupLoading(true);
-    const rows = transactions.map(t => [t.n, t.d, t.a]);
+    
+    // Calculate total for backup
+    const total = transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
+    
+    // Create header row with timestamp
+    const timestamp = format(new Date(), "dd/MM/yyyy HH:mm:ss");
+    const headerRow = [`-- BACKUP SESSION: ${timestamp} --`, "", ""];
+    
+    // Data rows
+    const dataRows = transactions.map(t => [t.n, t.d, t.a]);
+    
+    // Total row specifically requested
+    const totalRow = ["TOTAL FOUNDATION ASSETS", "", total.toLocaleString()];
+    
+    const finalRows = [headerRow, ...dataRows, totalRow];
+
     try {
       await fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
-        body: JSON.stringify({ spreadsheetId: SPREADSHEET_ID, rows: rows })
+        body: JSON.stringify({ spreadsheetId: SPREADSHEET_ID, rows: finalRows })
       });
       toast({ title: "ব্যাকআপ সফল হয়েছে!" });
     } catch (error) {
@@ -330,15 +345,15 @@ export default function DashboardScreen({ user }: { user: User }) {
         <div className="max-w-md mx-auto">
           <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-2xl border border-white/50 flex items-center justify-between px-2 py-3">
             <div className="flex items-center justify-around flex-1 gap-1">
-              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "home" ? "text-primary scale-110" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "home" ? "text-primary scale-110" : "text-slate-300")}>
                 <Home className={cn("h-6 w-6", activeTab === "home" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Home</span>
               </button>
-              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "members" ? "text-primary scale-110" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "members" ? "text-primary scale-110" : "text-slate-300")}>
                 <Users className={cn("h-6 w-6", activeTab === "members" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Members</span>
               </button>
-              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "history" ? "text-primary scale-110" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "history" ? "text-primary scale-110" : "text-slate-300")}>
                 <History className={cn("h-6 w-6", activeTab === "history" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">History</span>
               </button>
@@ -346,7 +361,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="px-3 -mt-12">
               <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                 <DialogTrigger asChild>
-                  <button className="group relative">
+                  <button className="group relative active:scale-95 transition-all">
                     <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl animate-pulse" />
                     <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-2xl flex items-center justify-center text-white z-10 transition-all hover:scale-110">
                       <Plus className="h-8 w-8 stroke-[4px]" />
@@ -360,15 +375,15 @@ export default function DashboardScreen({ user }: { user: User }) {
               </Dialog>
             </div>
             <div className="flex items-center justify-around flex-1 gap-1">
-              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "chat" ? "text-primary scale-110" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "chat" ? "text-primary scale-110" : "text-slate-300")}>
                 <MessageSquare className={cn("h-6 w-6", activeTab === "chat" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Chat</span>
               </button>
-              <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "gallery" ? "text-primary scale-110" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "gallery" ? "text-primary scale-110" : "text-slate-300")}>
                 <HardDrive className={cn("h-6 w-6", activeTab === "gallery" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Vault</span>
               </button>
-              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "setting" ? "text-primary scale-110" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "setting" ? "text-primary scale-110" : "text-slate-300")}>
                 <Settings className={cn("h-6 w-6", activeTab === "setting" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">System</span>
               </button>

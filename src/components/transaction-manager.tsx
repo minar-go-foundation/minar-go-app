@@ -169,7 +169,7 @@ export default function TransactionManager({
       alternateRowStyles: { fillColor: [245, 245, 245] }
     });
 
-    // Add Total Section after table
+    // Add Total Section after table specifically requested
     const finalY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(12);
     doc.setTextColor(0, 35, 102);
