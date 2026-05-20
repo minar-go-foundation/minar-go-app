@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -124,7 +123,7 @@ export default function DashboardScreen({ user }: { user: User }) {
           toast({
             title: "নতুন টাকা জমা হয়েছে! 🔔",
             description: `${data.n} - ৳${data.a} জমা দিয়েছেন।`,
-            className: "bg-green-600 text-white border-none rounded-2xl shadow-2xl",
+            className: "bg-primary text-white border-none rounded-2xl shadow-2xl",
           });
         }
       });
@@ -211,7 +210,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   }, [currentTime]);
 
   if (!isHydrated || !currentTime) return (
-    <div className="flex items-center justify-center min-h-screen bg-[#002366]">
+    <div className="flex items-center justify-center min-h-screen bg-primary">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
     </div>
   );
@@ -219,129 +218,110 @@ export default function DashboardScreen({ user }: { user: User }) {
   return (
     <div className={cn(
       "min-h-screen flex flex-col font-body pb-32 transition-all duration-500",
-      activeTab === "home" ? "bg-gradient-to-br from-[#00d2ff] via-[#3a7bd5] to-[#002366]" : "bg-[#F8FAFF]"
+      activeTab === "home" ? "bg-gradient-to-br from-[#00d2ff] via-[#3a7bd5] to-primary" : "bg-[#F8F9FB]"
     )}>
       {activeTab !== "home" && (
-        <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40 animate-in fade-in slide-in-from-top-4">
-          <div className="flex items-center gap-3">
-            <div className="relative w-11 h-11 rounded-xl border border-primary/10 flex items-center justify-center overflow-hidden shadow-sm cursor-pointer" onClick={() => setActiveTab("setting")}>
-              {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black">MG</div>}
+        <header className="px-6 py-5 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40 animate-in fade-in slide-in-from-top-4">
+          <div className="flex items-center gap-4">
+            <div className="relative w-12 h-12 rounded-2xl border border-slate-100 flex items-center justify-center overflow-hidden shadow-sm cursor-pointer" onClick={() => setActiveTab("setting")}>
+              {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black text-xs">MG</div>}
             </div>
             <div className="flex flex-col">
-              <h1 className="text-[11px] font-[900] text-primary uppercase tracking-tight leading-none mb-1">
+              <h1 className="text-sm font-[900] text-primary uppercase tracking-tight leading-none mb-1">
                 MINAR GO FOUNDATION
               </h1>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <Bell className="h-3 w-3 text-secondary animate-bounce" />
-                  <span className="text-[10px] font-bold text-secondary uppercase">Live System</span>
-                </div>
-                <div className="h-3 w-[1px] bg-slate-200" />
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-black text-primary">
-                    {format(currentTime, "hh:mm:ss a")}
-                  </span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live System</span>
                 </div>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-10 w-10 bg-red-50 hover:bg-red-100 rounded-xl" 
+              className="h-11 w-11 bg-red-50 hover:bg-red-100 rounded-2xl transition-all" 
               onClick={() => { if (auth) signOut(auth); }}
             >
               <Lock className="h-5 w-5 text-red-500" />
             </Button>
-            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden">
-               {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-400" />}
+            <div className="w-11 h-11 bg-slate-50 rounded-2xl flex items-center justify-center overflow-hidden border border-slate-100">
+               {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={44} height={44} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-300" />}
             </div>
           </div>
         </header>
       )}
 
-      <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-6")}>
+      <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-8")}>
         {activeTab === "home" && (
-          <div className="relative min-h-screen flex flex-col items-center pt-8 pb-24 px-6 animate-in fade-in duration-1000">
-            <div className="w-full flex items-center justify-between mb-8">
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-2xl px-4 py-2 border border-white/10">
-                <CloudSun className="h-4 w-4 text-secondary" />
-                <span className="text-[10px] font-black text-white uppercase">{weather.city} | {weather.temp}</span>
+          <div className="relative min-h-screen flex flex-col items-center pt-10 pb-24 px-6 animate-in fade-in duration-1000">
+            <div className="w-full flex items-center justify-between mb-10">
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20">
+                <CloudSun className="h-4 w-4 text-white" />
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">{weather.city} | {weather.temp}</span>
               </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-2xl px-4 py-2 border border-white/10">
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20">
                 <Clock className="h-4 w-4 text-white" />
-                <span className="text-[10px] font-black text-white uppercase">{format(currentTime, "hh:mm a")}</span>
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">{format(currentTime, "hh:mm a")}</span>
               </div>
               <button 
                 onClick={() => { if (auth) signOut(auth); }}
-                className="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-2 rounded-xl border border-red-500/20 transition-all"
+                className="bg-red-500/20 hover:bg-red-500/30 text-white p-2.5 rounded-2xl border border-white/20 transition-all active:scale-90"
               >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="flex flex-col items-center text-center space-y-6 w-full">
-              <div className="relative w-36 h-36 rounded-full border-[5px] border-[#C4A052] bg-white shadow-2xl flex items-center justify-center overflow-hidden group">
+            <div className="flex flex-col items-center text-center space-y-8 w-full">
+              <div className="relative w-40 h-40 rounded-[2.5rem] border-[6px] border-white/30 bg-white shadow-2xl flex items-center justify-center overflow-hidden group">
                 {logo ? (
-                  <Image src={logo} alt="Logo" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <Image src={logo} alt="Logo" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                 ) : (
                   <div className="w-full h-full bg-primary flex items-center justify-center text-white text-4xl font-black">MG</div>
                 )}
               </div>
 
-              <div className="space-y-1">
-                <h1 className="text-3xl font-[900] text-[#C4A052] uppercase tracking-tighter leading-none">
+              <div className="space-y-2">
+                <h1 className="text-4xl font-[900] text-white uppercase tracking-tighter leading-none drop-shadow-lg">
                   MINAR GO EXPATRIATE
                 </h1>
-                <p className="text-base font-medium text-white tracking-widest uppercase">
+                <p className="text-lg font-bold text-white/80 tracking-[0.3em] uppercase drop-shadow">
                   Development Foundation
                 </p>
               </div>
 
-              <div className="flex items-center gap-4 py-2 px-6 bg-white/5 rounded-full border border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">System Online</span>
-                </div>
-                <div className="w-[1px] h-3 bg-white/10" />
-                <div className="flex items-center gap-2">
-                  <Navigation className="h-3 w-3 text-secondary" />
-                  <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">Global Link</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 w-full pt-4">
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2rem] p-6 text-center space-y-3 hover:bg-white/10 transition-all">
-                  <div className="flex items-center justify-center gap-2 text-white/80 font-bold text-xs">
-                    <Calendar className="h-3 w-3 text-secondary" /> হজ্জ (সম্ভাব্য)
+              <div className="grid grid-cols-2 gap-5 w-full pt-4">
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3 hover:bg-white/15 transition-all shadow-xl">
+                  <div className="flex items-center justify-center gap-2 text-white/70 font-black text-[10px] uppercase tracking-widest">
+                    <Calendar className="h-4 w-4 text-white" /> হজ্জ
                   </div>
-                  <div className="text-lg font-black text-white">
+                  <div className="text-xl font-black text-white tracking-tight">
                     {hajjData.date}
                   </div>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2rem] p-6 text-center space-y-3 hover:bg-white/10 transition-all">
-                  <div className="flex items-center justify-center gap-2 text-white/80 font-bold text-xs">
-                    <Sparkles className="h-3 w-3 text-secondary" /> রমজান (সম্ভাব্য)
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3 hover:bg-white/15 transition-all shadow-xl">
+                  <div className="flex items-center justify-center gap-2 text-white/70 font-black text-[10px] uppercase tracking-widest">
+                    <Sparkles className="h-4 w-4 text-white" /> রমজান
                   </div>
-                  <div className="text-lg font-black text-white">
+                  <div className="text-xl font-black text-white tracking-tight">
                     {ramadanData.date}
                   </div>
                 </div>
               </div>
 
-              <div className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-[1.5rem] py-4 px-6 text-center shadow-xl">
-                 <h2 className="text-lg font-bold text-white tracking-tight font-bengali">
-                   আজ: <span className="text-secondary">{currentBn?.dayName}</span> | তারিখ: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
+              <div className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-[2rem] py-5 px-8 text-center shadow-2xl">
+                 <h2 className="text-xl font-[900] text-white tracking-tight font-bengali uppercase">
+                   আজ: <span className="text-white">{currentBn?.dayName}</span> | তারিখ: <span className="text-white">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
                  </h2>
               </div>
               
-              <div className="w-full bg-primary/20 backdrop-blur-md border border-white/10 rounded-[2rem] p-6 text-center group cursor-pointer hover:bg-primary/30 transition-all" onClick={() => setActiveTab("history")}>
-                <p className="text-[9px] uppercase font-black text-secondary tracking-[0.3em] mb-2">Total Foundation Assets</p>
-                <h3 className="text-3xl font-black text-white tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
-                <div className="mt-2 flex items-center justify-center gap-2 text-[8px] font-black text-white/40 uppercase tracking-widest">
-                  <ShieldCheck className="h-3 w-3" /> Secure Ledger Verified
+              <div className="w-full bg-primary/30 backdrop-blur-xl border border-white/30 rounded-[3rem] p-8 text-center group cursor-pointer hover:bg-primary/40 transition-all shadow-2xl active:scale-95" onClick={() => setActiveTab("history")}>
+                <p className="text-[10px] uppercase font-black text-white/60 tracking-[0.4em] mb-3">Foundation Assets</p>
+                <h3 className="text-4xl font-[900] text-white tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
+                <div className="mt-4 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">
+                  <ShieldCheck className="h-4 w-4" /> Secure Ledger Verified
                 </div>
               </div>
             </div>
@@ -363,16 +343,16 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "gallery" && <DocStorage />}
         {activeTab === "ai" && <DemandLetterAssistant />}
         {activeTab === "setting" && (
-          <div className="space-y-6">
-            <Card className="rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
-              <div className="flex flex-col items-center gap-8">
+          <div className="space-y-8">
+            <Card className="rounded-[3rem] border-none shadow-2xl p-10 bg-white">
+              <div className="flex flex-col items-center gap-10">
                 <LogoManager currentLogo={logo} onUpdate={setLogo} />
-                <div className="w-full space-y-4">
-                   <Button className="w-full h-16 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32]" onClick={handleCloudBackup} disabled={backupLoading}>
-                     {backupLoading ? <RotateCcw className="h-6 w-6 animate-spin" /> : <RotateCcw className="h-6 w-6" />} GOOGLE CLOUD BACKUP ({filterMonth})
+                <div className="w-full space-y-5">
+                   <Button className="w-full h-16 rounded-2xl font-black bg-slate-50 text-primary hover:bg-slate-100 uppercase tracking-widest text-xs" onClick={handleCloudBackup} disabled={backupLoading}>
+                     {backupLoading ? <RotateCcw className="h-6 w-6 animate-spin" /> : <RotateCcw className="h-6 w-6" />} CLOUD BACKUP ({filterMonth})
                    </Button>
-                   <Button variant="outline" className="w-full h-16 rounded-2xl font-black" onClick={() => setActiveTab("ai")}>
-                     <Sparkles className="mr-3 h-6 w-6 text-primary" /> AI LETTER DRAFTER
+                   <Button variant="outline" className="w-full h-16 rounded-2xl font-black uppercase tracking-widest text-xs border-slate-100" onClick={() => setActiveTab("ai")}>
+                     <Sparkles className="mr-3 h-5 w-5 text-primary" /> AI LETTER DRAFTER
                    </Button>
                 </div>
               </div>
@@ -381,51 +361,51 @@ export default function DashboardScreen({ user }: { user: User }) {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50">
+      <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 z-50">
         <div className="max-w-md mx-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-2xl border border-white/50 flex items-center justify-between px-2 py-3">
-            <div className="flex items-center justify-around flex-1 gap-1">
-              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "home" ? "text-primary scale-110" : "text-slate-300")}>
-                <Home className={cn("h-6 w-6", activeTab === "home" ? "stroke-[3px]" : "stroke-[2px]")} />
-                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Home</span>
+          <div className="bg-white/95 backdrop-blur-xl rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50 flex items-center justify-between px-3 py-4">
+            <div className="flex items-center justify-around flex-1 gap-2">
+              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "home" ? "text-primary" : "text-slate-300")}>
+                <Home className={cn("h-6 w-6", activeTab === "home" ? "stroke-[3px]" : "stroke-[2.5px]")} />
+                <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">Home</span>
               </button>
-              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "members" ? "text-primary scale-110" : "text-slate-300")}>
-                <Users className={cn("h-6 w-6", activeTab === "members" ? "stroke-[3px]" : "stroke-[2px]")} />
-                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Members</span>
+              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "members" ? "text-primary" : "text-slate-300")}>
+                <Users className={cn("h-6 w-6", activeTab === "members" ? "stroke-[3px]" : "stroke-[2.5px]")} />
+                <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">Members</span>
               </button>
-              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "history" ? "text-primary scale-110" : "text-slate-300")}>
-                <History className={cn("h-6 w-6", activeTab === "history" ? "stroke-[3px]" : "stroke-[2px]")} />
-                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">History</span>
+              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "history" ? "text-primary" : "text-slate-300")}>
+                <History className={cn("h-6 w-6", activeTab === "history" ? "stroke-[3px]" : "stroke-[2.5px]")} />
+                <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">History</span>
               </button>
             </div>
-            <div className="px-3 -mt-12">
+            <div className="px-4 -mt-14">
               <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                 <DialogTrigger asChild>
                   <button className="group relative active:scale-95 transition-all">
-                    <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl animate-pulse" />
+                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
                     <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-2xl flex items-center justify-center text-white z-10 transition-all hover:scale-110">
                       <Plus className="h-8 w-8 stroke-[4px]" />
                     </div>
                   </button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[95vw] rounded-[3rem] p-8">
-                  <DialogHeader><DialogTitle className="text-center font-black uppercase text-primary">New Deposit</DialogTitle></DialogHeader>
+                <DialogContent className="max-w-[95vw] rounded-[3rem] p-10 border-none shadow-2xl">
+                  <DialogHeader><DialogTitle className="text-center font-[900] uppercase text-primary tracking-widest text-xl">New Deposit</DialogTitle></DialogHeader>
                   <TransactionManager members={members as MGMember[]} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
                 </DialogContent>
               </Dialog>
             </div>
-            <div className="flex items-center justify-around flex-1 gap-1">
-              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "chat" ? "text-primary scale-110" : "text-slate-300")}>
-                <MessageSquare className={cn("h-6 w-6", activeTab === "chat" ? "stroke-[3px]" : "stroke-[2px]")} />
-                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Chat</span>
+            <div className="flex items-center justify-around flex-1 gap-2">
+              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "chat" ? "text-primary" : "text-slate-300")}>
+                <MessageSquare className={cn("h-6 w-6", activeTab === "chat" ? "stroke-[3px]" : "stroke-[2.5px]")} />
+                <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">Chat</span>
               </button>
-              <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "gallery" ? "text-primary scale-110" : "text-slate-300")}>
-                <HardDrive className={cn("h-6 w-6", activeTab === "gallery" ? "stroke-[3px]" : "stroke-[2px]")} />
-                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Vault</span>
+              <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "gallery" ? "text-primary" : "text-slate-300")}>
+                <HardDrive className={cn("h-6 w-6", activeTab === "gallery" ? "stroke-[3px]" : "stroke-[2.5px]")} />
+                <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">Vault</span>
               </button>
-              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125 hover:scale-110", activeTab === "setting" ? "text-primary scale-110" : "text-slate-300")}>
-                <Settings className={cn("h-6 w-6", activeTab === "setting" ? "stroke-[3px]" : "stroke-[2px]")} />
-                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">System</span>
+              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "setting" ? "text-primary" : "text-slate-300")}>
+                <Settings className={cn("h-6 w-6", activeTab === "setting" ? "stroke-[3px]" : "stroke-[2.5px]")} />
+                <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">System</span>
               </button>
             </div>
           </div>
