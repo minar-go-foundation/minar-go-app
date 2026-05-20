@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -239,7 +240,6 @@ export default function DashboardScreen({ user }: { user: User }) {
   return (
     <div className={cn("min-h-screen flex flex-col font-body pb-32 transition-all duration-700", themeClasses)}>
       
-      {/* Dynamic Header for non-home tabs */}
       {activeTab !== "home" && (
         <header className="px-6 py-5 flex items-center justify-between glass-nav sticky top-0 z-40 mx-4 mt-4 rounded-3xl animate-in fade-in slide-in-from-top-4">
           <div className="flex items-center gap-4">

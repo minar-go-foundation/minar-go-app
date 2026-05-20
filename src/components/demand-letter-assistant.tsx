@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -55,99 +56,111 @@ export default function DemandLetterAssistant() {
   };
 
   const downloadPDF = (lang: 'English' | 'Bengali') => {
-    const doc = new jsPDF();
-    const isBengali = lang === 'Bengali';
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-    
-    // Page Border
-    doc.setDrawColor(0, 35, 102);
-    doc.setLineWidth(0.5);
-    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+    try {
+      const doc = new jsPDF();
+      const isBengali = lang === 'Bengali';
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      // Page Border
+      doc.setDrawColor(0, 35, 102);
+      doc.setLineWidth(0.5);
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
 
-    // Dark Blue Header Box
-    doc.setFillColor(0, 35, 102);
-    doc.roundedRect(15, 15, pageWidth - 30, 35, 3, 3, 'F');
-    
-    // Header Text
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 32, { align: "center" });
-    
-    doc.setFontSize(10);
-    doc.setTextColor(255, 215, 0); // Gold color
-    doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 40, { align: "center" });
-    doc.setFontSize(8);
-    doc.text("ESTD: 2024 | GOVT. REG NO: MG-10293", pageWidth / 2, 45, { align: "center" });
+      // Dark Blue Header Box
+      doc.setFillColor(0, 35, 102);
+      doc.roundedRect(15, 15, pageWidth - 30, 35, 3, 3, 'F');
+      
+      // Header Text
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(24);
+      doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 32, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.setTextColor(255, 215, 0); // Gold color
+      doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 40, { align: "center" });
+      doc.setFontSize(8);
+      doc.text("ESTD: 2024 | GOVT. REG NO: MG-10293", pageWidth / 2, 45, { align: "center" });
 
-    // Date
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    const dateStr = `Date: ${format(new Date(), "dd MMMM, yyyy")}`;
-    doc.text(dateStr, pageWidth - 20, 60, { align: "right" });
+      // Date
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      const dateStr = `Date: ${format(new Date(), "dd MMMM, yyyy")}`;
+      doc.text(dateStr, pageWidth - 20, 60, { align: "right" });
 
-    // Recipient Info
-    doc.setFontSize(11);
-    doc.text("To,", 20, 70);
-    doc.setFont("helvetica", "bold");
-    doc.text(letterDetails.companyName || "Managing Director", 20, 76);
-    doc.setFont("helvetica", "normal");
-    doc.text("Official Correspondent Address", 20, 81);
+      // Recipient Info
+      doc.setFontSize(11);
+      doc.text("To,", 20, 70);
+      doc.setFont("helvetica", "bold");
+      doc.text(letterDetails.companyName || "Managing Director", 20, 76);
+      doc.setFont("helvetica", "normal");
+      doc.text("Official Correspondent Address", 20, 81);
 
-    // Subject
-    doc.setFont("helvetica", "bold");
-    const subject = isBengali ? result?.subjectBengali : result?.subjectEnglish;
-    doc.text(`Subject: ${subject}`, 20, 95);
+      // Subject
+      doc.setFont("helvetica", "bold");
+      const subject = isBengali ? result?.subjectBengali : result?.subjectEnglish;
+      doc.text(`Subject: ${subject}`, 20, 95);
 
-    // Body with light yellow background (premium look)
-    const bodyText = isBengali ? result?.bodyBengali : result?.bodyEnglish;
-    const splitBody = doc.splitTextToSize(bodyText || "", 170);
-    const bodyHeight = (splitBody.length * 7) + 20;
-    
-    doc.setFillColor(255, 253, 235); // Very light gold/yellow
-    doc.roundedRect(15, 105, pageWidth - 30, bodyHeight, 2, 2, 'F');
-    
-    doc.setTextColor(30, 30, 30);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(splitBody, 20, 118);
+      // Body
+      const bodyText = isBengali ? result?.bodyBengali : result?.bodyEnglish;
+      const splitBody = doc.splitTextToSize(bodyText || "", 170);
+      const bodyHeight = (splitBody.length * 7) + 20;
+      
+      doc.setFillColor(255, 253, 235); // Light gold
+      doc.roundedRect(15, 105, pageWidth - 30, bodyHeight, 2, 2, 'F');
+      
+      doc.setTextColor(30, 30, 30);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(splitBody, 20, 118);
 
-    // Signatures
-    const finalY = 118 + bodyHeight + 20;
-    doc.setFont("helvetica", "normal");
-    doc.text("With Regards,", 20, finalY);
+      // Signatures
+      const finalY = 118 + bodyHeight + 20;
+      doc.setFont("helvetica", "normal");
+      doc.text("With Regards,", 20, finalY);
 
-    // Signature Area
-    doc.setDrawColor(200, 200, 200);
-    doc.line(20, finalY + 30, 80, finalY + 30);
-    doc.line(pageWidth - 80, finalY + 30, pageWidth - 20, finalY + 30);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, finalY + 30, 80, finalY + 30);
+      doc.line(pageWidth - 80, finalY + 30, pageWidth - 20, finalY + 30);
 
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text("Foundation Authority", 20, finalY + 35);
-    doc.text("Received By", pageWidth - 20, finalY + 35, { align: "right" });
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text("Foundation Authority", 20, finalY + 35);
+      doc.text("Received By", pageWidth - 20, finalY + 35, { align: "right" });
 
-    // Footer
-    const footerY = pageHeight - 40;
-    
-    // Contact Info Bar
-    doc.setFillColor(245, 245, 245);
-    doc.rect(15, footerY, pageWidth - 30, 15, 'F');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    const contactText = `Tel: ${letterDetails.mobile}  |  Email: ${letterDetails.email}  |  Web: ${letterDetails.website}`;
-    doc.text(contactText, pageWidth / 2, footerY + 9, { align: "center" });
+      // Footer
+      const footerY = pageHeight - 40;
+      doc.setFillColor(245, 245, 245);
+      doc.rect(15, footerY, pageWidth - 30, 15, 'F');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      const contactText = `Tel: ${letterDetails.mobile}  |  Email: ${letterDetails.email}  |  Web: ${letterDetails.website}`;
+      doc.text(contactText, pageWidth / 2, footerY + 9, { align: "center" });
 
-    // Green Thank You Bar
-    doc.setFillColor(232, 245, 233);
-    doc.roundedRect(15, footerY + 18, pageWidth - 30, 8, 4, 4, 'F');
-    doc.setTextColor(46, 125, 50);
-    doc.setFont("helvetica", "bold");
-    doc.text("Thank you for your valuable cooperation and support.", pageWidth / 2, footerY + 23.5, { align: "center" });
+      doc.setFillColor(232, 245, 233);
+      doc.roundedRect(15, footerY + 18, pageWidth - 30, 8, 4, 4, 'F');
+      doc.setTextColor(46, 125, 50);
+      doc.setFont("helvetica", "bold");
+      doc.text("Thank you for your valuable cooperation and support.", pageWidth / 2, footerY + 23.5, { align: "center" });
 
-    doc.save(`MinarGo_Official_Agreement_${lang}.pdf`);
+      // Optimized Download for Android Compatibility
+      const pdfBlob = doc.output('blob');
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `MinarGo_Official_Agreement_${lang}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({ title: `${lang} PDF ডাউনলোড শুরু হয়েছে` });
+    } catch (error) {
+      console.error("PDF Error:", error);
+      toast({ title: "PDF ডাউনলোড ব্যর্থ হয়েছে", variant: "destructive" });
+    }
   };
 
   return (

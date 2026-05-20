@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -134,51 +135,67 @@ export default function TransactionManager({
   };
 
   const exportPDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
 
-    doc.setFillColor(0, 35, 102); 
-    doc.rect(0, 0, pageWidth, 50, 'F');
+      doc.setFillColor(0, 35, 102); 
+      doc.rect(0, 0, pageWidth, 50, 'F');
 
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 22, { align: "center" });
-    doc.setFontSize(16);
-    doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 35, { align: "center" });
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 22, { align: "center" });
+      doc.setFontSize(16);
+      doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 35, { align: "center" });
 
-    const tableData = filteredTransactions.map(t => [
-      t.n, 
-      t.d, 
-      CATEGORY_MAP[t.c] || t.c, 
-      `BDT ${parseFloat(t.a).toLocaleString()}`
-    ]);
+      const tableData = filteredTransactions.map(t => [
+        t.n, 
+        t.d, 
+        CATEGORY_MAP[t.c] || t.c, 
+        `BDT ${parseFloat(t.a).toLocaleString()}`
+      ]);
 
-    autoTable(doc, {
-      startY: 60,
-      head: [["Member Name", "Date", "Category", "Amount"]],
-      body: tableData,
-      theme: "striped",
-      headStyles: { fillColor: [0, 35, 102], textColor: [255, 255, 255], fontStyle: 'bold' },
-      styles: { fontSize: 10, cellPadding: 5 },
-      alternateRowStyles: { fillColor: [245, 245, 245] }
-    });
+      autoTable(doc, {
+        startY: 60,
+        head: [["Member Name", "Date", "Category", "Amount"]],
+        body: tableData,
+        theme: "striped",
+        headStyles: { fillColor: [0, 35, 102], textColor: [255, 255, 255], fontStyle: 'bold' },
+        styles: { fontSize: 10, cellPadding: 5 },
+        alternateRowStyles: { fillColor: [245, 245, 245] }
+      });
 
-    const finalY = (doc as any).lastAutoTable.finalY + 15;
-    doc.setFontSize(12);
-    doc.setTextColor(0, 35, 102);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Total Foundation Assets: BDT ${totalFiltered.toLocaleString()}`, pageWidth - 20, finalY, { align: "right" });
+      const finalY = (doc as any).lastAutoTable.finalY + 15;
+      doc.setFontSize(12);
+      doc.setTextColor(0, 35, 102);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Total Foundation Assets: BDT ${totalFiltered.toLocaleString()}`, pageWidth - 20, finalY, { align: "right" });
 
-    const footerY = pageHeight - 15;
-    doc.setFontSize(9);
-    doc.setTextColor(150, 150, 150);
-    doc.setFont("helvetica", "normal");
-    const copyrightText = `© 2024 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION. ALL RIGHTS RESERVED.`;
-    doc.text(copyrightText, pageWidth / 2, footerY, { align: "center" });
+      const footerY = pageHeight - 15;
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 150);
+      doc.setFont("helvetica", "normal");
+      const copyrightText = `© 2024 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION. ALL RIGHTS RESERVED.`;
+      doc.text(copyrightText, pageWidth / 2, footerY, { align: "center" });
 
-    doc.save(`MinarGo_Report_${format(new Date(), "yyyyMMdd")}.pdf`);
+      // Optimized Download for Android Compatibility
+      const pdfBlob = doc.output('blob');
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `MinarGo_Report_${format(new Date(), "yyyyMMdd")}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({ title: "PDF ডাউনলোড শুরু হয়েছে" });
+    } catch (error) {
+      console.error("PDF Error:", error);
+      toast({ title: "PDF ডাউনলোড ব্যর্থ হয়েছে", variant: "destructive" });
+    }
   };
 
   if (mode === "form") {
