@@ -100,7 +100,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   useEffect(() => {
     if (!db) return;
     
-    // Using a reliable notification sound
+    // Using a reliable notification sound for new deposits
     audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 
     const unsubscribe = onSnapshot(collection(db, "transactions"), (snapshot) => {
@@ -158,18 +158,26 @@ export default function DashboardScreen({ user }: { user: User }) {
   const handleCloudBackup = async () => {
     setBackupLoading(true);
     
-    // Calculate total for backup
-    const total = transactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
+    // Filter transactions based on selected month for backup
+    const filteredForBackup = filterMonth === "All" 
+      ? transactions 
+      : transactions.filter(t => {
+          const tDate = new Date(t.d);
+          return MONTHS[tDate.getMonth()] === filterMonth;
+        });
+
+    // Calculate total for only the filtered data
+    const total = filteredForBackup.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
     
-    // Create header row with timestamp
+    // Create header row with timestamp and month name
     const timestamp = format(new Date(), "dd/MM/yyyy HH:mm:ss");
-    const headerRow = [`-- BACKUP SESSION: ${timestamp} --`, "", ""];
+    const headerRow = [`-- BACKUP SESSION (${filterMonth}): ${timestamp} --`, "", ""];
     
     // Data rows
-    const dataRows = transactions.map(t => [t.n, t.d, t.a]);
+    const dataRows = filteredForBackup.map(t => [t.n, t.d, t.a]);
     
-    // Total row specifically requested
-    const totalRow = ["TOTAL FOUNDATION ASSETS", "", total.toLocaleString()];
+    // Total row for the filtered month
+    const totalRow = [`TOTAL ${filterMonth.toUpperCase()} ASSETS`, "", total.toLocaleString()];
     
     const finalRows = [headerRow, ...dataRows, totalRow];
 
@@ -179,7 +187,7 @@ export default function DashboardScreen({ user }: { user: User }) {
         mode: "no-cors",
         body: JSON.stringify({ spreadsheetId: SPREADSHEET_ID, rows: finalRows })
       });
-      toast({ title: "ব্যাকআপ সফল হয়েছে!" });
+      toast({ title: `ব্যাকআপ সফল হয়েছে! (${filterMonth})` });
     } catch (error) {
       toast({ title: "ব্যাকআপ ব্যর্থ", variant: "destructive" });
     } finally { setBackupLoading(false); }
@@ -329,7 +337,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <LogoManager currentLogo={logo} onUpdate={setLogo} />
                 <div className="w-full space-y-4">
                    <Button className="w-full h-16 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32]" onClick={handleCloudBackup} disabled={backupLoading}>
-                     {backupLoading ? <RotateCcw className="h-6 w-6 animate-spin" /> : <RotateCcw className="h-6 w-6" />} GOOGLE CLOUD BACKUP
+                     {backupLoading ? <RotateCcw className="h-6 w-6 animate-spin" /> : <RotateCcw className="h-6 w-6" />} GOOGLE CLOUD BACKUP ({filterMonth})
                    </Button>
                    <Button variant="outline" className="w-full h-16 rounded-2xl font-black" onClick={() => setActiveTab("ai")}>
                      <Sparkles className="mr-3 h-6 w-6 text-primary" /> AI LETTER DRAFTER
