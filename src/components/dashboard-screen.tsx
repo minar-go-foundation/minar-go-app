@@ -86,7 +86,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
   const [hajjData, setHajjData] = useState({ days: 0, date: "" });
   const [ramadanData, setRamadanData] = useState({ days: 0, date: "" });
-  const [currentTheme, setCurrentTheme] = useState<Theme>("navy"); // Default to original navy
+  const [currentTheme, setCurrentTheme] = useState<Theme>("navy"); 
   const [isHydrated, setIsHydrated] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -197,7 +197,6 @@ export default function DashboardScreen({ user }: { user: User }) {
     const finalRows = [headerRow, ...dataRows, totalRow];
 
     try {
-      // Improved fetch for mobile reliability
       await fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
@@ -287,11 +286,11 @@ export default function DashboardScreen({ user }: { user: User }) {
             {/* Top Stats Bar */}
             <div className="w-full flex items-center justify-between mb-10">
               <div className="flex items-center gap-3 glass-card rounded-2xl px-5 py-2.5 bg-white/10 backdrop-blur-md border-white/20">
-                <CloudSun className="h-4 w-4 text-accent" />
+                <CloudSun className="h-4 w-4 text-[#C4A052]" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-white">{weather.city} | {weather.temp}</span>
               </div>
               <div className="flex items-center gap-3 glass-card rounded-2xl px-5 py-2.5 bg-white/10 backdrop-blur-md border-white/20">
-                <Clock className="h-4 w-4 text-accent" />
+                <Clock className="h-4 w-4 text-[#C4A052]" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-white">{format(currentTime, "hh:mm a")}</span>
               </div>
               <button 
@@ -304,7 +303,7 @@ export default function DashboardScreen({ user }: { user: User }) {
 
             <div className="flex flex-col items-center text-center space-y-8 w-full">
               {/* Profile Logo */}
-              <div className="relative w-40 h-40 rounded-[2.5rem] border-[6px] border-white/20 glass-card flex items-center justify-center overflow-hidden group shadow-2xl">
+              <div className="relative w-40 h-40 rounded-[2.5rem] border-[6px] border-white/20 glass-card flex items-center justify-center overflow-hidden group shadow-2xl bg-[#002366]">
                 {logo ? (
                   <Image src={logo} alt="Logo" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                 ) : (
@@ -314,7 +313,7 @@ export default function DashboardScreen({ user }: { user: User }) {
 
               {/* Foundation Info */}
               <div className="space-y-2">
-                <h1 className="text-4xl font-[900] text-accent uppercase tracking-tighter leading-none text-[#C4A052]">
+                <h1 className="text-4xl font-[900] text-[#C4A052] uppercase tracking-tighter leading-none">
                   MINAR GO EXPATRIATE
                 </h1>
                 <p className="text-lg font-bold text-white/70 tracking-[0.3em] uppercase">
@@ -326,7 +325,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               <div className="grid grid-cols-2 gap-5 w-full pt-4">
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3 hover:scale-105 transition-transform duration-500">
                   <div className="flex items-center justify-center gap-2 text-white/50 font-black text-[10px] uppercase tracking-widest">
-                    <Calendar className="h-4 w-4 text-accent" /> হজ্জ
+                    <Calendar className="h-4 w-4 text-[#C4A052]" /> হজ্জ
                   </div>
                   <div className="text-xl font-black text-white tracking-tight">
                     {hajjData.date}
@@ -334,7 +333,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                 </div>
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3 hover:scale-105 transition-transform duration-500">
                   <div className="flex items-center justify-center gap-2 text-white/50 font-black text-[10px] uppercase tracking-widest">
-                    <Sparkles className="h-4 w-4 text-accent" /> রমজান
+                    <Sparkles className="h-4 w-4 text-[#C4A052]" /> রমজান
                   </div>
                   <div className="text-xl font-black text-white tracking-tight">
                     {ramadanData.date}
@@ -345,7 +344,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               {/* Live Bengali Date Box */}
               <div className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] py-5 px-8 text-center">
                  <h2 className="text-xl font-[900] text-white tracking-tight font-bengali uppercase">
-                   আজ: <span className="text-accent text-[#C4A052]">{currentBn?.dayName}</span> | তারিখ: <span className="text-accent text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
+                   আজ: <span className="text-[#C4A052]">{currentBn?.dayName}</span> | তারিখ: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
                  </h2>
               </div>
               
@@ -384,7 +383,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <div className="w-full space-y-8">
                    <div className="space-y-4">
                      <h4 className="text-[10px] font-black uppercase text-white/50 tracking-widest flex items-center gap-2">
-                       <Palette className="h-4 w-4 text-accent" /> Theme Customization
+                       <Palette className="h-4 w-4 text-[#C4A052]" /> Theme Customization
                      </h4>
                      <div className="grid grid-cols-3 gap-3">
                         <button 
@@ -419,7 +418,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                        {backupLoading ? <RotateCcw className="h-6 w-6 animate-spin" /> : <RotateCcw className="h-6 w-6" />} CLOUD BACKUP ({filterMonth})
                      </Button>
                      <Button variant="outline" className="w-full h-16 rounded-2xl font-black uppercase tracking-widest text-xs border-white/20 bg-white/5 backdrop-blur-md text-white" onClick={() => setActiveTab("ai")}>
-                       <Sparkles className="mr-3 h-5 w-5 text-accent" /> AI LETTER DRAFTER
+                       <Sparkles className="mr-3 h-5 w-5 text-[#C4A052]" /> AI LETTER DRAFTER
                      </Button>
                    </div>
                 </div>
