@@ -137,21 +137,46 @@ export default function TransactionManager({
   const exportPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+
+    // Header Background (Navy Blue) - As per screenshot
     doc.setFillColor(0, 35, 102); 
-    doc.rect(0, 0, pageWidth, 45, 'F');
+    doc.rect(0, 0, pageWidth, 50, 'F');
+
+    // Header Text
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
-    doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 18, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 22, { align: "center" });
     doc.setFontSize(16);
-    doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 28, { align: "center" });
-    const tableData = filteredTransactions.map(t => [t.n, t.d, CATEGORY_MAP[t.c] || t.c, `BDT ${parseFloat(t.a).toLocaleString()}`]);
+    doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 35, { align: "center" });
+
+    // Table Data (No Total Row)
+    const tableData = filteredTransactions.map(t => [
+      t.n, 
+      t.d, 
+      CATEGORY_MAP[t.c] || t.c, 
+      `BDT ${parseFloat(t.a).toLocaleString()}`
+    ]);
+
     autoTable(doc, {
-      startY: 55,
+      startY: 60,
       head: [["Member Name", "Date", "Category", "Amount"]],
       body: tableData,
       theme: "striped",
-      headStyles: { fillColor: [0, 35, 102] }
+      headStyles: { fillColor: [0, 35, 102], textColor: [255, 255, 255], fontStyle: 'bold' },
+      styles: { fontSize: 10, cellPadding: 5 },
+      alternateRowStyles: { fillColor: [245, 245, 245] }
     });
+
+    // Copyright Footer at bottom
+    const footerY = pageHeight - 15;
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.setFont("helvetica", "normal");
+    const copyrightText = `© 2024 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION. ALL RIGHTS RESERVED.`;
+    doc.text(copyrightText, pageWidth / 2, footerY, { align: "center" });
+
     doc.save(`MinarGo_Report_${format(new Date(), "yyyyMMdd")}.pdf`);
   };
 
@@ -261,12 +286,14 @@ export default function TransactionManager({
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="bg-primary p-8 font-black flex justify-between items-center rounded-b-[2.5rem]">
-          <div>
-             <p className="text-[9px] uppercase text-white/50 mb-1">Total Assets</p>
-             <h4 className="text-white text-2xl font-black">৳{totalFiltered.toLocaleString()}</h4>
-          </div>
-        </CardFooter>
+        {mode !== "history" && (
+          <CardFooter className="bg-primary p-8 font-black flex justify-between items-center rounded-b-[2.5rem]">
+            <div>
+               <p className="text-[9px] uppercase text-white/50 mb-1">Total Assets</p>
+               <h4 className="text-white text-2xl font-black">৳{totalFiltered.toLocaleString()}</h4>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
