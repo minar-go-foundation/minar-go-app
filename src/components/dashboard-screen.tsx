@@ -68,32 +68,36 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [backupLoading, setBackupLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
-  const [hajjDays, setHajjDays] = useState<number>(0);
-  const [ramadanDays, setRamadanDays] = useState<number>(0);
-  const [hajjDateStr, setHajjDateStr] = useState<string>("");
-  const [ramadanDateStr, setRamadanDateStr] = useState<string>("");
+  const [hajjData, setHajjData] = useState({ days: 0, str: "" });
+  const [ramadanData, setRamadanData] = useState({ days: 0, str: "" });
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const { toast } = useToast();
   const auth = useAuth();
   const db = useFirestore();
 
-  const transactionsQuery = useMemo(() => db ? query(collection(db, "transactions"), orderBy("d", "desc")) : null, [db]);
+  const transactionsQuery = useMemo(() => {
+    if (!db) return null;
+    return query(collection(db, "transactions"), orderBy("d", "desc"));
+  }, [db]);
   const { data: transactions = [] } = useCollection(transactionsQuery);
 
-  const membersQuery = useMemo(() => db ? query(collection(db, "members"), orderBy("name", "asc")) : null, [db]);
+  const membersQuery = useMemo(() => {
+    if (!db) return null;
+    return query(collection(db, "members"), orderBy("name", "asc"));
+  }, [db]);
   const { data: members = [] } = useCollection(membersQuery);
 
   useEffect(() => {
+    setIsHydrated(true);
     const now = new Date();
     setCurrentTime(now);
     
     const nextHajj = GET_NEXT_DATE(new Date("2026-05-25"));
     const nextRamadan = GET_NEXT_DATE(new Date("2026-02-18"));
     
-    setHajjDays(differenceInDays(nextHajj, now));
-    setRamadanDays(differenceInDays(nextRamadan, now));
-    setHajjDateStr(format(nextHajj, "dd MMMM yyyy"));
-    setRamadanDateStr(format(nextRamadan, "dd MMMM yyyy"));
+    setHajjData({ days: differenceInDays(nextHajj, now), str: format(nextHajj, "dd MMMM yyyy") });
+    setRamadanData({ days: differenceInDays(nextRamadan, now), str: format(nextRamadan, "dd MMMM yyyy") });
 
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
 
@@ -144,7 +148,7 @@ export default function DashboardScreen({ user }: { user: User }) {
     } finally { setBackupLoading(false); }
   };
 
-  if (!currentTime) return (
+  if (!isHydrated || !currentTime) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>
@@ -224,9 +228,9 @@ export default function DashboardScreen({ user }: { user: User }) {
                   <div className="w-1 h-1 bg-accent rounded-full" /> Hajj Countdown
                 </div>
                 <h4 className="text-xs font-bold leading-tight">
-                  {hajjDateStr}<br/>
+                  {hajjData.str}<br/>
                   <span className="text-lg font-black text-accent">
-                    {hajjDays} Days
+                    {hajjData.days} Days
                   </span>
                 </h4>
               </div>
@@ -235,9 +239,9 @@ export default function DashboardScreen({ user }: { user: User }) {
                    <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan Countdown
                 </div>
                 <h4 className="text-xs font-bold leading-tight text-slate-500">
-                  {ramadanDateStr}<br/>
+                  {ramadanData.str}<br/>
                   <span className="text-lg font-black text-primary">
-                    {ramadanDays} Days
+                    {ramadanData.days} Days
                   </span>
                 </h4>
               </div>
@@ -255,7 +259,7 @@ export default function DashboardScreen({ user }: { user: User }) {
           </div>
         )}
 
-        {activeTab === "members" && <MemberManager members={members as MGMember[]} />}
+        {activeTab === "members" && <MemberManager />}
         {activeTab === "history" && (
           <div className="space-y-6 animate-in fade-in duration-500">
             <TransactionManager 
@@ -307,33 +311,33 @@ export default function DashboardScreen({ user }: { user: User }) {
               <button 
                 onClick={() => setActiveTab("home")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:rotate-3",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:rotate-2 group",
                   activeTab === "home" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
-                <Home className={cn("h-6 w-6 transition-all", activeTab === "home" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <Home className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "home" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Home</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("members")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:-rotate-3",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:-rotate-2 group",
                   activeTab === "members" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
-                <Users className={cn("h-6 w-6 transition-all", activeTab === "members" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <Users className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "members" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Members</span>
               </button>
 
               <button 
                 onClick={() => setActiveTab("history")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:rotate-3",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:rotate-2 group",
                   activeTab === "history" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
-                <History className={cn("h-6 w-6 transition-all", activeTab === "history" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <History className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "history" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">History</span>
               </button>
             </div>
@@ -359,33 +363,33 @@ export default function DashboardScreen({ user }: { user: User }) {
               <button 
                 onClick={() => setActiveTab("chat")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:-rotate-3",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:-rotate-2 group",
                   activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
-                <MessageSquare className={cn("h-6 w-6 transition-all", activeTab === "chat" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <MessageSquare className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "chat" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Chat</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("call")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:rotate-3",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:rotate-2 group",
                   activeTab === "call" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
-                <Video className={cn("h-6 w-6 transition-all", activeTab === "call" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <Video className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "call" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Call</span>
               </button>
               
               <button 
                 onClick={() => setActiveTab("setting")} 
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-90 active:-rotate-3",
+                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-110 active:-rotate-2 group",
                   activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"
                 )}
               >
-                <Settings className={cn("h-6 w-6 transition-all", activeTab === "setting" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+                <Settings className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "setting" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">System</span>
               </button>
             </div>

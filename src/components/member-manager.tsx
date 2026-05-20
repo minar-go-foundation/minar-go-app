@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export default function MemberManager({ members: initialMembers }: { members: MGMember[] }) {
+export default function MemberManager() {
   const [newMember, setNewMember] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteMember, setDeleteMember] = useState<MGMember | null>(null);
@@ -37,7 +37,7 @@ export default function MemberManager({ members: initialMembers }: { members: MG
     return query(membersRef, orderBy("name", "asc"));
   }, [membersRef]);
 
-  const { data: members = [], loading } = useCollection(membersQuery);
+  const { data: members = [], loading } = useCollection<MGMember>(membersQuery as any);
 
   const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
