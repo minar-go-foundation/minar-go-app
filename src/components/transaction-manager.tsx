@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -139,11 +138,9 @@ export default function TransactionManager({
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
 
-    // Header Background (Navy Blue)
     doc.setFillColor(0, 35, 102); 
     doc.rect(0, 0, pageWidth, 50, 'F');
 
-    // Header Text
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
@@ -151,7 +148,6 @@ export default function TransactionManager({
     doc.setFontSize(16);
     doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 35, { align: "center" });
 
-    // Table Data
     const tableData = filteredTransactions.map(t => [
       t.n, 
       t.d, 
@@ -169,14 +165,12 @@ export default function TransactionManager({
       alternateRowStyles: { fillColor: [245, 245, 245] }
     });
 
-    // Add Total Section after table specifically requested
     const finalY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(12);
     doc.setTextColor(0, 35, 102);
     doc.setFont("helvetica", "bold");
     doc.text(`Total Foundation Assets: BDT ${totalFiltered.toLocaleString()}`, pageWidth - 20, finalY, { align: "right" });
 
-    // Copyright Footer at bottom
     const footerY = pageHeight - 15;
     doc.setFontSize(9);
     doc.setTextColor(150, 150, 150);
@@ -193,7 +187,7 @@ export default function TransactionManager({
         <div className="space-y-2">
           <label className="text-[10px] font-bold uppercase text-slate-400">Select Member</label>
           <Select onValueChange={setSelectedMember} value={selectedMember}>
-            <SelectTrigger className="h-12 rounded-xl border-slate-100 bg-slate-50">
+            <SelectTrigger className="h-12 rounded-xl border-white/50 bg-white/50 backdrop-blur-md">
               <SelectValue placeholder="Member Name" />
             </SelectTrigger>
             <SelectContent>
@@ -206,7 +200,7 @@ export default function TransactionManager({
         <div className="space-y-2">
           <label className="text-[10px] font-bold uppercase text-slate-400">Purpose/Category</label>
           <Select onValueChange={setCategory} value={category}>
-            <SelectTrigger className="h-12 rounded-xl border-slate-100 bg-slate-50">
+            <SelectTrigger className="h-12 rounded-xl border-white/50 bg-white/50 backdrop-blur-md">
               <SelectValue placeholder="Select Category" />
             </SelectTrigger>
             <SelectContent>
@@ -219,11 +213,11 @@ export default function TransactionManager({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-[10px] font-bold uppercase text-slate-400">Amount (৳)</label>
-            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-12 rounded-xl bg-slate-50" />
+            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-12 rounded-xl bg-white/50 border-white/50" />
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-bold uppercase text-slate-400">Date</label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-12 rounded-xl bg-slate-50" />
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-12 rounded-xl bg-white/50 border-white/50" />
           </div>
         </div>
         <Button type="submit" className="w-full bg-primary h-14 rounded-2xl text-lg font-black mt-4">CONFIRM DEPOSIT</Button>
@@ -233,8 +227,8 @@ export default function TransactionManager({
 
   return (
     <div className="space-y-6">
-      <Card className="shadow-lg border-none bg-white rounded-[2.5rem] overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between p-8 bg-slate-50/50">
+      <Card className="shadow-lg border-none glass-card rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between p-8 bg-white/10 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-white rounded-2xl text-primary shadow-sm">
               <Filter className="h-5 w-5" />
@@ -246,7 +240,7 @@ export default function TransactionManager({
           </div>
           <div className="flex gap-2">
             <Select onValueChange={(val) => onFilterMonthChange?.(val)} value={filterMonth}>
-              <SelectTrigger className="w-[120px] h-10 text-[10px] font-black rounded-xl border-slate-200">
+              <SelectTrigger className="w-[120px] h-10 text-[10px] font-black rounded-xl border-white/50 bg-white/50">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
@@ -256,14 +250,14 @@ export default function TransactionManager({
                 ))}
               </SelectContent>
             </Select>
-            <Button size="icon" variant="outline" className="h-10 w-10 rounded-xl" onClick={exportPDF}>
+            <Button size="icon" variant="outline" className="h-10 w-10 rounded-xl bg-white/50 border-white/50" onClick={exportPDF}>
               <Download className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto min-h-[300px]">
           <Table>
-            <TableHeader className="bg-slate-50/80">
+            <TableHeader className="bg-white/30">
               <TableRow>
                 <TableHead className="w-16 pl-8"></TableHead>
                 <TableHead className="text-[9px] font-black uppercase text-slate-400">Member Name</TableHead>
@@ -278,7 +272,7 @@ export default function TransactionManager({
                 </TableRow>
               ) : (
                 filteredTransactions.map(t => (
-                  <TableRow key={t.id} className="hover:bg-slate-50/30">
+                  <TableRow key={t.id} className="hover:bg-white/40">
                     <TableCell className="pl-8">
                       <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-200 hover:text-destructive" onClick={() => setDeleteId(t.id)}>
                         <Trash2 className="h-4 w-4" />
@@ -304,7 +298,7 @@ export default function TransactionManager({
       </Card>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent className="rounded-[2.5rem] p-10">
+        <AlertDialogContent className="rounded-[2.5rem] p-10 glass-card border-none">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-black text-primary uppercase">REMOVE RECORD?</AlertDialogTitle>
             <AlertDialogDescription className="font-bold text-slate-500">Are you sure you want to delete this record?</AlertDialogDescription>

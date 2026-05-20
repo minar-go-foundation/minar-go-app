@@ -89,8 +89,8 @@ export default function MemberManager() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <Card className="shadow-2xl border-none bg-white rounded-[2.5rem] overflow-hidden">
-        <CardHeader className="p-8 flex flex-row items-center gap-5 bg-transparent border-b border-slate-50">
+      <Card className="shadow-2xl border-none glass-card rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="p-8 flex flex-row items-center gap-5 bg-transparent border-b border-white/20">
           <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
             <Users className="h-8 w-8" />
           </div>
@@ -106,7 +106,7 @@ export default function MemberManager() {
               value={newMember} 
               onChange={(e) => setNewMember(e.target.value)}
               disabled={isAdding}
-              className="flex-1 h-14 rounded-2xl bg-[#F8F9FB] border-none shadow-inner font-bold px-6 text-primary placeholder:text-slate-300"
+              className="flex-1 h-14 rounded-2xl bg-white/50 border-none shadow-inner font-bold px-6 text-primary placeholder:text-slate-300"
             />
             <Button type="submit" className="bg-primary hover:bg-primary/95 h-14 w-14 rounded-2xl shadow-xl active:scale-90 transition-all" disabled={isAdding}>
               {isAdding ? <div className="animate-spin h-5 w-5 border-2 border-white rounded-full border-b-transparent" /> : <Plus className="h-7 w-7 stroke-[3px]" />}
@@ -119,7 +119,7 @@ export default function MemberManager() {
               placeholder="Search members..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-14 h-14 rounded-2xl bg-white border border-slate-100 shadow-sm text-sm font-bold placeholder:text-slate-300"
+              className="pl-14 h-14 rounded-2xl bg-white/50 border border-white/50 shadow-sm text-sm font-bold placeholder:text-slate-300"
             />
           </div>
 
@@ -129,7 +129,7 @@ export default function MemberManager() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               </div>
             ) : filteredMembers.length === 0 ? (
-              <div className="text-center py-24 bg-[#F8F9FB] rounded-[3rem] border-2 border-dashed border-slate-100">
+              <div className="text-center py-24 bg-white/30 rounded-[3rem] border-2 border-dashed border-white/50">
                 <Users className="h-16 w-16 mx-auto text-slate-200 mb-4 opacity-50" />
                 <p className="text-xs font-black text-slate-300 uppercase tracking-widest">No members found</p>
               </div>
@@ -137,10 +137,10 @@ export default function MemberManager() {
               filteredMembers.map((member) => (
                 <div 
                   key={member.id} 
-                  className="flex items-center justify-between p-6 bg-white border border-slate-50 rounded-[2rem] shadow-sm hover:shadow-md hover:border-primary/10 transition-all group"
+                  className="flex items-center justify-between p-6 bg-white/40 border border-white/50 rounded-[2rem] shadow-sm hover:shadow-md hover:border-primary/10 transition-all group"
                 >
                   <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-[#F8F9FB] flex items-center justify-center text-primary font-black text-xl border border-slate-50 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+                    <div className="w-14 h-14 rounded-2xl bg-white/60 flex items-center justify-center text-primary font-black text-xl border border-white/50 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                       {member.name.charAt(0).toUpperCase()}
                     </div>
                     <span className="text-base font-black text-slate-700 tracking-tight">{member.name}</span>
@@ -159,7 +159,7 @@ export default function MemberManager() {
       </Card>
 
       <AlertDialog open={!!deleteMember} onOpenChange={() => setDeleteMember(null)}>
-        <AlertDialogContent className="rounded-[3rem] p-10 border-none shadow-2xl">
+        <AlertDialogContent className="rounded-[3rem] p-10 border-none shadow-2xl glass-card">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-4 text-2xl font-[900] text-primary uppercase">
               <div className="p-3 bg-red-50 rounded-2xl"><AlertCircle className="text-destructive h-8 w-8" /></div>

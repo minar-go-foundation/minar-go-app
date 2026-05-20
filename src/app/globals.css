@@ -39,6 +39,22 @@
   }
 }
 
+.glass-card {
+  @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+}
+
+.glass-nav {
+  @apply bg-white/80 backdrop-blur-2xl border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)];
+}
+
+.mesh-gradient {
+  background-color: #f8f9fb;
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(210,100%,90%,1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(220,100%,95%,1) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(210,100%,90%,1) 0, transparent 50%);
+}
+
 .no-print {
   @media print {
     display: none !important;
@@ -56,4 +72,12 @@
 
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

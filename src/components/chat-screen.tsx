@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -63,7 +62,7 @@ export default function ChatScreen({ user }: { user: User }) {
   };
 
   return (
-    <div className="flex flex-col h-[65vh] bg-white rounded-[2.5rem] shadow-xl border border-slate-50 overflow-hidden animate-in fade-in duration-500">
+    <div className="flex flex-col h-[65vh] glass-card rounded-[2.5rem] overflow-hidden animate-in fade-in duration-500">
       <div className="px-6 py-4 bg-primary text-white flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-white/10 rounded-xl">
@@ -76,7 +75,7 @@ export default function ChatScreen({ user }: { user: User }) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-6 bg-slate-50/50">
+      <ScrollArea className="flex-1 p-6 bg-transparent">
         <div className="space-y-4">
           {messages.map((msg) => {
             const isMe = msg.uid === user.uid;
@@ -93,7 +92,7 @@ export default function ChatScreen({ user }: { user: User }) {
                   <div>
                     {!isMe && <p className="text-[8px] font-black text-slate-400 uppercase ml-1 mb-1">{msg.name}</p>}
                     <div className={`px-4 py-3 rounded-2xl text-xs font-medium shadow-sm ${
-                      isMe ? "bg-primary text-white rounded-tr-none" : "bg-white text-slate-700 rounded-tl-none border border-slate-100"
+                      isMe ? "bg-primary text-white rounded-tr-none" : "bg-white/80 backdrop-blur-md text-slate-700 rounded-tl-none border border-white/50"
                     }`}>
                       {msg.text}
                     </div>
@@ -106,13 +105,13 @@ export default function ChatScreen({ user }: { user: User }) {
         </div>
       </ScrollArea>
 
-      <div className="p-4 bg-white border-t border-slate-100">
+      <div className="p-4 bg-white/50 backdrop-blur-md border-t border-white/20">
         <form onSubmit={handleSend} className="flex gap-2">
           <Input 
             placeholder="Type a secure message..." 
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            className="h-12 rounded-xl bg-slate-50 border-none shadow-inner text-xs font-bold"
+            className="h-12 rounded-xl bg-white/50 border-none shadow-inner text-xs font-bold"
           />
           <Button type="submit" className="h-12 w-12 rounded-xl bg-primary shadow-lg shadow-primary/20">
             <Send className="h-5 w-5" />
