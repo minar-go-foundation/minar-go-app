@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 100% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 100% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 100% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 222 100% 20%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 222 50% 15%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 50% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 45 50% 55%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 222 50% 20%;
+    --input: 222 50% 20%;
+    --ring: 222 100% 20%;
+    --radius: 1.25rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-[#002366] text-white;
+  }
+  .font-bengali {
+    font-family: 'Noto Sans Bengali', sans-serif;
+  }
+}
+
+.glass-card {
+  @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl;
+}
+
+.glass-nav {
+  @apply bg-white/90 backdrop-blur-2xl border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)];
+}
+
+.mesh-gradient {
+  background-color: #002366;
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(222,100%,20%,1) 0, transparent 50%), 
+    radial-gradient(at 100% 100%, hsla(222,100%,15%,1) 0, transparent 50%);
+}
+
+.no-print {
+  @media print {
+    display: none !important;
+  }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
