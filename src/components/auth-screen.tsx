@@ -125,13 +125,13 @@ export default function AuthScreen() {
   if (step === "otp") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 font-body">
-        <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
+        <Card className="w-full max-w-sm rounded-[2.5rem] border-none shadow-2xl p-8 bg-white text-[#002366]">
           <div className="text-center space-y-4 mb-8">
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto"><ShieldCheck className="h-8 w-8 text-primary" /></div>
             <h2 className="text-xl font-black text-primary uppercase">Verify Email</h2>
           </div>
           <form onSubmit={handleVerifyAndRegister} className="space-y-6">
-            <Input placeholder="000000" value={otpInput} onChange={(e) => setOtpInput(e.target.value)} maxLength={6} required className="h-16 text-center text-2xl font-black tracking-[0.5em] rounded-2xl bg-slate-50 border-none shadow-inner" />
+            <Input placeholder="000000" value={otpInput} onChange={(e) => setOtpInput(e.target.value)} maxLength={6} required className="h-16 text-center text-2xl font-black tracking-[0.5em] rounded-2xl bg-slate-50 border-none shadow-inner text-[#002366]" />
             <Button type="submit" className="w-full bg-primary h-14 rounded-2xl font-black text-base shadow-lg shadow-primary/20" disabled={loading}>{loading ? "VERIFYING..." : "CONFIRM IDENTITY"}</Button>
             <button type="button" onClick={() => setStep("auth")} className="w-full text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-2"><RefreshCcw className="h-3 w-3" /> Go Back</button>
           </form>
@@ -157,7 +157,7 @@ export default function AuthScreen() {
                value={email} 
                onChange={(e) => setEmail(e.target.value)} 
                required
-               className="h-16 bg-slate-50 border-none rounded-2xl mb-6 shadow-inner font-bold text-center text-primary" 
+               className="h-16 bg-slate-50 border-none rounded-2xl mb-6 shadow-inner font-bold text-center text-[#002366]" 
              />
              <Button 
                type="submit" 
@@ -196,7 +196,7 @@ export default function AuthScreen() {
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Admin Full Name</Label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
-                <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className="pl-12 h-14 bg-slate-50 border-none shadow-sm rounded-2xl font-bold" />
+                <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className="pl-12 h-14 bg-slate-50 border-none shadow-sm rounded-2xl font-bold text-[#002366]" />
               </div>
             </div>
           )}
@@ -205,7 +205,7 @@ export default function AuthScreen() {
             <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Access</Label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
-              <Input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-12 h-14 bg-slate-50 border-none shadow-sm rounded-2xl font-bold" />
+              <Input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-12 h-14 bg-slate-50 border-none shadow-sm rounded-2xl font-bold text-[#002366]" />
             </div>
           </div>
 
@@ -216,7 +216,7 @@ export default function AuthScreen() {
             </div>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
-              <Input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-12 h-14 bg-slate-50 border-none shadow-sm rounded-2xl font-bold" />
+              <Input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-12 h-14 bg-slate-50 border-none shadow-sm rounded-2xl font-bold text-[#002366]" />
             </div>
           </div>
 
