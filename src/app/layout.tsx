@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.Node;
 }>) {
   return (
     <html lang="en">
@@ -38,8 +38,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;800&family=Noto+Sans+Bengali:wght@400;500;700;800&display=swap" rel="stylesheet" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="font-body antialiased bg-background text-foreground">
+      <body className="font-body antialiased bg-[#002366] text-white">
         <FirebaseClientProvider>
           {children}
           <Toaster />
