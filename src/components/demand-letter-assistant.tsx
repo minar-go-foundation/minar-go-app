@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Sparkles, Download, ShieldCheck, Mail, Phone, Globe } from "lucide-react";
+import { FileText, Sparkles, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
@@ -62,35 +62,30 @@ export default function DemandLetterAssistant() {
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       
-      // Page Border
       doc.setDrawColor(0, 35, 102);
       doc.setLineWidth(0.5);
       doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
 
-      // Dark Blue Header Box
       doc.setFillColor(0, 35, 102);
       doc.roundedRect(15, 15, pageWidth - 30, 35, 3, 3, 'F');
       
-      // Header Text
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(24);
       doc.text("MINAR GO EXPATRIATE", pageWidth / 2, 32, { align: "center" });
       
       doc.setFontSize(10);
-      doc.setTextColor(255, 215, 0); // Gold color
+      doc.setTextColor(255, 215, 0);
       doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 40, { align: "center" });
       doc.setFontSize(8);
       doc.text("ESTD: 2024 | GOVT. REG NO: MG-10293", pageWidth / 2, 45, { align: "center" });
 
-      // Date
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       const dateStr = `Date: ${format(new Date(), "dd MMMM, yyyy")}`;
       doc.text(dateStr, pageWidth - 20, 60, { align: "right" });
 
-      // Recipient Info
       doc.setFontSize(11);
       doc.text("To,", 20, 70);
       doc.setFont("helvetica", "bold");
@@ -98,17 +93,15 @@ export default function DemandLetterAssistant() {
       doc.setFont("helvetica", "normal");
       doc.text("Official Correspondent Address", 20, 81);
 
-      // Subject
       doc.setFont("helvetica", "bold");
       const subject = isBengali ? result?.subjectBengali : result?.subjectEnglish;
       doc.text(`Subject: ${subject}`, 20, 95);
 
-      // Body
       const bodyText = isBengali ? result?.bodyBengali : result?.bodyEnglish;
       const splitBody = doc.splitTextToSize(bodyText || "", 170);
       const bodyHeight = (splitBody.length * 7) + 20;
       
-      doc.setFillColor(255, 253, 235); // Light gold
+      doc.setFillColor(255, 253, 235);
       doc.roundedRect(15, 105, pageWidth - 30, bodyHeight, 2, 2, 'F');
       
       doc.setTextColor(30, 30, 30);
@@ -116,7 +109,6 @@ export default function DemandLetterAssistant() {
       doc.setFontSize(10);
       doc.text(splitBody, 20, 118);
 
-      // Signatures
       const finalY = 118 + bodyHeight + 20;
       doc.setFont("helvetica", "normal");
       doc.text("With Regards,", 20, finalY);
@@ -130,7 +122,6 @@ export default function DemandLetterAssistant() {
       doc.text("Foundation Authority", 20, finalY + 35);
       doc.text("Received By", pageWidth - 20, finalY + 35, { align: "right" });
 
-      // Footer
       const footerY = pageHeight - 40;
       doc.setFillColor(245, 245, 245);
       doc.rect(15, footerY, pageWidth - 30, 15, 'F');
@@ -145,7 +136,6 @@ export default function DemandLetterAssistant() {
       doc.setFont("helvetica", "bold");
       doc.text("Thank you for your valuable cooperation and support.", pageWidth / 2, footerY + 23.5, { align: "center" });
 
-      // Optimized Download for Android Compatibility
       const pdfBlob = doc.output('blob');
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -154,7 +144,7 @@ export default function DemandLetterAssistant() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
       
       toast({ title: `${lang} PDF ডাউনলোড শুরু হয়েছে` });
     } catch (error) {

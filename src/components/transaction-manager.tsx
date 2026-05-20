@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Plus, Trash2, Calendar, AlertCircle, Filter } from "lucide-react";
+import { Download, Plus, Trash2, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
@@ -180,7 +180,6 @@ export default function TransactionManager({
       const copyrightText = `© 2024 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION. ALL RIGHTS RESERVED.`;
       doc.text(copyrightText, pageWidth / 2, footerY, { align: "center" });
 
-      // Optimized Download for Android Compatibility
       const pdfBlob = doc.output('blob');
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -189,7 +188,7 @@ export default function TransactionManager({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
       
       toast({ title: "PDF ডাউনলোড শুরু হয়েছে" });
     } catch (error) {
