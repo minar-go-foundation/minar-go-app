@@ -218,11 +218,11 @@ export default function DashboardScreen({ user }: { user: User }) {
 
   return (
     <div className={cn(
-      "min-h-screen flex flex-col font-body pb-32",
-      activeTab === "home" ? "bg-gradient-to-br from-[#00d2ff] via-[#3a7bd5] to-[#002366]" : "bg-[#F8FAFF]"
+      "min-h-screen flex flex-col font-body pb-32 transition-all duration-500",
+      activeTab === "home" ? "bg-[#002366]" : "bg-[#F8FAFF]"
     )}>
       {activeTab !== "home" && (
-        <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40">
+        <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40 animate-in fade-in slide-in-from-top-4">
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-xl border border-primary/10 flex items-center justify-center overflow-hidden shadow-sm cursor-pointer" onClick={() => setActiveTab("setting")}>
               {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black">MG</div>}
@@ -246,7 +246,6 @@ export default function DashboardScreen({ user }: { user: User }) {
               </div>
             </div>
           </div>
-          
           <div className="flex items-center gap-2">
             <Button 
               variant="ghost" 
@@ -265,67 +264,91 @@ export default function DashboardScreen({ user }: { user: User }) {
 
       <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-6")}>
         {activeTab === "home" && (
-          <div className="relative min-h-screen flex flex-col items-center pt-12 pb-24 px-6 animate-in fade-in duration-1000">
-            {/* Log Out Button Top Right */}
-            <div className="absolute top-6 right-6 z-50">
-               <button 
-                 onClick={() => { if (auth) signOut(auth); }}
-                 className="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-white/20 text-[#ff4d94] font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-colors"
-               >
-                 LOG OUT <LogOut className="h-3.5 w-3.5" />
-               </button>
+          <div className="relative min-h-screen flex flex-col items-center pt-8 pb-24 px-6 animate-in fade-in duration-1000">
+            {/* Top Utility Icons (Weather, Clock, Status) - Integrated into Home */}
+            <div className="w-full flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-2xl px-4 py-2 border border-white/10">
+                <CloudSun className="h-4 w-4 text-secondary" />
+                <span className="text-[10px] font-black text-white uppercase">{weather.city} | {weather.temp}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-2xl px-4 py-2 border border-white/10">
+                <Clock className="h-4 w-4 text-white" />
+                <span className="text-[10px] font-black text-white uppercase">{format(currentTime, "hh:mm a")}</span>
+              </div>
+              <button 
+                onClick={() => { if (auth) signOut(auth); }}
+                className="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-2 rounded-xl border border-red-500/20 transition-all"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
 
             {/* Profile Section */}
-            <div className="flex flex-col items-center text-center space-y-8 w-full">
-              <div className="relative w-40 h-40 rounded-full border-[6px] border-[#C4A052] bg-white shadow-2xl flex items-center justify-center overflow-hidden">
+            <div className="flex flex-col items-center text-center space-y-6 w-full">
+              <div className="relative w-36 h-36 rounded-full border-[5px] border-[#C4A052] bg-white shadow-2xl flex items-center justify-center overflow-hidden group">
                 {logo ? (
-                  <Image src={logo} alt="Logo" fill className="object-cover" />
+                  <Image src={logo} alt="Logo" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full bg-primary flex items-center justify-center text-white text-4xl font-black">MG</div>
                 )}
               </div>
 
               <div className="space-y-1">
-                <h1 className="text-4xl font-[900] text-[#C4A052] uppercase tracking-tighter leading-none">
+                <h1 className="text-3xl font-[900] text-[#C4A052] uppercase tracking-tighter leading-none">
                   MINAR GO EXPATRIATE
                 </h1>
-                <p className="text-lg font-medium text-white/80 tracking-widest">
+                <p className="text-base font-medium text-white/70 tracking-widest uppercase">
                   Development Foundation
                 </p>
               </div>
 
+              {/* Status Bar */}
+              <div className="flex items-center gap-4 py-2 px-6 bg-white/5 rounded-full border border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">System Online</span>
+                </div>
+                <div className="w-[1px] h-3 bg-white/10" />
+                <div className="flex items-center gap-2">
+                  <Navigation className="h-3 w-3 text-secondary" />
+                  <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">Global Link</span>
+                </div>
+              </div>
+
               {/* Countdown Boxes */}
-              <div className="grid grid-cols-2 gap-4 w-full pt-8">
-                <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-[2rem] p-6 text-center space-y-3">
-                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm">
-                    <span role="img" aria-label="Kaaba">🕋</span> হজ্জ (সম্ভাব্য)
+              <div className="grid grid-cols-2 gap-4 w-full pt-4">
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2rem] p-6 text-center space-y-3 hover:bg-white/10 transition-all">
+                  <div className="flex items-center justify-center gap-2 text-white/80 font-bold text-xs">
+                    <Calendar className="h-3 w-3 text-secondary" /> হজ্জ (সম্ভাব্য)
                   </div>
-                  <div className="text-lg font-black text-white/90">
+                  <div className="text-lg font-black text-white">
                     {hajjData.date}
                   </div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-[2rem] p-6 text-center space-y-3">
-                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm">
-                    <span role="img" aria-label="Moon">🌙</span> রমজান (সম্ভাব্য)
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2rem] p-6 text-center space-y-3 hover:bg-white/10 transition-all">
+                  <div className="flex items-center justify-center gap-2 text-white/80 font-bold text-xs">
+                    <Sparkles className="h-3 w-3 text-secondary" /> রমজান (সম্ভাব্য)
                   </div>
-                  <div className="text-lg font-black text-white/90">
+                  <div className="text-lg font-black text-white">
                     {ramadanData.date}
                   </div>
                 </div>
               </div>
 
               {/* Full Width Date Box */}
-              <div className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-[1.5rem] py-4 px-6 text-center shadow-xl">
-                 <h2 className="text-xl font-bold text-white tracking-tight font-bengali">
-                   আজ: <span className="text-orange-400">{currentBn?.dayName}</span> | তারিখ: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
+              <div className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-[1.5rem] py-4 px-6 text-center shadow-xl">
+                 <h2 className="text-lg font-bold text-white tracking-tight font-bengali">
+                   আজ: <span className="text-secondary">{currentBn?.dayName}</span> | তারিখ: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
                  </h2>
               </div>
               
-              {/* Total Assets Summary (Integrated for feature retention) */}
-              <div className="w-full bg-primary/40 backdrop-blur-lg border border-white/5 rounded-[2rem] p-6 text-center group cursor-pointer hover:bg-primary/50 transition-all" onClick={() => setActiveTab("history")}>
-                <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-2">Total Foundation Assets</p>
+              {/* Total Assets Summary */}
+              <div className="w-full bg-primary/20 backdrop-blur-md border border-white/10 rounded-[2rem] p-6 text-center group cursor-pointer hover:bg-primary/30 transition-all" onClick={() => setActiveTab("history")}>
+                <p className="text-[9px] uppercase font-black text-secondary tracking-[0.3em] mb-2">Total Foundation Assets</p>
                 <h3 className="text-3xl font-black text-white tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
+                <div className="mt-2 flex items-center justify-center gap-2 text-[8px] font-black text-white/40 uppercase tracking-widest">
+                  <ShieldCheck className="h-3 w-3" /> Secure Ledger Verified
+                </div>
               </div>
             </div>
           </div>
@@ -417,3 +440,4 @@ export default function DashboardScreen({ user }: { user: User }) {
     </div>
   );
 }
+
