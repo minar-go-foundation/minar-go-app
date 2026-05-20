@@ -1,7 +1,7 @@
-
 export interface MGMember {
   id: string;
   name: string;
+  createdAt?: string;
 }
 
 export interface MGTransaction {

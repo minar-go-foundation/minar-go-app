@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
-import { useFirestore, useCollection } from "@/firebase";
-import { collection, doc, addDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
+import { collection, doc, addDoc, deleteDoc } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -47,7 +46,13 @@ export default function TransactionManager({
 
   const filteredTransactions = useMemo(() => {
     if (filterMonth === "All") return transactions;
-    return transactions.filter(t => MONTHS[new Date(t.d).getMonth()] === filterMonth);
+    return transactions.filter(t => {
+      try {
+        return MONTHS[new Date(t.d).getMonth()] === filterMonth;
+      } catch (e) {
+        return false;
+      }
+    });
   }, [transactions, filterMonth]);
 
   const totalFiltered = filteredTransactions.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
@@ -73,20 +78,37 @@ export default function TransactionManager({
   const exportPDF = () => {
     try {
       const doc = new jsPDF();
-      doc.setFillColor(0, 35, 102); doc.rect(0, 0, 210, 40, 'F');
-      doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.text("MINAR GO FOUNDATION", 105, 25, { align: "center" });
+      doc.setFillColor(0, 35, 102); 
+      doc.rect(0, 0, 210, 40, 'F');
+      doc.setTextColor(255, 255, 255); 
+      doc.setFontSize(22); 
+      doc.text("MINAR GO FOUNDATION", 105, 25, { align: "center" });
+      
       autoTable(doc, {
         startY: 50, head: [["Member", "Date", "Category", "Amount"]],
         body: filteredTransactions.map(t => [t.n, t.d, t.c, `৳${t.a}`]),
-        headStyles: { fillColor: [0, 35, 102] }
+        headStyles: { fillColor: [0, 35, 102] },
+        foot: [["", "Total Assets", "", `৳${totalFiltered.toLocaleString()}`]],
+        footStyles: { fillColor: [0, 35, 102], textColor: [255, 255, 255], fontStyle: 'bold' }
       });
+      
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      doc.text("© 2024 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION. ALL RIGHTS RESERVED.", 105, doc.internal.pageSize.height - 10, { align: "center" });
+
       const blob = doc.output('blob');
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a'); link.href = url; link.download = `Report_${filterMonth}.pdf`;
-      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      const link = document.createElement('a'); 
+      link.href = url; 
+      link.download = `MinarGo_Report_${filterMonth}.pdf`;
+      document.body.appendChild(link); 
+      link.click(); 
+      document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(url), 100);
       toast({ title: "PDF Ready" });
-    } catch (e) { toast({ title: "Export Error" }); }
+    } catch (e) { 
+      toast({ title: "Export Error", variant: "destructive" }); 
+    }
   };
 
   if (mode === "form") {

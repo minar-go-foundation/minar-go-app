@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -21,9 +20,9 @@ import {
   MessageSquare,
   HardDrive,
   Palette,
-  Check,
   Calendar,
-  Sparkles
+  Sparkles,
+  Video
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,6 +33,7 @@ import DocStorage from "./doc-storage";
 import LogoManager from "./logo-manager";
 import ChatScreen from "./chat-screen";
 import DemandLetterAssistant from "./demand-letter-assistant";
+import VideoCall from "./video-call";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Image from "next/image";
 import { format, differenceInDays, isAfter } from "date-fns";
@@ -290,6 +290,7 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "chat" && <ChatScreen user={user} />}
         {activeTab === "gallery" && <DocStorage />}
         {activeTab === "ai" && <DemandLetterAssistant />}
+        {activeTab === "call" && <VideoCall user={user} />}
         {activeTab === "setting" && (
           <div className="space-y-8 animate-in fade-in">
             <Card className="rounded-[3rem] border-none shadow-2xl p-10 bg-white/10 backdrop-blur-xl">
@@ -329,7 +330,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="px-4 -mt-14"><Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}><DialogTrigger asChild><button className="w-16 h-16 rounded-full bg-[#002366] border-[6px] border-white shadow-2xl flex items-center justify-center text-white"><Plus className="h-8 w-8 stroke-[4px]" /></button></DialogTrigger><DialogContent className="max-w-[95vw] rounded-[3rem] p-10 border-none glass-card"><DialogHeader><DialogTitle className="text-center font-[900] uppercase text-[#002366] text-xl">New Deposit</DialogTitle></DialogHeader><TransactionManager members={members as MGMember[]} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} /></DialogContent></Dialog></div>
             <div className="flex items-center justify-around flex-1 gap-2">
               <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "chat" ? "text-[#002366]" : "text-slate-300")}><MessageSquare className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">Chat</span></button>
-              <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "gallery" ? "text-[#002366]" : "text-slate-300")}><HardDrive className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">Vault</span></button>
+              <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "call" ? "text-[#002366]" : "text-slate-300")}><Video className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">Call</span></button>
               <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "setting" ? "text-[#002366]" : "text-slate-300")}><Settings className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">System</span></button>
             </div>
           </div>
