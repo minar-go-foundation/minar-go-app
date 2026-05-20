@@ -86,7 +86,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
   const [hajjData, setHajjData] = useState({ days: 0, date: "" });
   const [ramadanData, setRamadanData] = useState({ days: 0, date: "" });
-  const [currentTheme, setCurrentTheme] = useState<Theme>("glass");
+  const [currentTheme, setCurrentTheme] = useState<Theme>("navy"); // Default to original navy
   const [isHydrated, setIsHydrated] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -128,7 +128,7 @@ export default function DashboardScreen({ user }: { user: User }) {
           toast({
             title: "নতুন টাকা জমা হয়েছে! 🔔",
             description: `${data.n} - ৳${data.a} জমা দিয়েছেন।`,
-            className: "bg-primary text-white border-none rounded-2xl shadow-2xl",
+            className: "bg-[#002366] text-white border-none rounded-2xl shadow-2xl",
           });
         }
       });
@@ -197,15 +197,21 @@ export default function DashboardScreen({ user }: { user: User }) {
     const finalRows = [headerRow, ...dataRows, totalRow];
 
     try {
+      // Improved fetch for mobile reliability
       await fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
+        keepalive: true,
+        cache: 'no-cache',
         body: JSON.stringify({ spreadsheetId: SPREADSHEET_ID, rows: finalRows })
       });
       toast({ title: `ব্যাকআপ সফল হয়েছে! (${filterMonth})` });
     } catch (error) {
+      console.error("Backup error:", error);
       toast({ title: "ব্যাকআপ ব্যর্থ", variant: "destructive" });
-    } finally { setBackupLoading(false); }
+    } finally { 
+      setBackupLoading(false); 
+    }
   };
 
   const changeTheme = (theme: Theme) => {
@@ -227,12 +233,13 @@ export default function DashboardScreen({ user }: { user: User }) {
     switch(currentTheme) {
       case "navy": return "bg-[#002366] text-white";
       case "gradient": return "bg-gradient-to-br from-[#00d2ff] via-[#3a7bd5] to-[#002366] text-white";
-      default: return "mesh-gradient text-slate-800";
+      case "glass": return "mesh-gradient text-slate-800";
+      default: return "bg-[#002366] text-white";
     }
   }, [currentTheme]);
 
   if (!isHydrated || !currentTime) return (
-    <div className="flex items-center justify-center min-h-screen bg-primary">
+    <div className="flex items-center justify-center min-h-screen bg-[#002366]">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
     </div>
   );
@@ -244,10 +251,10 @@ export default function DashboardScreen({ user }: { user: User }) {
         <header className="px-6 py-5 flex items-center justify-between glass-nav sticky top-0 z-40 mx-4 mt-4 rounded-3xl animate-in fade-in slide-in-from-top-4">
           <div className="flex items-center gap-4">
             <div className="relative w-12 h-12 rounded-2xl border border-white/50 flex items-center justify-center overflow-hidden shadow-sm cursor-pointer" onClick={() => setActiveTab("setting")}>
-              {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black text-xs">MG</div>}
+              {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-[#002366] flex items-center justify-center text-white font-black text-xs">MG</div>}
             </div>
             <div className="flex flex-col">
-              <h1 className="text-sm font-[900] text-primary uppercase tracking-tight leading-none mb-1">
+              <h1 className="text-sm font-[900] text-[#002366] uppercase tracking-tight leading-none mb-1">
                 MINAR GO FOUNDATION
               </h1>
               <div className="flex items-center gap-2">
@@ -277,71 +284,77 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-8")}>
         {activeTab === "home" && (
           <div className="relative min-h-screen flex flex-col items-center pt-10 pb-24 px-6 animate-in fade-in duration-1000">
+            {/* Top Stats Bar */}
             <div className="w-full flex items-center justify-between mb-10">
-              <div className="flex items-center gap-3 glass-card rounded-2xl px-5 py-2.5">
-                <CloudSun className="h-4 w-4 text-primary" />
-                <span className="text-[10px] font-black uppercase tracking-widest">{weather.city} | {weather.temp}</span>
+              <div className="flex items-center gap-3 glass-card rounded-2xl px-5 py-2.5 bg-white/10 backdrop-blur-md border-white/20">
+                <CloudSun className="h-4 w-4 text-accent" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">{weather.city} | {weather.temp}</span>
               </div>
-              <div className="flex items-center gap-3 glass-card rounded-2xl px-5 py-2.5">
-                <Clock className="h-4 w-4 text-primary" />
-                <span className="text-[10px] font-black uppercase tracking-widest">{format(currentTime, "hh:mm a")}</span>
+              <div className="flex items-center gap-3 glass-card rounded-2xl px-5 py-2.5 bg-white/10 backdrop-blur-md border-white/20">
+                <Clock className="h-4 w-4 text-accent" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">{format(currentTime, "hh:mm a")}</span>
               </div>
               <button 
                 onClick={() => { if (auth) signOut(auth); }}
-                className="glass-card text-red-500 p-2.5 rounded-2xl hover:bg-red-50 transition-all active:scale-90"
+                className="bg-red-500/20 text-red-400 p-2.5 rounded-2xl hover:bg-red-500/30 transition-all active:scale-90 border border-red-500/30"
               >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
 
             <div className="flex flex-col items-center text-center space-y-8 w-full">
-              <div className="relative w-40 h-40 rounded-[2.5rem] border-[6px] border-white/50 glass-card flex items-center justify-center overflow-hidden group">
+              {/* Profile Logo */}
+              <div className="relative w-40 h-40 rounded-[2.5rem] border-[6px] border-white/20 glass-card flex items-center justify-center overflow-hidden group shadow-2xl">
                 {logo ? (
                   <Image src={logo} alt="Logo" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                 ) : (
-                  <div className="w-full h-full bg-primary flex items-center justify-center text-white text-4xl font-black">MG</div>
+                  <div className="w-full h-full bg-[#002366] flex items-center justify-center text-white text-4xl font-black">MG</div>
                 )}
               </div>
 
+              {/* Foundation Info */}
               <div className="space-y-2">
-                <h1 className="text-4xl font-[900] text-primary uppercase tracking-tighter leading-none">
+                <h1 className="text-4xl font-[900] text-accent uppercase tracking-tighter leading-none text-[#C4A052]">
                   MINAR GO EXPATRIATE
                 </h1>
-                <p className="text-lg font-bold text-slate-500 tracking-[0.3em] uppercase">
+                <p className="text-lg font-bold text-white/70 tracking-[0.3em] uppercase">
                   Development Foundation
                 </p>
               </div>
 
+              {/* Countdown Grid */}
               <div className="grid grid-cols-2 gap-5 w-full pt-4">
-                <div className="glass-card rounded-[2.5rem] p-7 text-center space-y-3 hover:scale-105 transition-transform duration-500">
-                  <div className="flex items-center justify-center gap-2 text-slate-400 font-black text-[10px] uppercase tracking-widest">
-                    <Calendar className="h-4 w-4 text-primary" /> হজ্জ
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3 hover:scale-105 transition-transform duration-500">
+                  <div className="flex items-center justify-center gap-2 text-white/50 font-black text-[10px] uppercase tracking-widest">
+                    <Calendar className="h-4 w-4 text-accent" /> হজ্জ
                   </div>
-                  <div className="text-xl font-black text-primary tracking-tight">
+                  <div className="text-xl font-black text-white tracking-tight">
                     {hajjData.date}
                   </div>
                 </div>
-                <div className="glass-card rounded-[2.5rem] p-7 text-center space-y-3 hover:scale-105 transition-transform duration-500">
-                  <div className="flex items-center justify-center gap-2 text-slate-400 font-black text-[10px] uppercase tracking-widest">
-                    <Sparkles className="h-4 w-4 text-primary" /> রমজান
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3 hover:scale-105 transition-transform duration-500">
+                  <div className="flex items-center justify-center gap-2 text-white/50 font-black text-[10px] uppercase tracking-widest">
+                    <Sparkles className="h-4 w-4 text-accent" /> রমজান
                   </div>
-                  <div className="text-xl font-black text-primary tracking-tight">
+                  <div className="text-xl font-black text-white tracking-tight">
                     {ramadanData.date}
                   </div>
                 </div>
               </div>
 
-              <div className="w-full glass-card rounded-[2rem] py-5 px-8 text-center">
-                 <h2 className="text-xl font-[900] text-primary tracking-tight font-bengali uppercase">
-                   আজ: <span className="text-primary">{currentBn?.dayName}</span> | তারিখ: <span className="text-primary">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
+              {/* Live Bengali Date Box */}
+              <div className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] py-5 px-8 text-center">
+                 <h2 className="text-xl font-[900] text-white tracking-tight font-bengali uppercase">
+                   আজ: <span className="text-accent text-[#C4A052]">{currentBn?.dayName}</span> | তারিখ: <span className="text-accent text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
                  </h2>
               </div>
               
-              <div className="w-full glass-card rounded-[3rem] p-8 text-center group cursor-pointer hover:shadow-2xl hover:shadow-primary/10 transition-all active:scale-95" onClick={() => setActiveTab("history")}>
-                <p className="text-[10px] uppercase font-black text-slate-400 tracking-[0.4em] mb-3">Foundation Assets</p>
-                <h3 className="text-4xl font-[900] text-primary tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
-                <div className="mt-4 flex items-center justify-center gap-2.5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                  <ShieldCheck className="h-4 w-4 text-green-500" /> Secure Ledger Verified
+              {/* Assets Overview */}
+              <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-8 text-center group cursor-pointer hover:shadow-2xl hover:shadow-[#C4A052]/10 transition-all active:scale-95" onClick={() => setActiveTab("history")}>
+                <p className="text-[10px] uppercase font-black text-white/50 tracking-[0.4em] mb-3">Foundation Assets</p>
+                <h3 className="text-4xl font-[900] text-[#C4A052] tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
+                <div className="mt-4 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">
+                  <ShieldCheck className="h-4 w-4 text-green-400" /> Secure Ledger Verified
                 </div>
               </div>
             </div>
@@ -364,49 +377,49 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "ai" && <DemandLetterAssistant />}
         {activeTab === "setting" && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <Card className="rounded-[3rem] border-none shadow-2xl p-10 glass-card">
+            <Card className="rounded-[3rem] border-none shadow-2xl p-10 bg-white/10 backdrop-blur-xl border-white/10">
               <div className="flex flex-col items-center gap-10">
                 <LogoManager currentLogo={logo} onUpdate={setLogo} />
                 
                 <div className="w-full space-y-8">
                    <div className="space-y-4">
-                     <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                       <Palette className="h-4 w-4 text-primary" /> Theme Customization
+                     <h4 className="text-[10px] font-black uppercase text-white/50 tracking-widest flex items-center gap-2">
+                       <Palette className="h-4 w-4 text-accent" /> Theme Customization
                      </h4>
                      <div className="grid grid-cols-3 gap-3">
                         <button 
                           onClick={() => changeTheme("glass")}
-                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "glass" ? "border-primary bg-primary/5" : "border-transparent bg-white/50")}
+                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "glass" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
                         >
                           <div className="w-4 h-4 rounded-full mesh-gradient border border-slate-200" />
-                          <span className="text-[8px] font-black uppercase">Glass</span>
-                          {currentTheme === "glass" && <Check className="h-2 w-2 text-primary" />}
+                          <span className="text-[8px] font-black uppercase text-white">Glass</span>
+                          {currentTheme === "glass" && <Check className="h-2 w-2 text-white" />}
                         </button>
                         <button 
                           onClick={() => changeTheme("navy")}
-                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "navy" ? "border-primary bg-primary/5" : "border-transparent bg-white/50")}
+                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "navy" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
                         >
                           <div className="w-4 h-4 rounded-full bg-[#002366]" />
-                          <span className="text-[8px] font-black uppercase">Navy</span>
-                          {currentTheme === "navy" && <Check className="h-2 w-2 text-primary" />}
+                          <span className="text-[8px] font-black uppercase text-white">Navy</span>
+                          {currentTheme === "navy" && <Check className="h-2 w-2 text-white" />}
                         </button>
                         <button 
                           onClick={() => changeTheme("gradient")}
-                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "gradient" ? "border-primary bg-primary/5" : "border-transparent bg-white/50")}
+                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "gradient" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
                         >
                           <div className="w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600" />
-                          <span className="text-[8px] font-black uppercase">Gradient</span>
-                          {currentTheme === "gradient" && <Check className="h-2 w-2 text-primary" />}
+                          <span className="text-[8px] font-black uppercase text-white">Gradient</span>
+                          {currentTheme === "gradient" && <Check className="h-2 w-2 text-white" />}
                         </button>
                      </div>
                    </div>
 
                    <div className="space-y-3">
-                     <Button className="w-full h-16 rounded-2xl font-black bg-white/50 text-primary hover:bg-white/80 uppercase tracking-widest text-xs border border-white" onClick={handleCloudBackup} disabled={backupLoading}>
+                     <Button className="w-full h-16 rounded-2xl font-black bg-white/10 text-white hover:bg-white/20 uppercase tracking-widest text-xs border border-white/20" onClick={handleCloudBackup} disabled={backupLoading}>
                        {backupLoading ? <RotateCcw className="h-6 w-6 animate-spin" /> : <RotateCcw className="h-6 w-6" />} CLOUD BACKUP ({filterMonth})
                      </Button>
-                     <Button variant="outline" className="w-full h-16 rounded-2xl font-black uppercase tracking-widest text-xs border-white bg-white/30 backdrop-blur-md" onClick={() => setActiveTab("ai")}>
-                       <Sparkles className="mr-3 h-5 w-5 text-primary" /> AI LETTER DRAFTER
+                     <Button variant="outline" className="w-full h-16 rounded-2xl font-black uppercase tracking-widest text-xs border-white/20 bg-white/5 backdrop-blur-md text-white" onClick={() => setActiveTab("ai")}>
+                       <Sparkles className="mr-3 h-5 w-5 text-accent" /> AI LETTER DRAFTER
                      </Button>
                    </div>
                 </div>
@@ -416,19 +429,20 @@ export default function DashboardScreen({ user }: { user: User }) {
         )}
       </main>
 
+      {/* Persistent Navigation */}
       <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 z-50">
         <div className="max-w-md mx-auto">
           <div className="glass-nav rounded-[3rem] flex items-center justify-between px-3 py-4">
             <div className="flex items-center justify-around flex-1 gap-2">
-              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "home" ? "text-primary" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "home" ? "text-[#002366]" : "text-slate-300")}>
                 <Home className={cn("h-6 w-6", activeTab === "home" ? "stroke-[3px]" : "stroke-[2.5px]")} />
                 <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">Home</span>
               </button>
-              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "members" ? "text-primary" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "members" ? "text-[#002366]" : "text-slate-300")}>
                 <Users className={cn("h-6 w-6", activeTab === "members" ? "stroke-[3px]" : "stroke-[2.5px]")} />
                 <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">Members</span>
               </button>
-              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "history" ? "text-primary" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "history" ? "text-[#002366]" : "text-slate-300")}>
                 <History className={cn("h-6 w-6", activeTab === "history" ? "stroke-[3px]" : "stroke-[2.5px]")} />
                 <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">History</span>
               </button>
@@ -437,28 +451,28 @@ export default function DashboardScreen({ user }: { user: User }) {
               <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                 <DialogTrigger asChild>
                   <button className="group relative active:scale-95 transition-all">
-                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-                    <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-2xl flex items-center justify-center text-white z-10 transition-all hover:scale-110">
+                    <div className="absolute inset-0 bg-[#002366]/20 rounded-full blur-2xl animate-pulse" />
+                    <div className="w-16 h-16 rounded-full bg-[#002366] border-[6px] border-white shadow-2xl flex items-center justify-center text-white z-10 transition-all hover:scale-110">
                       <Plus className="h-8 w-8 stroke-[4px]" />
                     </div>
                   </button>
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] rounded-[3rem] p-10 border-none shadow-2xl glass-card">
-                  <DialogHeader><DialogTitle className="text-center font-[900] uppercase text-primary tracking-widest text-xl">New Deposit</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle className="text-center font-[900] uppercase text-[#002366] tracking-widest text-xl">New Deposit</DialogTitle></DialogHeader>
                   <TransactionManager members={members as MGMember[]} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
                 </DialogContent>
               </Dialog>
             </div>
             <div className="flex items-center justify-around flex-1 gap-2">
-              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "chat" ? "text-primary" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "chat" ? "text-[#002366]" : "text-slate-300")}>
                 <MessageSquare className={cn("h-6 w-6", activeTab === "chat" ? "stroke-[3px]" : "stroke-[2.5px]")} />
                 <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">Chat</span>
               </button>
-              <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "gallery" ? "text-primary" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "gallery" ? "text-[#002366]" : "text-slate-300")}>
                 <HardDrive className={cn("h-6 w-6", activeTab === "gallery" ? "stroke-[3px]" : "stroke-[2.5px]")} />
                 <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">Vault</span>
               </button>
-              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "setting" ? "text-primary" : "text-slate-300")}>
+              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-2 transition-all active:scale-125 hover:scale-110", activeTab === "setting" ? "text-[#002366]" : "text-slate-300")}>
                 <Settings className={cn("h-6 w-6", activeTab === "setting" ? "stroke-[3px]" : "stroke-[2.5px]")} />
                 <span className="text-[9px] font-black uppercase tracking-tighter mt-1.5">System</span>
               </button>
