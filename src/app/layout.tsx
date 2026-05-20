@@ -5,7 +5,7 @@ import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'Minar Go Expatriate Development Foundation',
-  description: 'Management app for Minar Go foundation',
+  description: 'Official Management App for Minar Go Foundation',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
