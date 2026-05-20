@@ -24,7 +24,8 @@ import {
   Bell,
   Navigation,
   Calendar,
-  Sparkles
+  Sparkles,
+  HardDrive
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -363,9 +364,9 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <MessageSquare className={cn("h-6 w-6", activeTab === "chat" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Chat</span>
               </button>
-              <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "call" ? "text-primary scale-110" : "text-slate-300")}>
-                <Video className={cn("h-6 w-6", activeTab === "call" ? "stroke-[3px]" : "stroke-[2px]")} />
-                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Call</span>
+              <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "gallery" ? "text-primary scale-110" : "text-slate-300")}>
+                <HardDrive className={cn("h-6 w-6", activeTab === "gallery" ? "stroke-[3px]" : "stroke-[2px]")} />
+                <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Vault</span>
               </button>
               <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "setting" ? "text-primary scale-110" : "text-slate-300")}>
                 <Settings className={cn("h-6 w-6", activeTab === "setting" ? "stroke-[3px]" : "stroke-[2px]")} />
