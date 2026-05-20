@@ -74,7 +74,7 @@ const GET_NEXT_DATE = (baseDate: Date) => {
 };
 
 type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call" | "ai";
-type Theme = "glass" | "navy" | "gradient";
+type Theme = "navy" | "glass" | "gradient";
 
 export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
@@ -232,7 +232,7 @@ export default function DashboardScreen({ user }: { user: User }) {
     switch(currentTheme) {
       case "navy": return "bg-[#002366] text-white";
       case "gradient": return "bg-gradient-to-br from-[#00d2ff] via-[#3a7bd5] to-[#002366] text-white";
-      case "glass": return "mesh-gradient text-slate-800";
+      case "glass": return "bg-slate-50 text-slate-800";
       default: return "bg-[#002366] text-white";
     }
   }, [currentTheme]);
@@ -285,17 +285,17 @@ export default function DashboardScreen({ user }: { user: User }) {
           <div className="relative min-h-screen flex flex-col items-center pt-10 pb-24 px-6 animate-in fade-in duration-1000">
             {/* Top Stats Bar */}
             <div className="w-full flex items-center justify-between mb-10">
-              <div className="flex items-center gap-3 glass-card rounded-2xl px-5 py-2.5 bg-white/10 backdrop-blur-md border-white/20">
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20">
                 <CloudSun className="h-4 w-4 text-[#C4A052]" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-white">{weather.city} | {weather.temp}</span>
               </div>
-              <div className="flex items-center gap-3 glass-card rounded-2xl px-5 py-2.5 bg-white/10 backdrop-blur-md border-white/20">
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20">
                 <Clock className="h-4 w-4 text-[#C4A052]" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-white">{format(currentTime, "hh:mm a")}</span>
               </div>
               <button 
                 onClick={() => { if (auth) signOut(auth); }}
-                className="bg-red-500/20 text-red-400 p-2.5 rounded-2xl hover:bg-red-500/30 transition-all active:scale-90 border border-red-500/30"
+                className="bg-red-500/20 text-red-400 p-2.5 rounded-2xl hover:bg-red-500/30 transition-all border border-red-500/30"
               >
                 <LogOut className="h-4 w-4" />
               </button>
@@ -303,7 +303,7 @@ export default function DashboardScreen({ user }: { user: User }) {
 
             <div className="flex flex-col items-center text-center space-y-8 w-full">
               {/* Profile Logo */}
-              <div className="relative w-40 h-40 rounded-[2.5rem] border-[6px] border-white/20 glass-card flex items-center justify-center overflow-hidden group shadow-2xl bg-[#002366]">
+              <div className="relative w-40 h-40 rounded-[2.5rem] border-[6px] border-white/20 flex items-center justify-center overflow-hidden group shadow-2xl bg-[#002366]">
                 {logo ? (
                   <Image src={logo} alt="Logo" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                 ) : (
@@ -316,7 +316,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <h1 className="text-4xl font-[900] text-[#C4A052] uppercase tracking-tighter leading-none">
                   MINAR GO EXPATRIATE
                 </h1>
-                <p className="text-lg font-bold text-white/70 tracking-[0.3em] uppercase">
+                <p className="text-lg font-bold text-white tracking-[0.3em] uppercase opacity-80">
                   Development Foundation
                 </p>
               </div>
@@ -324,16 +324,16 @@ export default function DashboardScreen({ user }: { user: User }) {
               {/* Countdown Grid */}
               <div className="grid grid-cols-2 gap-5 w-full pt-4">
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3 hover:scale-105 transition-transform duration-500">
-                  <div className="flex items-center justify-center gap-2 text-white/50 font-black text-[10px] uppercase tracking-widest">
-                    <Calendar className="h-4 w-4 text-[#C4A052]" /> হজ্জ
+                  <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest">
+                    <Calendar className="h-4 w-4" /> হজ্জ
                   </div>
                   <div className="text-xl font-black text-white tracking-tight">
                     {hajjData.date}
                   </div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3 hover:scale-105 transition-transform duration-500">
-                  <div className="flex items-center justify-center gap-2 text-white/50 font-black text-[10px] uppercase tracking-widest">
-                    <Sparkles className="h-4 w-4 text-[#C4A052]" /> রমজান
+                  <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest">
+                    <Sparkles className="h-4 w-4" /> রমজান
                   </div>
                   <div className="text-xl font-black text-white tracking-tight">
                     {ramadanData.date}
@@ -350,9 +350,9 @@ export default function DashboardScreen({ user }: { user: User }) {
               
               {/* Assets Overview */}
               <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-8 text-center group cursor-pointer hover:shadow-2xl hover:shadow-[#C4A052]/10 transition-all active:scale-95" onClick={() => setActiveTab("history")}>
-                <p className="text-[10px] uppercase font-black text-white/50 tracking-[0.4em] mb-3">Foundation Assets</p>
+                <p className="text-[10px] uppercase font-black text-white/60 tracking-[0.4em] mb-3">Foundation Assets</p>
                 <h3 className="text-4xl font-[900] text-[#C4A052] tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
-                <div className="mt-4 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">
+                <div className="mt-4 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/50 uppercase tracking-[0.2em]">
                   <ShieldCheck className="h-4 w-4 text-green-400" /> Secure Ledger Verified
                 </div>
               </div>
@@ -387,20 +387,20 @@ export default function DashboardScreen({ user }: { user: User }) {
                      </h4>
                      <div className="grid grid-cols-3 gap-3">
                         <button 
-                          onClick={() => changeTheme("glass")}
-                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "glass" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
-                        >
-                          <div className="w-4 h-4 rounded-full mesh-gradient border border-slate-200" />
-                          <span className="text-[8px] font-black uppercase text-white">Glass</span>
-                          {currentTheme === "glass" && <Check className="h-2 w-2 text-white" />}
-                        </button>
-                        <button 
                           onClick={() => changeTheme("navy")}
                           className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "navy" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
                         >
-                          <div className="w-4 h-4 rounded-full bg-[#002366]" />
+                          <div className="w-4 h-4 rounded-full bg-[#002366] border border-white/20" />
                           <span className="text-[8px] font-black uppercase text-white">Navy</span>
                           {currentTheme === "navy" && <Check className="h-2 w-2 text-white" />}
+                        </button>
+                        <button 
+                          onClick={() => changeTheme("glass")}
+                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "glass" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
+                        >
+                          <div className="w-4 h-4 rounded-full bg-slate-100 border border-slate-300" />
+                          <span className="text-[8px] font-black uppercase text-white">Glass</span>
+                          {currentTheme === "glass" && <Check className="h-2 w-2 text-white" />}
                         </button>
                         <button 
                           onClick={() => changeTheme("gradient")}
