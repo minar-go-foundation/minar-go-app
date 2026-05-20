@@ -73,6 +73,17 @@ const GET_NEXT_DATE = (baseDate: Date) => {
   return target;
 };
 
+const getWeatherDesc = (code: number) => {
+  if (code === 0) return "Clear";
+  if (code >= 1 && code <= 3) return "Partly Cloudy";
+  if (code >= 45 && code <= 48) return "Foggy";
+  if (code >= 51 && code <= 67) return "Rainy";
+  if (code >= 71 && code <= 77) return "Snowy";
+  if (code >= 80 && code <= 82) return "Showers";
+  if (code >= 95 && code <= 99) return "Thunderstorm";
+  return "Sunny";
+};
+
 type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call" | "ai";
 type Theme = "navy" | "glass" | "gradient" | "midnight" | "emerald" | "royal";
 
@@ -80,7 +91,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [logo, setLogo] = useState<string | null>(null);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
-  const [weather, setWeather] = useState({ city: "Dhaka, BD", temp: "32°C", desc: "Sunny" });
+  const [weather, setWeather] = useState({ city: "Detecting Location...", temp: "--°C", desc: "Loading" });
   const [backupLoading, setBackupLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
@@ -168,6 +179,38 @@ export default function DashboardScreen({ user }: { user: User }) {
 
     const storedTheme = localStorage.getItem("mg_theme") as Theme;
     if (storedTheme) setCurrentTheme(storedTheme);
+
+    // Dynamic Weather Implementation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          // Fetch Weather from Open-Meteo
+          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+          const weatherData = await weatherRes.json();
+          
+          // Fetch City Name from Nominatim
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const geoData = await geoRes.json();
+          const city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.state || "Current City";
+          const countryCode = geoData.address.country_code?.toUpperCase() || "BD";
+
+          setWeather({
+            city: `${city}, ${countryCode}`,
+            temp: `${Math.round(weatherData.current_weather.temperature)}°C`,
+            desc: getWeatherDesc(weatherData.current_weather.weathercode)
+          });
+        } catch (error) {
+          console.error("Weather fetch failed:", error);
+          setWeather({ city: "Dhaka, BD", temp: "32°C", desc: "Sunny" });
+        }
+      }, () => {
+        // Fallback if permission denied
+        setWeather({ city: "Dhaka, BD", temp: "32°C", desc: "Sunny" });
+      });
+    } else {
+      setWeather({ city: "Dhaka, BD", temp: "32°C", desc: "Sunny" });
+    }
 
     return () => clearInterval(timer);
   }, []);
@@ -290,7 +333,7 @@ export default function DashboardScreen({ user }: { user: User }) {
             <div className="w-full flex items-center justify-between mb-10">
               <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20">
                 <CloudSun className="h-4 w-4 text-[#C4A052]" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-white">{weather.city} | {weather.temp}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">{weather.city} | {weather.temp} ({weather.desc})</span>
               </div>
               <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20">
                 <Clock className="h-4 w-4 text-[#C4A052]" />
