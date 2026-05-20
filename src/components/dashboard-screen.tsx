@@ -23,7 +23,9 @@ import {
   History,
   Bell,
   Thermometer,
-  Navigation
+  Navigation,
+  Calendar,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -145,7 +147,6 @@ export default function DashboardScreen({ user }: { user: User }) {
     // Simulated Weather/Location detection
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(() => {
-        // Just for effect, keep values professional
         setWeather({ city: "Dhaka, Bangladesh", temp: "30°C", desc: "Clear Sky" });
       });
     }
