@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -73,7 +74,7 @@ const GET_NEXT_DATE = (baseDate: Date) => {
 };
 
 type Tab = "home" | "members" | "history" | "chat" | "gallery" | "setting" | "call" | "ai";
-type Theme = "navy" | "glass" | "gradient";
+type Theme = "navy" | "glass" | "gradient" | "midnight" | "emerald" | "royal";
 
 export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
@@ -232,6 +233,9 @@ export default function DashboardScreen({ user }: { user: User }) {
       case "navy": return "bg-[#002366] text-white";
       case "gradient": return "bg-gradient-to-br from-[#00d2ff] via-[#3a7bd5] to-[#002366] text-white";
       case "glass": return "bg-slate-50 text-slate-800";
+      case "midnight": return "bg-[#0f172a] text-white";
+      case "emerald": return "bg-[#064e3b] text-white";
+      case "royal": return "bg-[#312e81] text-white";
       default: return "bg-[#002366] text-white";
     }
   }, [currentTheme]);
@@ -387,27 +391,51 @@ export default function DashboardScreen({ user }: { user: User }) {
                      <div className="grid grid-cols-3 gap-3">
                         <button 
                           onClick={() => changeTheme("navy")}
-                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "navy" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
+                          className={cn("h-20 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "navy" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
                         >
-                          <div className="w-4 h-4 rounded-full bg-[#002366] border border-white/20" />
+                          <div className="w-5 h-5 rounded-full bg-[#002366] border border-white/20" />
                           <span className="text-[8px] font-black uppercase text-white">Navy</span>
                           {currentTheme === "navy" && <Check className="h-2 w-2 text-white" />}
                         </button>
                         <button 
                           onClick={() => changeTheme("glass")}
-                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "glass" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
+                          className={cn("h-20 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "glass" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
                         >
-                          <div className="w-4 h-4 rounded-full bg-slate-100 border border-slate-300" />
+                          <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-300" />
                           <span className="text-[8px] font-black uppercase text-white">Glass</span>
                           {currentTheme === "glass" && <Check className="h-2 w-2 text-white" />}
                         </button>
                         <button 
                           onClick={() => changeTheme("gradient")}
-                          className={cn("h-16 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "gradient" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
+                          className={cn("h-20 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "gradient" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
                         >
-                          <div className="w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600" />
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600" />
                           <span className="text-[8px] font-black uppercase text-white">Gradient</span>
                           {currentTheme === "gradient" && <Check className="h-2 w-2 text-white" />}
+                        </button>
+                        <button 
+                          onClick={() => changeTheme("midnight")}
+                          className={cn("h-20 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "midnight" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
+                        >
+                          <div className="w-5 h-5 rounded-full bg-[#0f172a] border border-white/10" />
+                          <span className="text-[8px] font-black uppercase text-white">Midnight</span>
+                          {currentTheme === "midnight" && <Check className="h-2 w-2 text-white" />}
+                        </button>
+                        <button 
+                          onClick={() => changeTheme("emerald")}
+                          className={cn("h-20 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "emerald" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
+                        >
+                          <div className="w-5 h-5 rounded-full bg-[#064e3b] border border-white/10" />
+                          <span className="text-[8px] font-black uppercase text-white">Emerald</span>
+                          {currentTheme === "emerald" && <Check className="h-2 w-2 text-white" />}
+                        </button>
+                        <button 
+                          onClick={() => changeTheme("royal")}
+                          className={cn("h-20 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1", currentTheme === "royal" ? "border-[#C4A052] bg-white/10" : "border-transparent bg-white/5")}
+                        >
+                          <div className="w-5 h-5 rounded-full bg-[#312e81] border border-white/10" />
+                          <span className="text-[8px] font-black uppercase text-white">Royal</span>
+                          {currentTheme === "royal" && <Check className="h-2 w-2 text-white" />}
                         </button>
                      </div>
                    </div>
