@@ -219,7 +219,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   return (
     <div className={cn(
       "min-h-screen flex flex-col font-body pb-32 transition-all duration-500",
-      activeTab === "home" ? "bg-[#002366]" : "bg-[#F8FAFF]"
+      activeTab === "home" ? "bg-gradient-to-br from-[#00d2ff] via-[#3a7bd5] to-[#002366]" : "bg-[#F8FAFF]"
     )}>
       {activeTab !== "home" && (
         <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40 animate-in fade-in slide-in-from-top-4">
@@ -265,7 +265,6 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-6")}>
         {activeTab === "home" && (
           <div className="relative min-h-screen flex flex-col items-center pt-8 pb-24 px-6 animate-in fade-in duration-1000">
-            {/* Top Utility Icons (Weather, Clock, Status) */}
             <div className="w-full flex items-center justify-between mb-8">
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-2xl px-4 py-2 border border-white/10">
                 <CloudSun className="h-4 w-4 text-secondary" />
@@ -283,7 +282,6 @@ export default function DashboardScreen({ user }: { user: User }) {
               </button>
             </div>
 
-            {/* Profile Section with original Navy color theme */}
             <div className="flex flex-col items-center text-center space-y-6 w-full">
               <div className="relative w-36 h-36 rounded-full border-[5px] border-[#C4A052] bg-white shadow-2xl flex items-center justify-center overflow-hidden group">
                 {logo ? (
@@ -297,15 +295,14 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <h1 className="text-3xl font-[900] text-[#C4A052] uppercase tracking-tighter leading-none">
                   MINAR GO EXPATRIATE
                 </h1>
-                <p className="text-base font-medium text-white/70 tracking-widest uppercase">
+                <p className="text-base font-medium text-white tracking-widest uppercase">
                   Development Foundation
                 </p>
               </div>
 
-              {/* Status Bar */}
               <div className="flex items-center gap-4 py-2 px-6 bg-white/5 rounded-full border border-white/10">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                   <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">System Online</span>
                 </div>
                 <div className="w-[1px] h-3 bg-white/10" />
@@ -315,7 +312,6 @@ export default function DashboardScreen({ user }: { user: User }) {
                 </div>
               </div>
 
-              {/* Countdown Boxes */}
               <div className="grid grid-cols-2 gap-4 w-full pt-4">
                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2rem] p-6 text-center space-y-3 hover:bg-white/10 transition-all">
                   <div className="flex items-center justify-center gap-2 text-white/80 font-bold text-xs">
@@ -335,14 +331,12 @@ export default function DashboardScreen({ user }: { user: User }) {
                 </div>
               </div>
 
-              {/* Full Width Date Box */}
               <div className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-[1.5rem] py-4 px-6 text-center shadow-xl">
                  <h2 className="text-lg font-bold text-white tracking-tight font-bengali">
                    আজ: <span className="text-secondary">{currentBn?.dayName}</span> | তারিখ: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
                  </h2>
               </div>
               
-              {/* Total Assets Summary */}
               <div className="w-full bg-primary/20 backdrop-blur-md border border-white/10 rounded-[2rem] p-6 text-center group cursor-pointer hover:bg-primary/30 transition-all" onClick={() => setActiveTab("history")}>
                 <p className="text-[9px] uppercase font-black text-secondary tracking-[0.3em] mb-2">Total Foundation Assets</p>
                 <h3 className="text-3xl font-black text-white tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
