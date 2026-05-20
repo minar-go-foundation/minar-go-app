@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { User, signOut } from "firebase/auth";
 import { useAuth, useFirestore, useCollection } from "@/firebase";
-import { collection, query, orderBy, limit } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { 
   LogOut, 
   Plus, 
@@ -20,7 +20,8 @@ import {
   Video,
   MessageSquare,
   Lock,
-  History
+  History,
+  Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,6 +72,9 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [hajjData, setHajjData] = useState({ days: 0, str: "" });
   const [ramadanData, setRamadanData] = useState({ days: 0, str: "" });
   const [isHydrated, setIsHydrated] = useState(false);
+  
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isFirstLoad = useRef(true);
 
   const { toast } = useToast();
   const auth = useAuth();
@@ -88,6 +92,37 @@ export default function DashboardScreen({ user }: { user: User }) {
   }, [db]);
   const { data: members = [] } = useCollection(membersQuery);
 
+  // Notification Sound Logic
+  useEffect(() => {
+    if (!db) return;
+    
+    // Initialize audio
+    audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+
+    const unsubscribe = onSnapshot(collection(db, "transactions"), (snapshot) => {
+      if (isFirstLoad.current) {
+        isFirstLoad.current = false;
+        return;
+      }
+
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          if (audioRef.current) {
+            audioRef.current.play().catch(e => console.log("Audio play blocked"));
+          }
+          toast({
+            title: "নতুন টাকা জমা হয়েছে! 🔔",
+            description: `${data.n} - ৳${data.a} জমা দিয়েছেন।`,
+            className: "bg-green-600 text-white border-none rounded-2xl",
+          });
+        }
+      });
+    });
+
+    return () => unsubscribe();
+  }, [db, toast]);
+
   useEffect(() => {
     setIsHydrated(true);
     const now = new Date();
@@ -100,19 +135,6 @@ export default function DashboardScreen({ user }: { user: User }) {
     setRamadanData({ days: differenceInDays(nextRamadan, now), str: format(nextRamadan, "dd MMMM yyyy") });
 
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
-          const data = await res.json();
-          setWeather({ city: "Live", temp: Math.round(data.current_weather.temperature).toString() });
-        } catch (e) {
-          setWeather({ city: "Global", temp: "26" });
-        }
-      }, () => setWeather({ city: "Global", temp: "24" }));
-    }
 
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
@@ -167,8 +189,8 @@ export default function DashboardScreen({ user }: { user: User }) {
             </h1>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <CloudSun className="h-3 w-3 text-secondary" />
-                <span className="text-[10px] font-bold text-secondary">{weather.temp}°C</span>
+                <Bell className="h-3 w-3 text-secondary animate-bounce" />
+                <span className="text-[10px] font-bold text-secondary uppercase">Live System</span>
               </div>
               <div className="h-3 w-[1px] bg-slate-200" />
               <div className="flex items-center gap-1">
