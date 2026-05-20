@@ -139,7 +139,7 @@ export default function TransactionManager({
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
 
-    // Header Background (Navy Blue) - As per screenshot
+    // Header Background (Navy Blue)
     doc.setFillColor(0, 35, 102); 
     doc.rect(0, 0, pageWidth, 50, 'F');
 
@@ -151,7 +151,7 @@ export default function TransactionManager({
     doc.setFontSize(16);
     doc.text("DEVELOPMENT FOUNDATION", pageWidth / 2, 35, { align: "center" });
 
-    // Table Data (No Total Row)
+    // Table Data
     const tableData = filteredTransactions.map(t => [
       t.n, 
       t.d, 
@@ -168,6 +168,13 @@ export default function TransactionManager({
       styles: { fontSize: 10, cellPadding: 5 },
       alternateRowStyles: { fillColor: [245, 245, 245] }
     });
+
+    // Add Total Section after table
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(12);
+    doc.setTextColor(0, 35, 102);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Total Foundation Assets: BDT ${totalFiltered.toLocaleString()}`, pageWidth - 20, finalY, { align: "right" });
 
     // Copyright Footer at bottom
     const footerY = pageHeight - 15;

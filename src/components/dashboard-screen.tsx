@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { User, signOut } from "firebase/auth";
 import { useAuth, useFirestore, useCollection } from "@/firebase";
-import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { 
   LogOut, 
   Plus, 
@@ -22,7 +22,6 @@ import {
   Lock,
   History,
   Bell,
-  Thermometer,
   Navigation,
   Calendar,
   Sparkles
@@ -101,7 +100,6 @@ export default function DashboardScreen({ user }: { user: User }) {
   useEffect(() => {
     if (!db) return;
     
-    // Initialize audio with a high-quality notification chime
     audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 
     const unsubscribe = onSnapshot(collection(db, "transactions"), (snapshot) => {
@@ -114,7 +112,7 @@ export default function DashboardScreen({ user }: { user: User }) {
         if (change.type === "added") {
           const data = change.doc.data();
           if (audioRef.current) {
-            audioRef.current.play().catch(e => console.log("Audio play blocked by browser. User must interact first."));
+            audioRef.current.play().catch(e => console.log("Audio blocked"));
           }
           toast({
             title: "নতুন টাকা জমা হয়েছে! 🔔",
@@ -144,13 +142,6 @@ export default function DashboardScreen({ user }: { user: User }) {
     const storedLogo = localStorage.getItem("mg_logo");
     if (storedLogo) setLogo(storedLogo);
 
-    // Simulated Weather/Location detection
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(() => {
-        setWeather({ city: "Dhaka, Bangladesh", temp: "30°C", desc: "Clear Sky" });
-      });
-    }
-
     return () => clearInterval(timer);
   }, []);
 
@@ -165,18 +156,14 @@ export default function DashboardScreen({ user }: { user: User }) {
 
   const handleCloudBackup = async () => {
     setBackupLoading(true);
-    const now = new Date();
     const rows = transactions.map(t => [t.n, t.d, t.a]);
-    rows.unshift([`--- BACKUP SESSION: ${format(now, "dd/MM/yyyy HH:mm:ss")} ---`, "", ""]);
-    rows.push(["TOTAL FOUNDATION ASSETS", "", dashboardTotal.toLocaleString()]);
-
     try {
       await fetch(SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
         body: JSON.stringify({ spreadsheetId: SPREADSHEET_ID, rows: rows })
       });
-      toast({ title: "ব্যাকআপ সফল হয়েছে!", description: "ডাটা এখন গুগল শিটে সংরক্ষিত।" });
+      toast({ title: "ব্যাকআপ সফল হয়েছে!" });
     } catch (error) {
       toast({ title: "ব্যাকআপ ব্যর্থ", variant: "destructive" });
     } finally { setBackupLoading(false); }
@@ -220,14 +207,11 @@ export default function DashboardScreen({ user }: { user: User }) {
             variant="ghost" 
             size="icon" 
             className="h-10 w-10 bg-red-50 hover:bg-red-100 rounded-xl" 
-            onClick={() => {
-              if (auth) signOut(auth);
-              toast({title: "Security Lockout", description: "You have been securely logged out."});
-            }}
+            onClick={() => { if (auth) signOut(auth); }}
           >
             <Lock className="h-5 w-5 text-red-500" />
           </Button>
-          <div className="w-10 h-10 bg-slate-100 rounded-xl border border-slate-100 flex items-center justify-center overflow-hidden">
+          <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden">
              {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-400" />}
           </div>
         </div>
@@ -236,14 +220,13 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className="flex-1 px-6 py-6 container max-w-lg mx-auto">
         {activeTab === "home" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Weather & Location Banner */}
             <div className="grid grid-cols-2 gap-3">
                <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-3">
                  <div className="w-10 h-10 bg-orange-50 rounded-2xl flex items-center justify-center">
                    <CloudSun className="h-5 w-5 text-orange-500" />
                  </div>
                  <div>
-                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Temperature</p>
+                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Temp</p>
                    <p className="text-xs font-black text-primary">{weather.temp}</p>
                  </div>
                </div>
@@ -270,7 +253,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               </div>
             </div>
 
-            <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative p-1 group">
+            <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative p-1">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
               <CardContent className="p-10 text-center relative z-10">
                 <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-4">
@@ -287,83 +270,54 @@ export default function DashboardScreen({ user }: { user: User }) {
             </Card>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 bg-primary rounded-[2.2rem] text-white shadow-2xl relative overflow-hidden border border-white/5 group hover:scale-[1.02] transition-transform">
+              <div className="p-6 bg-primary rounded-[2.2rem] text-white shadow-2xl relative border border-white/5 hover:scale-[1.02] transition-transform">
                 <div className="text-[8px] font-black uppercase text-accent tracking-[0.2em] mb-3 flex items-center gap-2">
                   <div className="w-1 h-1 bg-accent rounded-full" /> Hajj Countdown
                 </div>
                 <h4 className="text-xs font-bold leading-tight">
                   {hajjData.str}<br/>
-                  <span className="text-xl font-black text-accent">
-                    {hajjData.days} Days
-                  </span>
+                  <span className="text-xl font-black text-accent">{hajjData.days} Days</span>
                 </h4>
               </div>
-              <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform">
+              <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl hover:scale-[1.02] transition-transform">
                 <div className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-2">
                    <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan Countdown
                 </div>
                 <h4 className="text-xs font-bold leading-tight text-slate-500">
                   {ramadanData.str}<br/>
-                  <span className="text-xl font-black text-primary">
-                    {ramadanData.days} Days
-                  </span>
+                  <span className="text-xl font-black text-primary">{ramadanData.days} Days</span>
                 </h4>
               </div>
             </div>
-
-            <Card className="bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-sm flex flex-col items-center justify-center text-center gap-4 hover:shadow-md transition-shadow">
-               <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center">
-                 <ShieldCheck className="h-8 w-8 text-primary opacity-20" />
-               </div>
-               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-                 Hacker-Proof Infrastructure<br/>
-                 <span className="text-[10px] opacity-60">Your data is secured with AES-256 Encryption.</span>
-               </p>
-            </Card>
           </div>
         )}
 
         {activeTab === "members" && <MemberManager />}
         {activeTab === "history" && (
-          <div className="space-y-6 animate-in fade-in duration-500">
-            <TransactionManager 
-              members={members as MGMember[]} 
-              transactions={transactions} 
-              mode="history" 
-              filterMonth={filterMonth} 
-              onFilterMonthChange={setFilterMonth} 
-            />
-          </div>
+          <TransactionManager 
+            members={members as MGMember[]} 
+            transactions={transactions} 
+            mode="history" 
+            filterMonth={filterMonth} 
+            onFilterMonthChange={setFilterMonth} 
+          />
         )}
         {activeTab === "chat" && <ChatScreen user={user} />}
         {activeTab === "call" && <VideoCall user={user} />}
         {activeTab === "gallery" && <DocStorage />}
         {activeTab === "ai" && <DemandLetterAssistant />}
         {activeTab === "setting" && (
-          <div className="space-y-6 animate-in fade-in duration-500">
-            <Card className="rounded-[2.5rem] border-none shadow-2xl p-8 bg-white overflow-hidden relative">
-              <div className="flex flex-col items-center gap-8 relative z-10">
-                <div className="p-8 bg-slate-50 rounded-[2.5rem] w-full flex flex-col items-center gap-4 border border-slate-100 shadow-inner">
-                  <LogoManager currentLogo={logo} onUpdate={setLogo} />
-                  <div className="text-center">
-                    <h3 className="font-black text-primary uppercase text-lg tracking-tight">Admin System</h3>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Foundation Settings</p>
-                  </div>
-                </div>
-
+          <div className="space-y-6">
+            <Card className="rounded-[2.5rem] border-none shadow-2xl p-8 bg-white">
+              <div className="flex flex-col items-center gap-8">
+                <LogoManager currentLogo={logo} onUpdate={setLogo} />
                 <div className="w-full space-y-4">
-                   <Button className="w-full h-16 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32] border-none shadow-lg hover:scale-[1.02] active:scale-95 transition-all" onClick={handleCloudBackup} disabled={backupLoading}>
+                   <Button className="w-full h-16 rounded-2xl font-black bg-[#E8F5E9] text-[#2E7D32]" onClick={handleCloudBackup} disabled={backupLoading}>
                      {backupLoading ? <RotateCcw className="h-6 w-6 animate-spin" /> : <RotateCcw className="h-6 w-6" />} GOOGLE CLOUD BACKUP
                    </Button>
-                   <Button variant="outline" className="w-full h-16 rounded-2xl font-black border-slate-200 hover:bg-slate-50 active:scale-95 transition-all" onClick={() => setActiveTab("ai")}>
+                   <Button variant="outline" className="w-full h-16 rounded-2xl font-black" onClick={() => setActiveTab("ai")}>
                      <Sparkles className="mr-3 h-6 w-6 text-primary" /> AI LETTER DRAFTER
                    </Button>
-                   <Button variant="outline" className="w-full h-16 rounded-2xl font-black border-slate-200 hover:bg-slate-50 active:scale-95 transition-all" onClick={() => setActiveTab("gallery")}>
-                     <ImageIcon className="mr-3 h-6 w-6 text-primary" /> DIGITAL VAULT
-                   </Button>
-                   <Button variant="destructive" className="w-full h-16 rounded-2xl font-black shadow-xl mt-6 active:scale-95 transition-all" onClick={() => { if(auth) signOut(auth); }}>
-                    <LogOut className="mr-3 h-6 w-6" /> SECURE LOGOUT
-                  </Button>
                 </div>
               </div>
             </Card>
@@ -371,97 +325,53 @@ export default function DashboardScreen({ user }: { user: User }) {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50 pointer-events-none">
-        <div className="max-w-md mx-auto relative pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,35,102,0.3)] border border-white/50 flex items-center justify-between px-2 py-3">
-            
+      <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50">
+        <div className="max-w-md mx-auto">
+          <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-2xl border border-white/50 flex items-center justify-between px-2 py-3">
             <div className="flex items-center justify-around flex-1 gap-1">
-              <button 
-                onClick={() => setActiveTab("home")} 
-                className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
-                  activeTab === "home" ? "text-primary scale-110" : "text-slate-300"
-                )}
-              >
-                <Home className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "home" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "home" ? "text-primary scale-110" : "text-slate-300")}>
+                <Home className={cn("h-6 w-6", activeTab === "home" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Home</span>
               </button>
-              
-              <button 
-                onClick={() => setActiveTab("members")} 
-                className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
-                  activeTab === "members" ? "text-primary scale-110" : "text-slate-300"
-                )}
-              >
-                <Users className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "members" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "members" ? "text-primary scale-110" : "text-slate-300")}>
+                <Users className={cn("h-6 w-6", activeTab === "members" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Members</span>
               </button>
-
-              <button 
-                onClick={() => setActiveTab("history")} 
-                className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
-                  activeTab === "history" ? "text-primary scale-110" : "text-slate-300"
-                )}
-              >
-                <History className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "history" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "history" ? "text-primary scale-110" : "text-slate-300")}>
+                <History className={cn("h-6 w-6", activeTab === "history" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">History</span>
               </button>
             </div>
-
-            <div className="px-3 -mt-12 relative">
+            <div className="px-3 -mt-12">
               <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                 <DialogTrigger asChild>
-                  <button className="group relative focus:outline-none">
-                    <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl group-hover:blur-3xl transition-all animate-pulse" />
-                    <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-2xl flex items-center justify-center text-white relative z-10 transition-all active:scale-90 active:rotate-90 hover:scale-110 hover:-translate-y-2">
+                  <button className="group relative">
+                    <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl animate-pulse" />
+                    <div className="w-16 h-16 rounded-full bg-primary border-[6px] border-white shadow-2xl flex items-center justify-center text-white z-10 transition-all hover:scale-110">
                       <Plus className="h-8 w-8 stroke-[4px]" />
                     </div>
                   </button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[95vw] rounded-[3rem] p-8 border-none shadow-2xl">
-                  <DialogHeader><DialogTitle className="text-center font-black uppercase text-primary text-xl tracking-tight">New Deposit</DialogTitle></DialogHeader>
+                <DialogContent className="max-w-[95vw] rounded-[3rem] p-8">
+                  <DialogHeader><DialogTitle className="text-center font-black uppercase text-primary">New Deposit</DialogTitle></DialogHeader>
                   <TransactionManager members={members as MGMember[]} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
                 </DialogContent>
               </Dialog>
             </div>
-
             <div className="flex items-center justify-around flex-1 gap-1">
-              <button 
-                onClick={() => setActiveTab("chat")} 
-                className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
-                  activeTab === "chat" ? "text-primary scale-110" : "text-slate-300"
-                )}
-              >
-                <MessageSquare className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "chat" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "chat" ? "text-primary scale-110" : "text-slate-300")}>
+                <MessageSquare className={cn("h-6 w-6", activeTab === "chat" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Chat</span>
               </button>
-              
-              <button 
-                onClick={() => setActiveTab("call")} 
-                className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
-                  activeTab === "call" ? "text-primary scale-110" : "text-slate-300"
-                )}
-              >
-                <Video className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "call" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+              <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "call" ? "text-primary scale-110" : "text-slate-300")}>
+                <Video className={cn("h-6 w-6", activeTab === "call" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">Call</span>
               </button>
-              
-              <button 
-                onClick={() => setActiveTab("setting")} 
-                className={cn(
-                  "flex flex-col items-center justify-center py-2 px-1 transition-all duration-300 active:scale-125 group",
-                  activeTab === "setting" ? "text-primary scale-110" : "text-slate-300"
-                )}
-              >
-                <Settings className={cn("h-6 w-6 transition-all group-active:animate-bounce", activeTab === "setting" ? "stroke-[3px] -translate-y-1" : "stroke-[2px]")} />
+              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-1 transition-all active:scale-125", activeTab === "setting" ? "text-primary scale-110" : "text-slate-300")}>
+                <Settings className={cn("h-6 w-6", activeTab === "setting" ? "stroke-[3px]" : "stroke-[2px]")} />
                 <span className="text-[8px] font-black uppercase tracking-tighter mt-1">System</span>
               </button>
             </div>
-
           </div>
         </div>
       </nav>
