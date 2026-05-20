@@ -46,6 +46,14 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
+const BENGALI_DAYS = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"];
+const BENGALI_MONTHS = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+const BENGALI_NUMBERS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+
+const toBengaliNumber = (num: number | string) => {
+  return num.toString().split('').map(d => BENGALI_NUMBERS[parseInt(d)] || d).join('');
+};
+
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-FD96Fos4HsBOHEhs3mG50CyZe4tPWmYsyiam5KL7w7BekgvgrsM8vFYP2GK-FOCG/exec";
 const SPREADSHEET_ID = "1tejHpkOfJR0vJZbEhM8NAeXUFrcibX7neGJHEAJd6fc";
 
@@ -73,8 +81,8 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [backupLoading, setBackupLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
-  const [hajjData, setHajjData] = useState({ days: 0, str: "" });
-  const [ramadanData, setRamadanData] = useState({ days: 0, str: "" });
+  const [hajjData, setHajjData] = useState({ days: 0, date: "" });
+  const [ramadanData, setRamadanData] = useState({ days: 0, date: "" });
   const [isHydrated, setIsHydrated] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -96,11 +104,9 @@ export default function DashboardScreen({ user }: { user: User }) {
   }, [db]);
   const { data: members = [] } = useCollection(membersQuery);
 
-  // Notification Sound Logic
   useEffect(() => {
     if (!db) return;
     
-    // Using a reliable notification sound for new deposits
     audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 
     const unsubscribe = onSnapshot(collection(db, "transactions"), (snapshot) => {
@@ -135,8 +141,21 @@ export default function DashboardScreen({ user }: { user: User }) {
     const nextHajj = GET_NEXT_DATE(new Date("2026-05-25"));
     const nextRamadan = GET_NEXT_DATE(new Date("2026-02-18"));
     
-    setHajjData({ days: differenceInDays(nextHajj, now), str: format(nextHajj, "dd MMMM yyyy") });
-    setRamadanData({ days: differenceInDays(nextRamadan, now), str: format(nextRamadan, "dd MMMM yyyy") });
+    const formatDateBn = (d: Date) => {
+      const day = toBengaliNumber(d.getDate());
+      const month = BENGALI_MONTHS[d.getMonth()];
+      const year = toBengaliNumber(d.getFullYear());
+      return `${day} ${month}, ${year}`;
+    };
+
+    setHajjData({ 
+      days: differenceInDays(nextHajj, now), 
+      date: formatDateBn(nextHajj) 
+    });
+    setRamadanData({ 
+      days: differenceInDays(nextRamadan, now), 
+      date: formatDateBn(nextRamadan) 
+    });
 
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
 
@@ -157,28 +176,17 @@ export default function DashboardScreen({ user }: { user: User }) {
 
   const handleCloudBackup = async () => {
     setBackupLoading(true);
-    
-    // Filter transactions based on selected month for backup
     const filteredForBackup = filterMonth === "All" 
       ? transactions 
       : transactions.filter(t => {
           const tDate = new Date(t.d);
           return MONTHS[tDate.getMonth()] === filterMonth;
         });
-
-    // Calculate total for only the filtered data
     const total = filteredForBackup.reduce((acc, curr) => acc + (parseFloat(curr.a) || 0), 0);
-    
-    // Create header row with timestamp and month name
     const timestamp = format(new Date(), "dd/MM/yyyy HH:mm:ss");
     const headerRow = [`-- BACKUP SESSION (${filterMonth}): ${timestamp} --`, "", ""];
-    
-    // Data rows
     const dataRows = filteredForBackup.map(t => [t.n, t.d, t.a]);
-    
-    // Total row for the filtered month
     const totalRow = [`TOTAL ${filterMonth.toUpperCase()} ASSETS`, "", total.toLocaleString()];
-    
     const finalRows = [headerRow, ...dataRows, totalRow];
 
     try {
@@ -193,6 +201,15 @@ export default function DashboardScreen({ user }: { user: User }) {
     } finally { setBackupLoading(false); }
   };
 
+  const currentBn = useMemo(() => {
+    if (!currentTime) return null;
+    const dayName = BENGALI_DAYS[currentTime.getDay()];
+    const day = toBengaliNumber(currentTime.getDate());
+    const month = BENGALI_MONTHS[currentTime.getMonth()];
+    const year = toBengaliNumber(currentTime.getFullYear());
+    return { dayName, day, month, year };
+  }, [currentTime]);
+
   if (!isHydrated || !currentTime) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -200,117 +217,115 @@ export default function DashboardScreen({ user }: { user: User }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFF] flex flex-col font-body pb-32">
-      <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="relative w-11 h-11 rounded-xl border border-primary/10 flex items-center justify-center overflow-hidden shadow-sm cursor-pointer" onClick={() => setActiveTab("setting")}>
-            {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black">MG</div>}
-          </div>
-          <div className="flex flex-col">
-            <h1 className="text-[11px] font-[900] text-primary uppercase tracking-tight leading-none mb-1">
-              MINAR GO FOUNDATION
-            </h1>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Bell className="h-3 w-3 text-secondary animate-bounce" />
-                <span className="text-[10px] font-bold text-secondary uppercase">Live System</span>
-              </div>
-              <div className="h-3 w-[1px] bg-slate-200" />
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3 text-primary" />
-                <span className="text-[10px] font-black text-primary">
-                  {format(currentTime, "hh:mm:ss a")}
-                </span>
-              </div>
+    <div className={cn(
+      "min-h-screen flex flex-col font-body pb-32",
+      activeTab === "home" ? "bg-gradient-to-br from-[#00d2ff] via-[#3a7bd5] to-[#002366]" : "bg-[#F8FAFF]"
+    )}>
+      {activeTab !== "home" && (
+        <header className="px-6 py-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-40">
+          <div className="flex items-center gap-3">
+            <div className="relative w-11 h-11 rounded-xl border border-primary/10 flex items-center justify-center overflow-hidden shadow-sm cursor-pointer" onClick={() => setActiveTab("setting")}>
+              {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full bg-primary flex items-center justify-center text-white font-black">MG</div>}
             </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-10 w-10 bg-red-50 hover:bg-red-100 rounded-xl" 
-            onClick={() => { if (auth) signOut(auth); }}
-          >
-            <Lock className="h-5 w-5 text-red-500" />
-          </Button>
-          <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden">
-             {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-400" />}
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 px-6 py-6 container max-w-lg mx-auto">
-        {activeTab === "home" && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid grid-cols-2 gap-3">
-               <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-3">
-                 <div className="w-10 h-10 bg-orange-50 rounded-2xl flex items-center justify-center">
-                   <CloudSun className="h-5 w-5 text-orange-500" />
-                 </div>
-                 <div>
-                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Temp</p>
-                   <p className="text-xs font-black text-primary">{weather.temp}</p>
-                 </div>
-               </div>
-               <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-3">
-                 <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center">
-                   <Navigation className="h-5 w-5 text-blue-500" />
-                 </div>
-                 <div className="overflow-hidden">
-                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Location</p>
-                   <p className="text-[10px] font-black text-primary truncate">{weather.city}</p>
-                 </div>
-               </div>
-            </div>
-
-            <div className="px-6 py-4 bg-white border border-slate-100 rounded-[2rem] shadow-sm flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Official Date</p>
-                  <h2 className="text-sm font-black text-primary tracking-tight">
-                    {format(currentTime, "EEEE, MMMM dd, yyyy")}
-                  </h2>
+            <div className="flex flex-col">
+              <h1 className="text-[11px] font-[900] text-primary uppercase tracking-tight leading-none mb-1">
+                MINAR GO FOUNDATION
+              </h1>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Bell className="h-3 w-3 text-secondary animate-bounce" />
+                  <span className="text-[10px] font-bold text-secondary uppercase">Live System</span>
+                </div>
+                <div className="h-3 w-[1px] bg-slate-200" />
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-primary" />
+                  <span className="text-[10px] font-black text-primary">
+                    {format(currentTime, "hh:mm:ss a")}
+                  </span>
                 </div>
               </div>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-10 w-10 bg-red-50 hover:bg-red-100 rounded-xl" 
+              onClick={() => { if (auth) signOut(auth); }}
+            >
+              <Lock className="h-5 w-5 text-red-500" />
+            </Button>
+            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden">
+               {user.photoURL ? <Image src={user.photoURL} alt="Profile" width={40} height={40} className="object-cover" /> : <UserIcon className="h-5 w-5 text-slate-400" />}
+            </div>
+          </div>
+        </header>
+      )}
 
-            <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative p-1">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
-              <CardContent className="p-10 text-center relative z-10">
-                <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-4">
-                  {filterMonth === "All" ? "Total Assets" : `${filterMonth} Assets`}
+      <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-6")}>
+        {activeTab === "home" && (
+          <div className="relative min-h-screen flex flex-col items-center pt-12 pb-24 px-6 animate-in fade-in duration-1000">
+            {/* Log Out Button Top Right */}
+            <div className="absolute top-6 right-6 z-50">
+               <button 
+                 onClick={() => { if (auth) signOut(auth); }}
+                 className="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-white/20 text-[#ff4d94] font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-colors"
+               >
+                 LOG OUT <LogOut className="h-3.5 w-3.5" />
+               </button>
+            </div>
+
+            {/* Profile Section */}
+            <div className="flex flex-col items-center text-center space-y-8 w-full">
+              <div className="relative w-40 h-40 rounded-full border-[6px] border-[#C4A052] bg-white shadow-2xl flex items-center justify-center overflow-hidden">
+                {logo ? (
+                  <Image src={logo} alt="Logo" fill className="object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-primary flex items-center justify-center text-white text-4xl font-black">MG</div>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <h1 className="text-4xl font-[900] text-[#C4A052] uppercase tracking-tighter leading-none">
+                  MINAR GO EXPATRIATE
+                </h1>
+                <p className="text-lg font-medium text-white/80 tracking-widest">
+                  Development Foundation
                 </p>
-                <h3 className="text-5xl font-black text-white mb-3 tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
-                <div className="flex justify-center items-center gap-3">
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full border border-white/10 backdrop-blur-md">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                    <span className="text-[9px] font-black text-white uppercase tracking-widest">Live Cloud Data</span>
+              </div>
+
+              {/* Countdown Boxes */}
+              <div className="grid grid-cols-2 gap-4 w-full pt-8">
+                <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-[2rem] p-6 text-center space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm">
+                    <span role="img" aria-label="Kaaba">🕋</span> হজ্জ (সম্ভাব্য)
+                  </div>
+                  <div className="text-lg font-black text-white/90">
+                    {hajjData.date}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 bg-primary rounded-[2.2rem] text-white shadow-2xl relative border border-white/5 hover:scale-[1.02] transition-transform">
-                <div className="text-[8px] font-black uppercase text-accent tracking-[0.2em] mb-3 flex items-center gap-2">
-                  <div className="w-1 h-1 bg-accent rounded-full" /> Hajj Countdown
+                <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-[2rem] p-6 text-center space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-white font-bold text-sm">
+                    <span role="img" aria-label="Moon">🌙</span> রমজান (সম্ভাব্য)
+                  </div>
+                  <div className="text-lg font-black text-white/90">
+                    {ramadanData.date}
+                  </div>
                 </div>
-                <h4 className="text-xs font-bold leading-tight">
-                  {hajjData.str}<br/>
-                  <span className="text-xl font-black text-accent">{hajjData.days} Days</span>
-                </h4>
               </div>
-              <div className="p-6 bg-white rounded-[2.2rem] border border-slate-100 shadow-xl hover:scale-[1.02] transition-transform">
-                <div className="text-[8px] font-black uppercase text-primary tracking-[0.2em] mb-3 flex items-center gap-2">
-                   <div className="w-1 h-1 bg-primary rounded-full" /> Ramadan Countdown
-                </div>
-                <h4 className="text-xs font-bold leading-tight text-slate-500">
-                  {ramadanData.str}<br/>
-                  <span className="text-xl font-black text-primary">{ramadanData.days} Days</span>
-                </h4>
+
+              {/* Full Width Date Box */}
+              <div className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-[1.5rem] py-4 px-6 text-center shadow-xl">
+                 <h2 className="text-xl font-bold text-white tracking-tight font-bengali">
+                   আজ: <span className="text-orange-400">{currentBn?.dayName}</span> | তারিখ: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span>
+                 </h2>
+              </div>
+              
+              {/* Total Assets Summary (Integrated for feature retention) */}
+              <div className="w-full bg-primary/40 backdrop-blur-lg border border-white/5 rounded-[2rem] p-6 text-center group cursor-pointer hover:bg-primary/50 transition-all" onClick={() => setActiveTab("history")}>
+                <p className="text-[10px] uppercase font-black text-accent tracking-[0.3em] mb-2">Total Foundation Assets</p>
+                <h3 className="text-3xl font-black text-white tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
               </div>
             </div>
           </div>
