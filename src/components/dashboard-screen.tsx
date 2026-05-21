@@ -367,12 +367,12 @@ export default function DashboardScreen({ user }: { user: User }) {
       </main>
 
       <nav className="fixed bottom-0 left-0 w-full px-4 pb-8 z-50">
-        <div className="max-w-md mx-auto">
-          <div className="glass-nav rounded-[2.5rem] flex items-center px-4 py-4">
-            <div className="flex items-center flex-nowrap flex-1 overflow-x-auto scrollbar-hide gap-6 px-2">
-              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center flex-shrink-0 transition-colors", activeTab === "home" ? "text-[#002366]" : "text-slate-300")}><Home className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Home</span></button>
-              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center flex-shrink-0 transition-colors", activeTab === "members" ? "text-[#002366]" : "text-slate-300")}><Users className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Members</span></button>
-              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center flex-shrink-0 transition-colors", activeTab === "history" ? "text-[#002366]" : "text-slate-300")}><History className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">History</span></button>
+        <div className="w-full mx-auto">
+          <div className="glass-nav rounded-[2.5rem] flex items-center px-3 py-4 overflow-hidden">
+            <div className="flex items-center flex-nowrap flex-1 overflow-x-auto scrollbar-hide gap-4 px-2">
+              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "home" ? "text-[#002366]" : "text-slate-300")}><Home className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Home</span></button>
+              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "members" ? "text-[#002366]" : "text-slate-300")}><Users className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Members</span></button>
+              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "history" ? "text-[#002366]" : "text-slate-300")}><History className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">History</span></button>
               
               <div className="flex-shrink-0 relative">
                 <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
@@ -390,9 +390,9 @@ export default function DashboardScreen({ user }: { user: User }) {
                 </Dialog>
               </div>
 
-              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center flex-shrink-0 transition-colors", activeTab === "chat" ? "text-[#002366]" : "text-slate-300")}><MessageSquare className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Chat</span></button>
-              <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center flex-shrink-0 transition-colors", activeTab === "call" ? "text-[#002366]" : "text-slate-300")}><Video className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Call</span></button>
-              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center flex-shrink-0 transition-colors", activeTab === "setting" ? "text-[#002366]" : "text-slate-300")}><Settings className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">System</span></button>
+              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "chat" ? "text-[#002366]" : "text-slate-300")}><MessageSquare className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Chat</span></button>
+              <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "call" ? "text-[#002366]" : "text-slate-300")}><Video className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Call</span></button>
+              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "setting" ? "text-[#002366]" : "text-slate-300")}><Settings className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">System</span></button>
             </div>
           </div>
         </div>

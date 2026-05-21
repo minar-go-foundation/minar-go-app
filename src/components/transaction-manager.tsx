@@ -98,12 +98,25 @@ export default function TransactionManager({
 
       const blob = doc.output('blob');
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a'); 
-      link.href = url; 
-      link.download = `MinarGo_Report_${filterMonth}.pdf`;
-      document.body.appendChild(link); 
-      link.click(); 
-      document.body.removeChild(link);
+
+      if (typeof window.navigator.msSaveOrOpenBlob === "function") {
+        window.navigator.msSaveOrOpenBlob(blob, `MinarGo_Report_${filterMonth}.pdf`);
+      } else {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `MinarGo_Report_${filterMonth}.pdf`;
+        link.target = "_blank";
+        document.body.appendChild(link);
+
+        if (typeof link.click === "function") {
+          link.click();
+        } else {
+          window.open(url, "_blank");
+        }
+
+        document.body.removeChild(link);
+      }
+
       setTimeout(() => URL.revokeObjectURL(url), 100);
       toast({ title: "PDF Ready" });
     } catch (e) { 
