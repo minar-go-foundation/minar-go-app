@@ -78,17 +78,23 @@ export default function DemandLetterAssistant() {
       
       doc.text("With Regards, Minar Go Authority", 20, pageHeight - 50);
       
-      const blob = doc.output('blob');
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url; 
-      link.download = `MinarGo_Letter_${lang}.pdf`;
-      document.body.appendChild(link); 
-      link.click(); 
-      document.body.removeChild(link);
+      // Improved download logic for mobile/android
+      const pdfData = doc.output('blob');
+      const blobURL = URL.createObjectURL(pdfData);
       
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-      toast({ title: "Download Started" });
+      const tempLink = document.createElement('a');
+      tempLink.href = blobURL;
+      tempLink.download = `MinarGo_Letter_${lang}_${Date.now()}.pdf`;
+      tempLink.style.display = 'none';
+      document.body.appendChild(tempLink);
+      tempLink.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(tempLink);
+        URL.revokeObjectURL(blobURL);
+      }, 500);
+      
+      toast({ title: "Document Saved", description: "Check your Downloads folder." });
     } catch (e) { 
       toast({ title: "Export Error", variant: "destructive" }); 
     }
@@ -106,13 +112,13 @@ export default function DemandLetterAssistant() {
             placeholder="Recipient Company" 
             value={letterDetails.companyName} 
             onChange={(e) => setLetterDetails({...letterDetails, companyName: e.target.value})} 
-            className="h-14 rounded-2xl bg-slate-50 border-none font-bold" 
+            className="h-14 rounded-2xl bg-slate-50 border-none font-bold px-4" 
           />
           <Textarea 
             placeholder="Describe the purpose..." 
             value={purpose} 
             onChange={(e) => setPurpose(e.target.value)} 
-            className="h-44 rounded-3xl bg-slate-50 border-none p-6" 
+            className="h-44 rounded-3xl bg-slate-50 border-none p-6 text-sm" 
           />
           <Button 
             className="w-full bg-primary h-16 rounded-2xl text-lg font-black uppercase" 

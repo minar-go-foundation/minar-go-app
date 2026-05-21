@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -32,7 +33,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-[#002366] text-white;
+    @apply bg-[#002366] text-white overflow-x-hidden;
   }
   .font-bengali {
     font-family: 'Noto Sans Bengali', sans-serif;
@@ -47,17 +48,12 @@
   @apply bg-white/90 backdrop-blur-2xl border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)];
 }
 
-.mesh-gradient {
-  background-color: #002366;
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(222,100%,20%,1) 0, transparent 50%), 
-    radial-gradient(at 100% 100%, hsla(222,100%,15%,1) 0, transparent 50%);
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
-
-.no-print {
-  @media print {
-    display: none !important;
-  }
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @keyframes spin-slow {
@@ -67,12 +63,4 @@
 
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
