@@ -169,7 +169,7 @@ export default function AuthScreen() {
              <button 
                type="button"
                onClick={() => setStep("auth")} 
-               className="text-[11px] font-black text-slate-400 hover:text-primary uppercase tracking-widest transition-colors"
+               className="text-[11px] font-black text-slate-400 uppercase tracking-widest transition-colors"
              >
                Back to Login
              </button>
