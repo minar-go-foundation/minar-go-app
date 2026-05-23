@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Trash2, FileText, Upload, Download, HardDrive, Eye, Calendar, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { saveBlobToDevice } from "@/lib/saveFile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -84,13 +85,19 @@ export default function DocStorage() {
     toast({ title: "Document Removed", description: "Deleted successfully." });
   };
 
-  const downloadDoc = (doc: MGDoc) => {
-    const link = document.createElement("a");
-    link.href = doc.data;
-    link.download = doc.title;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadDoc = async (doc: MGDoc) => {
+    try {
+      const res = await fetch(doc.data);
+      const blob = await res.blob();
+      const saved = await saveBlobToDevice(blob, doc.title);
+      if (saved) {
+        toast({ title: "Document Saved", description: "Check your Downloads folder." });
+      } else {
+        toast({ title: "Download Failed", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Download Failed", variant: "destructive" });
+    }
   };
 
   const isImage = (type: string) => type.startsWith('image/');

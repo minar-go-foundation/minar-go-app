@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { saveBlobToDevice } from "@/lib/saveFile";
 import { MGMember, MGTransaction } from "@/lib/types";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
@@ -75,7 +76,7 @@ export default function TransactionManager({
     });
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     try {
       const doc = new jsPDF();
       doc.setFillColor(0, 35, 102); 
@@ -97,17 +98,15 @@ export default function TransactionManager({
       doc.text("© 2024 MINAR GO EXPATRIATE DEVELOPMENT FOUNDATION. ALL RIGHTS RESERVED.", 105, doc.internal.pageSize.height - 10, { align: "center" });
 
       const blob = doc.output('blob');
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a'); 
-      link.href = url; 
-      link.download = `MinarGo_Report_${filterMonth}.pdf`;
-      document.body.appendChild(link); 
-      link.click(); 
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-      toast({ title: "PDF Ready" });
-    } catch (e) { 
-      toast({ title: "Export Error", variant: "destructive" }); 
+
+      const saved = await saveBlobToDevice(blob, `MinarGo_Report_${filterMonth}.pdf`);
+      if (saved) {
+        toast({ title: "PDF Saved", description: "Check your Downloads folder." });
+      } else {
+        toast({ title: "Export Error", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Export Error", variant: "destructive" });
     }
   };
 

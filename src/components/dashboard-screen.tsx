@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -22,9 +23,12 @@ import {
   Palette,
   Calendar,
   Sparkles,
-  Video
+  Video,
+  MapPin,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import MemberManager from "./member-manager";
@@ -77,6 +81,7 @@ const getWeatherDesc = (code: number) => {
 };
 
 export default function DashboardScreen({ user }: { user: User }) {
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [logo, setLogo] = useState<string | null>(null);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
@@ -88,6 +93,8 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [ramadanData, setRamadanData] = useState({ days: 0, date: "" });
   const [currentTheme, setCurrentTheme] = useState<Theme>("navy"); 
   const [isHydrated, setIsHydrated] = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
+  const [locPermissionLoading, setLocPermissionLoading] = useState(true);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isFirstLoad = useRef(true);
@@ -107,6 +114,42 @@ export default function DashboardScreen({ user }: { user: User }) {
     return query(collection(db, "members"), orderBy("name", "asc"));
   }, [db]);
   const { data: members = [] } = useCollection(membersQuery);
+
+  const requestLocation = () => {
+    setLocPermissionLoading(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocationDenied(false);
+          setLocPermissionLoading(false);
+          try {
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+            const weatherData = await weatherRes.json();
+            const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+            const geoData = await geoRes.json();
+            const city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.state || "Current City";
+            const countryCode = geoData.address.country_code?.toUpperCase() || "INT";
+            setWeather({
+              city: `${city}, ${countryCode}`,
+              temp: `${Math.round(weatherData.current_weather.temperature)}°C`,
+              desc: getWeatherDesc(weatherData.current_weather.weathercode)
+            });
+          } catch (error) {
+            setWeather({ city: "Global Access", temp: "--°C", desc: "Sunny" });
+          }
+        },
+        () => {
+          setLocationDenied(true);
+          setLocPermissionLoading(false);
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      setLocationDenied(true);
+      setLocPermissionLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!db) return;
@@ -162,28 +205,8 @@ export default function DashboardScreen({ user }: { user: User }) {
     const storedTheme = localStorage.getItem("mg_theme") as Theme;
     if (storedTheme) setCurrentTheme(storedTheme);
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
-          const weatherData = await weatherRes.json();
-          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-          const geoData = await geoRes.json();
-          const city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.state || "Current City";
-          const countryCode = geoData.address.country_code?.toUpperCase() || "INT";
-          setWeather({
-            city: `${city}, ${countryCode}`,
-            temp: `${Math.round(weatherData.current_weather.temperature)}°C`,
-            desc: getWeatherDesc(weatherData.current_weather.weathercode)
-          });
-        } catch (error) {
-          setWeather({ city: "Global Access", temp: "--°C", desc: "Sunny" });
-        }
-      }, () => {
-        setWeather({ city: "Global Access", temp: "--°C", desc: "Sunny" });
-      });
-    }
+    requestLocation();
+    
     return () => clearInterval(timer);
   }, []);
 
@@ -233,7 +256,35 @@ export default function DashboardScreen({ user }: { user: User }) {
     }
   }, [currentTheme]);
 
+  const callNumber = user.phoneNumber || "+8801725277089";
+
   if (!isHydrated || !currentTime) return null;
+
+  if (locationDenied) {
+    return (
+      <div className="min-h-screen bg-[#002366] flex flex-col items-center justify-center p-8 text-center space-y-8 animate-in fade-in duration-500">
+        <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center border-4 border-red-500/30">
+          <AlertTriangle className="h-12 w-12 text-red-500" />
+        </div>
+        <div className="space-y-4">
+          <h1 className="text-3xl font-black text-white uppercase tracking-tight">Location Required</h1>
+          <p className="text-sm font-medium text-slate-300 max-w-xs leading-relaxed">
+            This application requires location access to verify secure international access and provide real-time regional weather data.
+          </p>
+        </div>
+        <Button 
+          onClick={requestLocation} 
+          className="bg-white text-[#002366] hover:bg-slate-100 h-14 w-full max-w-xs rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl"
+          disabled={locPermissionLoading}
+        >
+          {locPermissionLoading ? "Verifying..." : "Allow Access & Enter"}
+        </Button>
+        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+          Go to Phone Settings &gt; Browser &gt; Location to enable.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("min-h-screen flex flex-col font-body pb-32 transition-all duration-700", themeClasses)}>
@@ -261,7 +312,7 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "home" && (
           <div className="relative min-h-screen flex flex-col items-center pt-10 pb-24 px-6 animate-in fade-in duration-1000">
             <div className="w-full flex items-center justify-between mb-10">
-              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20"><CloudSun className="h-4 w-4 text-[#C4A052]" /><span className="text-[10px] font-black uppercase tracking-widest text-white">{weather.city} | {weather.temp} ({weather.desc})</span></div>
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20"><MapPin className="h-4 w-4 text-[#C4A052]" /><span className="text-[10px] font-black uppercase tracking-widest text-white">{weather.city} | {weather.temp}</span></div>
               <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20"><Clock className="h-4 w-4 text-[#C4A052]" /><span className="text-[10px] font-black uppercase tracking-widest text-white">{format(currentTime, "hh:mm a")}</span></div>
             </div>
             <div className="flex flex-col items-center text-center space-y-8 w-full">
@@ -290,7 +341,23 @@ export default function DashboardScreen({ user }: { user: User }) {
         {activeTab === "chat" && <ChatScreen user={user} />}
         {activeTab === "gallery" && <DocStorage />}
         {activeTab === "ai" && <DemandLetterAssistant />}
-        {activeTab === "call" && <VideoCall user={user} />}
+        {activeTab === "call" && (
+          isMobile ? (
+            <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center px-6 pb-32 text-center">
+              <div className="w-full max-w-sm rounded-[2.5rem] bg-white/10 border border-white/10 p-6 shadow-2xl backdrop-blur-xl">
+                <div className="mb-4 text-slate-200 text-xs uppercase tracking-[0.25em] font-bold">Device Dialer</div>
+                <div className="mb-4 text-white text-xl font-black">Peace Resistance Call</div>
+                <p className="text-[12px] text-slate-300 mb-6">Tap below to launch your Android dialer and place the call through your device network.</p>
+                <Button className="w-full h-14 rounded-3xl bg-[#002366] text-white font-black" onClick={() => { window.location.href = `tel:${user.phoneNumber || '+8801725277089'}`; }}>
+                  <Video className="mr-2 h-4 w-4" /> START CALL
+                </Button>
+                <p className="mt-4 text-[11px] text-slate-400">Your SIM/network dialer will open automatically if available.</p>
+              </div>
+            </div>
+          ) : (
+            <VideoCall user={user} />
+          )
+        )}
         {activeTab === "setting" && (
           <div className="space-y-8 animate-in fade-in">
             <Card className="rounded-[3rem] border-none shadow-2xl p-10 bg-white/10 backdrop-blur-xl">
@@ -319,22 +386,86 @@ export default function DashboardScreen({ user }: { user: User }) {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full px-6 pb-10 z-50">
-        <div className="max-w-md mx-auto">
-          <div className="glass-nav rounded-[3rem] flex items-center justify-between px-3 py-4">
-            <div className="flex items-center justify-around flex-1 gap-2">
-              <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "home" ? "text-[#002366]" : "text-slate-300")}><Home className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">Home</span></button>
-              <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "members" ? "text-[#002366]" : "text-slate-300")}><Users className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">Members</span></button>
-              <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "history" ? "text-[#002366]" : "text-slate-300")}><History className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">History</span></button>
-            </div>
-            <div className="px-4 -mt-14"><Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}><DialogTrigger asChild><button className="w-16 h-16 rounded-full bg-[#002366] border-[6px] border-white shadow-2xl flex items-center justify-center text-white"><Plus className="h-8 w-8 stroke-[4px]" /></button></DialogTrigger><DialogContent className="max-w-[95vw] rounded-[3rem] p-10 border-none glass-card"><DialogHeader><DialogTitle className="text-center font-[900] uppercase text-[#002366] text-xl">New Deposit</DialogTitle></DialogHeader><TransactionManager members={members as MGMember[]} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} /></DialogContent></Dialog></div>
-            <div className="flex items-center justify-around flex-1 gap-2">
-              <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "chat" ? "text-[#002366]" : "text-slate-300")}><MessageSquare className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">Chat</span></button>
-              <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "call" ? "text-[#002366]" : "text-slate-300")}><Video className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">Call</span></button>
-              <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center py-2 px-2", activeTab === "setting" ? "text-[#002366]" : "text-slate-300")}><Settings className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1.5">System</span></button>
+      <nav className="fixed bottom-0 left-0 w-full z-50">
+        {isMobile ? (
+          <div className="w-full flex justify-center pb-6">
+            <div className="w-[calc(100%-24px)] max-w-lg bg-white/95 dark:bg-white/5 rounded-3xl shadow-lg px-2 py-2 relative flex items-center">
+              <div className="grid grid-cols-7 w-full items-center gap-1">
+                <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center justify-center text-[8px] text-slate-400", activeTab === "home" ? "text-[#002366]" : "text-slate-400")}>
+                  <Home className="h-4 w-4" />
+                  <span className="mt-1 uppercase text-center">Home</span>
+                </button>
+                <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center justify-center text-[8px] uppercase text-slate-400", activeTab === "members" ? "text-[#002366]" : "text-slate-400")}>
+                  <Users className="h-4 w-4" />
+                  <span className="mt-1 whitespace-pre-line uppercase text-center">Peace\nResistance</span>
+                </button>
+                <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center justify-center text-[8px] text-slate-400", activeTab === "history" ? "text-[#002366]" : "text-slate-400")}>
+                  <History className="h-4 w-4" />
+                  <span className="mt-1 uppercase text-center">History</span>
+                </button>
+
+                <div className="flex items-center justify-center relative">
+                  <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
+                    <DialogTrigger asChild>
+                      <button className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#002366] border-2 border-white shadow-lg flex items-center justify-center text-white">
+                        <Plus className="h-6 w-6 stroke-[3px]" />
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-[95vw] rounded-[2.5rem] p-8 border-none glass-card">
+                      <DialogHeader>
+                        <DialogTitle className="text-center font-black uppercase text-[#002366] text-xl">Deposit</DialogTitle>
+                      </DialogHeader>
+                      <TransactionManager members={members as MGMember[]} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center justify-center text-[8px] text-slate-400", activeTab === "chat" ? "text-[#002366]" : "text-slate-400")}>
+                  <MessageSquare className="h-4 w-4" />
+                  <span className="mt-1 uppercase text-center">Chat</span>
+                </button>
+                <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center justify-center text-[8px] text-slate-400", activeTab === "call" ? "text-[#002366]" : "text-slate-400")}>
+                  <Video className="h-4 w-4" />
+                  <span className="mt-1 uppercase text-center">Call</span>
+                </button>
+                <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center justify-center text-[8px] text-slate-400", activeTab === "setting" ? "text-[#002366]" : "text-slate-400")}>
+                  <Settings className="h-4 w-4" />
+                  <span className="mt-1 uppercase text-center">System</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="w-full mx-auto">
+            <div className="glass-nav rounded-[2.5rem] flex items-center px-3 py-4 overflow-hidden">
+              <div className="flex items-center flex-nowrap flex-1 overflow-x-auto scrollbar-hide gap-4 px-2">
+                <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "home" ? "text-[#002366]" : "text-slate-300")}><Home className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Home</span></button>
+                <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "members" ? "text-[#002366]" : "text-slate-300")}><Users className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Members</span></button>
+                <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "history" ? "text-[#002366]" : "text-slate-300")}><History className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">History</span></button>
+                
+                <div className="flex-shrink-0 relative">
+                  <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
+                    <DialogTrigger asChild>
+                      <button className="w-14 h-14 rounded-full bg-[#002366] border-4 border-white shadow-xl flex items-center justify-center text-white -mt-2">
+                        <Plus className="h-7 w-7 stroke-[4px]" />
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-[95vw] rounded-[2.5rem] p-8 border-none glass-card">
+                      <DialogHeader>
+                        <DialogTitle className="text-center font-black uppercase text-[#002366] text-xl">Deposit</DialogTitle>
+                      </DialogHeader>
+                      <TransactionManager members={members as MGMember[]} transactions={transactions} mode="form" onSuccess={() => setIsDepositOpen(false)} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "chat" ? "text-[#002366]" : "text-slate-300")}><MessageSquare className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Chat</span></button>
+                <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "call" ? "text-[#002366]" : "text-slate-300")}><Video className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Call</span></button>
+                <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "setting" ? "text-[#002366]" : "text-slate-300")}><Settings className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">System</span></button>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
     </div>
   );
