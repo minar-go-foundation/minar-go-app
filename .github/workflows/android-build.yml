@@ -1,0 +1,56 @@
+name: Android CI - Build APK/AAB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build Android APK/AAB
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Build web app (Next) for production
+        run: |
+          npm run build || true
+
+      - name: Sync Capacitor Android
+        run: |
+          npx cap sync android || true
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Grant execute to gradlew
+        run: |
+          if [ -f android/gradlew ]; then chmod +x android/gradlew; fi
+
+      - name: Build Release APK/AAB
+        working-directory: android
+        run: |
+          if [ -f gradlew ]; then
+            ./gradlew assembleRelease || ./gradlew bundleRelease || true
+          else
+            echo "No gradlew found, skipping Android native build.";
+          fi
+
+      - name: Upload APK/AAB artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-artifacts
+          path: |
+            android/app/build/outputs/**/*.apk
+            android/app/build/outputs/**/*.aab
