@@ -22,11 +22,30 @@ jobs:
 
       - name: Build web app (Next) for production
         run: |
-          npm run build || true
+          npm run build
+
+      - name: Create placeholder web assets for Capacitor
+        run: |
+          mkdir -p out
+          cat > out/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <meta charset="UTF-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <title>Minar Go App</title>
+              <script>window.location.replace('https://minar-go-app.vercel.app');</script>
+            </head>
+            <body>
+              <h1>Redirecting to Minar Go App...</h1>
+              <p>If you are not redirected, <a href="https://minar-go-app.vercel.app">click here</a>.</p>
+            </body>
+          </html>
+          EOF
 
       - name: Sync Capacitor Android
         run: |
-          npx cap sync android || true
+          npx cap sync android
 
       - name: Set up JDK
         uses: actions/setup-java@v4
