@@ -57,10 +57,11 @@ jobs:
         run: |
           if [ -f android/gradlew ]; then chmod +x android/gradlew; fi
 
-      - name: Build Release APK/AAB
+      - name: Build Debug + Release APK/AAB
         working-directory: android
         run: |
           if [ -f gradlew ]; then
+            ./gradlew assembleDebug || true
             ./gradlew assembleRelease || ./gradlew bundleRelease || true
           else
             echo "No gradlew found, skipping Android native build.";
