@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, FileText, Upload, Download, HardDrive, Eye, Calendar, AlertCircle } from "lucide-react";
@@ -32,6 +32,7 @@ export default function DocStorage() {
   const [loading, setLoading] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<MGDoc | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -119,14 +120,19 @@ export default function DocStorage() {
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           <div className="flex flex-col gap-3">
-            <div className="relative">
-              <Button className="w-full bg-primary h-14 rounded-2xl text-white font-bold text-base shadow-lg shadow-primary/20 active:scale-95 transition-all" disabled={loading}>
+            <div>
+              <Button
+                className="w-full bg-primary h-14 rounded-2xl text-white font-bold text-base shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                disabled={loading}
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <Upload className="mr-2 h-5 w-5" /> {loading ? "PROCESSING..." : "SELECT & UPLOAD FILE"}
               </Button>
-              <input 
-                type="file" 
-                className="absolute inset-0 opacity-0 cursor-pointer" 
-                onChange={handleUpload} 
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleUpload}
                 accept=".pdf,.jpg,.jpeg,.png"
                 disabled={loading}
               />
