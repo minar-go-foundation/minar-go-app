@@ -389,28 +389,28 @@ export default function DashboardScreen({ user }: { user: User }) {
       <nav className="fixed bottom-0 left-0 w-full z-50">
         {isMobile ? (
           <div className="w-full flex justify-center pb-8">
-            <div className="w-[calc(100%-20px)] max-w-lg bg-white/95 dark:bg-white/5 rounded-3xl shadow-lg px-3 py-3 relative flex items-center">
-              <div className="grid grid-cols-9 w-full items-center gap-0">
-                <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center justify-center text-[8px] min-w-[40px] px-1 py-1 truncate", activeTab === "home" ? "text-[#002366]" : "text-slate-400")}>
+            <div className="w-[calc(100%-20px)] max-w-lg bg-white/95 dark:bg-white/5 rounded-3xl shadow-lg px-2 py-3 relative">
+              <div className="flex items-center justify-between gap-1">
+                <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "home" ? "text-[#002366]" : "text-slate-400")}>
                   <Home className="h-5 w-5" />
                   <span className="mt-1 uppercase text-center truncate">Home</span>
                 </button>
-                <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center justify-center text-[8px] min-w-[40px] px-1 py-1 uppercase truncate", activeTab === "members" ? "text-[#002366]" : "text-slate-400")}
+                <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 uppercase truncate", activeTab === "members" ? "text-[#002366]" : "text-slate-400")}
                   aria-label="Members"
                 >
                   <Users className="h-5 w-5" />
                   <span className="mt-1 uppercase text-center truncate">Members</span>
                 </button>
-                <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center justify-center text-[8px] min-w-[40px] px-1 py-1 truncate", activeTab === "history" ? "text-[#002366]" : "text-slate-400")}>
+                <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "history" ? "text-[#002366]" : "text-slate-400")}> 
                   <History className="h-5 w-5" />
                   <span className="mt-1 uppercase text-center truncate">History</span>
                 </button>
-                <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center text-[8px] min-w-[40px] px-1 py-1 truncate", activeTab === "gallery" ? "text-[#002366]" : "text-slate-400")}>
+                <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "gallery" ? "text-[#002366]" : "text-slate-400")}> 
                   <HardDrive className="h-5 w-5" />
                   <span className="mt-1 uppercase text-center truncate">Gallery</span>
                 </button>
 
-                <div className="flex items-center justify-center col-span-1 relative">
+                <div className="relative flex items-center justify-center px-1">
                   <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                     <DialogTrigger asChild>
                       <button className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-[#002366] border-2 border-white shadow-lg flex items-center justify-center text-white">
@@ -426,15 +426,15 @@ export default function DashboardScreen({ user }: { user: User }) {
                   </Dialog>
                 </div>
 
-                <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center justify-center text-[8px] min-w-[40px] px-1 py-1 truncate", activeTab === "chat" ? "text-[#002366]" : "text-slate-400")}>
+                <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "chat" ? "text-[#002366]" : "text-slate-400")}> 
                   <MessageSquare className="h-5 w-5" />
                   <span className="mt-1 uppercase text-center truncate">Chat</span>
                 </button>
-                <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center justify-center text-[8px] min-w-[40px] px-1 py-1 truncate", activeTab === "call" ? "text-[#002366]" : "text-slate-400")}>
+                <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "call" ? "text-[#002366]" : "text-slate-400")}> 
                   <Video className="h-5 w-5" />
                   <span className="mt-1 uppercase text-center truncate">Call</span>
                 </button>
-                <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center justify-center text-[8px] min-w-[40px] px-1 py-1 truncate", activeTab === "setting" ? "text-[#002366]" : "text-slate-400")}>
+                <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "setting" ? "text-[#002366]" : "text-slate-400")}> 
                   <Settings className="h-5 w-5" />
                   <span className="mt-1 uppercase text-center truncate">System</span>
                 </button>
