@@ -56,9 +56,8 @@ public class MainActivity extends BridgeActivity {
 	}
 
 	private void requestRequiredPermissions() {
+		// Only request storage permissions on startup (location will be requested on-demand by the web app)
 		String[] perms = new String[]{
-				Manifest.permission.ACCESS_FINE_LOCATION,
-				Manifest.permission.ACCESS_COARSE_LOCATION,
 				Manifest.permission.READ_EXTERNAL_STORAGE,
 				Manifest.permission.WRITE_EXTERNAL_STORAGE
 		};
