@@ -70,6 +70,7 @@ export default function DocStorage() {
       setDocs(updatedDocs);
       localStorage.setItem("mg_docs", JSON.stringify(updatedDocs));
       setLoading(false);
+      setPreviewDoc(newDoc);
       toast({ title: "Document Saved", description: "Stored securely in local memory." });
     };
     reader.readAsDataURL(file);
