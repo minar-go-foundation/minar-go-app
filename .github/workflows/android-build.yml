@@ -1,6 +1,10 @@
 name: Android CI - Build APK/AAB
 
 on:
+  push:
+    branches:
+      - main
+      - android-mobile-ui-fix
   workflow_dispatch:
 
 jobs:
@@ -57,12 +61,12 @@ jobs:
         run: |
           if [ -f android/gradlew ]; then chmod +x android/gradlew; fi
 
-      - name: Build Debug + Release APK/AAB
+      - name: Build Android APK/AAB
         working-directory: android
         run: |
           if [ -f gradlew ]; then
-            ./gradlew assembleDebug || true
-            ./gradlew assembleRelease || ./gradlew bundleRelease || true
+            ./gradlew assembleDebug
+            ./gradlew assembleRelease || true
           else
             echo "No gradlew found, skipping Android native build.";
           fi
@@ -74,3 +78,26 @@ jobs:
           path: |
             android/app/build/outputs/**/*.apk
             android/app/build/outputs/**/*.aab
+
+      - name: Create GitHub release
+        if: github.event_name == 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'android-mobile-ui-fix'
+        id: release
+        uses: actions/create-release@v1
+        with:
+          tag_name: apk-${{ github.run_number }}-${{ github.ref_name }}
+          release_name: APK build ${{ github.run_number }} (branch: ${{ github.ref_name }})
+          body: |
+            Automated Android build from branch `${{ github.ref_name }}`.
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload debug APK to release
+        if: steps.release.outputs.upload_url != ''
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: android/app/build/outputs/apk/debug/app-debug.apk
+          asset_name: app-debug.apk
+          asset_content_type: application/vnd.android.package-archive

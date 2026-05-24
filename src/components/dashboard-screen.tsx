@@ -390,24 +390,24 @@ export default function DashboardScreen({ user }: { user: User }) {
         {isMobile ? (
           <div className="w-full flex justify-center pb-8">
             <div className="w-[calc(100%-20px)] max-w-lg bg-white/95 dark:bg-white/5 rounded-3xl shadow-lg px-3 py-3 relative flex items-center">
-              <div className="grid grid-cols-8 w-full items-center gap-2">
-                <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center justify-center text-[9px] min-w-[32px] px-1 py-1", activeTab === "home" ? "text-[#002366]" : "text-slate-400")}>
+              <div className="grid grid-cols-9 w-full items-center gap-2">
+                <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center justify-center text-[9px] min-w-[32px] px-1 py-1 truncate", activeTab === "home" ? "text-[#002366]" : "text-slate-400")}>
                   <Home className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center">Home</span>
+                  <span className="mt-1 uppercase text-center truncate">Home</span>
                 </button>
-                <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center justify-center text-[9px] min-w-[42px] px-1 py-1 uppercase", activeTab === "members" ? "text-[#002366]" : "text-slate-400")}
+                <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center justify-center text-[9px] min-w-[42px] px-1 py-1 uppercase truncate", activeTab === "members" ? "text-[#002366]" : "text-slate-400")}
                   aria-label="Peace Resistance"
                 >
                   <Users className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center">Peace Resistance</span>
+                  <span className="mt-1 uppercase text-center truncate">Peace Resistance</span>
                 </button>
-                <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center justify-center text-[9px] min-w-[36px] px-1 py-1", activeTab === "history" ? "text-[#002366]" : "text-slate-400")}>
+                <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center justify-center text-[9px] min-w-[36px] px-1 py-1 truncate", activeTab === "history" ? "text-[#002366]" : "text-slate-400")}>
                   <History className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center">History</span>
+                  <span className="mt-1 uppercase text-center truncate">History</span>
                 </button>
-                <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center text-[9px] min-w-[36px] px-1 py-1", activeTab === "gallery" ? "text-[#002366]" : "text-slate-400")}>
+                <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center text-[9px] min-w-[36px] px-1 py-1 truncate", activeTab === "gallery" ? "text-[#002366]" : "text-slate-400")}>
                   <HardDrive className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center">Gallery</span>
+                  <span className="mt-1 uppercase text-center truncate">Gallery</span>
                 </button>
 
                 <div className="flex items-center justify-center relative">
