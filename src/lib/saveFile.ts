@@ -14,19 +14,16 @@ export async function blobToBase64(blob: Blob): Promise<string> {
 export async function saveBlobToDevice(blob: Blob, filename: string): Promise<boolean> {
   // Try Capacitor Filesystem when available (Android/iOS native build)
   try {
-    // runtime-dynamic import so web builds won't fail if plugin is absent
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const cap = (window as any).Capacitor;
-    if (cap) {
+    const isAndroid = cap?.getPlatform?.() === 'android' || cap?.isNativePlatform;
+    if (cap && isAndroid) {
       try {
         const base64 = await blobToBase64(blob);
         const { Filesystem, Directory } = await import('@capacitor/filesystem');
-        // write to Downloads on Android using External directory when possible
         const path = `Download/${filename}`;
         await Filesystem.writeFile({ path, data: base64, directory: Directory.External });
         return true;
       } catch (e) {
-        // fallthrough to web fallback
         console.warn('Capacitor filesystem write failed:', e);
       }
     }
