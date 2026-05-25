@@ -263,50 +263,50 @@ export default function DashboardScreen({ user }: { user: User }) {
 
       <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-8")}>
         {activeTab === "home" && (
-          <div className="relative min-h-screen flex flex-col items-center pt-10 pb-24 px-4 animate-in fade-in duration-1000">
-            <div className="w-full flex flex-col items-center gap-5">
-              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white/10 border border-white/20 backdrop-blur-2xl rounded-[2.5rem] px-5 py-4 flex items-center justify-center gap-3 shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
+          <div className="relative min-h-[calc(100vh-120px)] flex flex-col items-center pt-8 pb-20 px-4 animate-in fade-in duration-1000">
+            <div className="w-full flex flex-col items-center gap-4">
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                <div className="bg-white/10 border border-white/20 backdrop-blur-2xl rounded-[2rem] px-4 py-3 flex items-center justify-center gap-2 shadow-xl">
                   <MapPin className="h-4 w-4 text-[#C4A052]" />
                   <span className="text-[11px] font-black uppercase tracking-[0.35em] text-white">{weather.city.toUpperCase()} | {weather.temp.replace("آ", "°")}</span>
                 </div>
-                <div className="bg-white/10 border border-white/20 backdrop-blur-2xl rounded-[2.5rem] px-5 py-4 flex items-center justify-center gap-3 shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
+                <div className="bg-white/10 border border-white/20 backdrop-blur-2xl rounded-[2rem] px-4 py-3 flex items-center justify-center gap-2 shadow-xl">
                   <Clock className="h-4 w-4 text-[#C4A052]" />
                   <span className="text-[11px] font-black uppercase tracking-[0.35em] text-white">{format(currentTime, "hh:mm a")}</span>
                 </div>
               </div>
-              <div className="relative w-44 h-44 rounded-[2.75rem] border-4 border-white/20 bg-[#002366] flex items-center justify-center overflow-hidden shadow-[0_30px_80px_-30px_rgba(0,0,0,0.4)]">
+              <div className="relative w-36 h-36 rounded-[2.5rem] border-4 border-white/20 bg-[#002366] flex items-center justify-center overflow-hidden shadow-[0_20px_60px_-30px_rgba(0,0,0,0.4)]">
                 {logo ? <Image src={logo} alt="Logo" fill className="object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white text-3xl font-black">MG</div>}
               </div>
-              <div className="text-center space-y-2 mt-5">
-                <h1 className="text-4xl lg:text-5xl font-[900] text-[#C4A052] uppercase tracking-[0.18em]">MINAR GO EXPATRIATE</h1>
-                <p className="text-sm lg:text-base font-black uppercase tracking-[0.4em] text-white/80">DEVELOPMENT FOUNDATION</p>
+              <div className="text-center space-y-2 mt-4">
+                <h1 className="text-3xl lg:text-4xl font-[900] text-[#C4A052] uppercase tracking-[0.18em]">MINAR GO EXPATRIATE</h1>
+                <p className="text-xs lg:text-sm font-black uppercase tracking-[0.4em] text-white/80">DEVELOPMENT FOUNDATION</p>
               </div>
             </div>
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-6 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
-                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-4">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2rem] p-4 text-center shadow-xl">
+                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-3">
                   <Calendar className="h-4 w-4" /> HAJJ
                 </div>
-                <div className="text-3xl lg:text-4xl font-[900] text-white leading-tight">{hajjData.date}</div>
+                <div className="text-2xl lg:text-3xl font-[900] text-white leading-tight">{hajjData.date}</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-6 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
-                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-4">
+              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2rem] p-4 text-center shadow-xl">
+                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-3">
                   <Sparkles className="h-4 w-4" /> RAMADAN
                 </div>
-                <div className="text-3xl lg:text-4xl font-[900] text-white leading-tight">{ramadanData.date}</div>
+                <div className="text-2xl lg:text-3xl font-[900] text-white leading-tight">{ramadanData.date}</div>
               </div>
             </div>
-            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-6 mb-5 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
-              <p className="text-[11px] uppercase tracking-[0.45em] font-black text-white/60 mb-4">TODAY</p>
+            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-5 mb-4 text-center shadow-xl">
+              <p className="text-[10px] uppercase tracking-[0.45em] font-black text-white/60 mb-3">TODAY</p>
               <div className="text-2xl lg:text-3xl font-[900] text-white tracking-tight">{currentBn?.dayName}</div>
-              <p className="mt-4 text-[11px] uppercase tracking-[0.45em] font-black text-white/60 mb-2">DATE</p>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.45em] font-black text-white/60 mb-2">DATE</p>
               <div className="text-3xl lg:text-4xl font-[900] text-[#C4A052] tracking-tight">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</div>
             </div>
-            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-8 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
-              <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60 mb-4">FOUNDATION ASSETS</p>
-              <h3 className="text-5xl lg:text-6xl font-[900] text-[#C4A052] tracking-tight">৳{dashboardTotal.toLocaleString("bn-BD")}</h3>
-              <div className="mt-5 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
+            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-5 text-center shadow-xl">
+              <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60 mb-3">FOUNDATION ASSETS</p>
+              <h3 className="text-4xl lg:text-5xl font-[900] text-[#C4A052] tracking-tight">৳{dashboardTotal.toLocaleString("bn-BD")}</h3>
+              <div className="mt-4 flex items-center justify-center gap-2 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
                 <ShieldCheck className="h-4 w-4 text-green-400" /> SECURE LEDGER VERIFIED
               </div>
             </div>
@@ -365,24 +365,24 @@ export default function DashboardScreen({ user }: { user: User }) {
       <nav className="fixed bottom-0 left-0 w-full z-50">
         {isMobile ? (
           <div className="w-full flex justify-center pb-8 px-2">
-            <div className="w-full max-w-xl bg-white/90 dark:bg-slate-950/85 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.9)] border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl rounded-full px-3 py-3">
+            <div className="w-full max-w-xl bg-white/90 dark:bg-slate-950/85 shadow-[0_15px_45px_-30px_rgba(15,23,42,0.9)] border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl rounded-full px-2 py-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center justify-between gap-1 flex-1">
-                  <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "home" ? "text-[#002366]" : "text-slate-500")}>
+                  <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center justify-center min-w-[40px] max-w-[64px] px-0.5 py-1.5 rounded-2xl transition-colors duration-200 text-[9px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "home" ? "text-[#002366]" : "text-slate-500")}>
                     <Home className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">Home</span>
                   </button>
-                  <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "members" ? "text-[#002366]" : "text-slate-500")}
+                  <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center justify-center min-w-[40px] max-w-[64px] px-0.5 py-1.5 rounded-2xl transition-colors duration-200 text-[9px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "members" ? "text-[#002366]" : "text-slate-500")}
                     aria-label="Members"
                   >
                     <Users className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">Members</span>
                   </button>
-                  <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "history" ? "text-[#002366]" : "text-slate-500")}> 
+                  <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center justify-center min-w-[40px] max-w-[64px] px-0.5 py-1.5 rounded-2xl transition-colors duration-200 text-[9px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "history" ? "text-[#002366]" : "text-slate-500")}> 
                     <History className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">History</span>
                   </button>
-                  <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "gallery" ? "text-[#002366]" : "text-slate-500")}> 
+                  <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center min-w-[40px] max-w-[64px] px-0.5 py-1.5 rounded-2xl transition-colors duration-200 text-[9px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "gallery" ? "text-[#002366]" : "text-slate-500")}> 
                     <HardDrive className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">Gallery</span>
                   </button>
@@ -405,15 +405,15 @@ export default function DashboardScreen({ user }: { user: User }) {
                 </div>
 
                 <div className="flex items-center justify-between gap-1 flex-1">
-                  <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "chat" ? "text-[#002366]" : "text-slate-500")}> 
+                  <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center justify-center min-w-[40px] max-w-[64px] px-0.5 py-1.5 rounded-2xl transition-colors duration-200 text-[9px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "chat" ? "text-[#002366]" : "text-slate-500")}> 
                     <MessageSquare className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">Chat</span>
                   </button>
-                  <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "call" ? "text-[#002366]" : "text-slate-500")}> 
+                  <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center justify-center min-w-[40px] max-w-[64px] px-0.5 py-1.5 rounded-2xl transition-colors duration-200 text-[9px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "call" ? "text-[#002366]" : "text-slate-500")}> 
                     <Video className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">Call</span>
                   </button>
-                  <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "setting" ? "text-[#002366]" : "text-slate-500")}> 
+                  <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center justify-center min-w-[40px] max-w-[64px] px-0.5 py-1.5 rounded-2xl transition-colors duration-200 text-[9px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "setting" ? "text-[#002366]" : "text-slate-500")}> 
                     <Settings className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">System</span>
                   </button>
