@@ -363,10 +363,6 @@ export default function DashboardScreen({ user }: { user: User }) {
                     <History className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">History</span>
                   </button>
-                  <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "gallery" ? "text-[#002366]" : "text-slate-500")}> 
-                    <HardDrive className="h-5 w-5" />
-                    <span className="mt-1 uppercase tracking-[0.2em]">Gallery</span>
-                  </button>
                 </div>
 
                 <div className="relative flex items-center justify-center px-1">
@@ -409,8 +405,6 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "home" ? "text-[#002366]" : "text-slate-300")}><Home className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Home</span></button>
                 <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "members" ? "text-[#002366]" : "text-slate-300")}><Users className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Members</span></button>
                 <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "history" ? "text-[#002366]" : "text-slate-300")}><History className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">History</span></button>
-                <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "gallery" ? "text-[#002366]" : "text-slate-300")}><HardDrive className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Gallery</span></button>
-                
                 <div className="flex-shrink-0 relative">
                   <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                     <DialogTrigger asChild>
