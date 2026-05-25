@@ -264,6 +264,9 @@ export default function DashboardScreen({ user }: { user: User }) {
       <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-8")}>
         {activeTab === "home" && (
           <div className="relative min-h-[calc(100vh-120px)] flex flex-col items-center pt-8 pb-20 px-4 animate-in fade-in duration-1000">
+            <button onClick={() => setActiveTab("setting")} className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white/80 transition hover:bg-white/15">
+              <Settings className="h-4 w-4" />
+            </button>
             <div className="w-full flex flex-col items-center gap-4">
               <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
                 <div className="bg-white/10 border border-white/20 backdrop-blur-2xl rounded-[2rem] px-4 py-3 flex items-center justify-center gap-2 shadow-xl">
@@ -304,8 +307,13 @@ export default function DashboardScreen({ user }: { user: User }) {
               <div className="text-3xl lg:text-4xl font-[900] text-[#C4A052] tracking-tight">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</div>
             </div>
             <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-5 text-center shadow-xl">
-              <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60 mb-3">FOUNDATION ASSETS</p>
-              <h3 className="text-4xl lg:text-5xl font-[900] text-[#C4A052] tracking-tight">৳{dashboardTotal.toLocaleString("bn-BD")}</h3>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60">FOUNDATION ASSETS</p>
+                <button onClick={() => setActiveTab("gallery")} className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white/80 transition hover:bg-white/20">
+                  <HardDrive className="h-4 w-4" />
+                </button>
+              </div>
+              <h3 className="mt-3 text-4xl lg:text-5xl font-[900] text-[#C4A052] tracking-tight">৳{dashboardTotal.toLocaleString("bn-BD")}</h3>
               <div className="mt-4 flex items-center justify-center gap-2 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
                 <ShieldCheck className="h-4 w-4 text-green-400" /> SECURE LEDGER VERIFIED
               </div>
@@ -382,10 +390,6 @@ export default function DashboardScreen({ user }: { user: User }) {
                     <History className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">History</span>
                   </button>
-                  <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center min-w-[40px] max-w-[64px] px-0.5 py-1.5 rounded-2xl transition-colors duration-200 text-[9px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "gallery" ? "text-[#002366]" : "text-slate-500")}> 
-                    <HardDrive className="h-5 w-5" />
-                    <span className="mt-1 uppercase tracking-[0.2em]">Gallery</span>
-                  </button>
                 </div>
 
                 <div className="relative flex items-center justify-center px-1">
@@ -413,10 +417,6 @@ export default function DashboardScreen({ user }: { user: User }) {
                     <Video className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">Call</span>
                   </button>
-                  <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center justify-center min-w-[40px] max-w-[64px] px-0.5 py-1.5 rounded-2xl transition-colors duration-200 text-[9px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "setting" ? "text-[#002366]" : "text-slate-500")}> 
-                    <Settings className="h-5 w-5" />
-                    <span className="mt-1 uppercase tracking-[0.2em]">System</span>
-                  </button>
                 </div>
               </div>
             </div>
@@ -428,7 +428,6 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "home" ? "text-[#002366]" : "text-slate-300")}><Home className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Home</span></button>
                 <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "members" ? "text-[#002366]" : "text-slate-300")}><Users className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Members</span></button>
                 <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "history" ? "text-[#002366]" : "text-slate-300")}><History className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">History</span></button>
-                <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "gallery" ? "text-[#002366]" : "text-slate-300")}><HardDrive className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Gallery</span></button>
                 <div className="flex-shrink-0 relative">
                   <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                     <DialogTrigger asChild>
@@ -447,7 +446,6 @@ export default function DashboardScreen({ user }: { user: User }) {
 
                 <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "chat" ? "text-[#002366]" : "text-slate-300")}><MessageSquare className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Chat</span></button>
                 <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "call" ? "text-[#002366]" : "text-slate-300")}><Video className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Call</span></button>
-                <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "setting" ? "text-[#002366]" : "text-slate-300")}><Settings className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">System</span></button>
               </div>
             </div>
           </div>
