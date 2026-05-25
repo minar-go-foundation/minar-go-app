@@ -263,37 +263,32 @@ export default function DashboardScreen({ user }: { user: User }) {
 
       <main className={cn("flex-1 container max-w-lg mx-auto", activeTab === "home" ? "p-0" : "px-6 py-8")}>
         {activeTab === "home" && (
-          <div className="relative min-h-screen flex flex-col items-center pt-10 pb-24 px-6 animate-in fade-in duration-1000">
-            <div className="w-full flex items-center justify-between mb-10">
-              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20"><MapPin className="h-4 w-4 text-[#C4A052]" /><span className="text-[10px] font-black uppercase tracking-widest text-white">{weather.city} | {weather.temp}</span></div>
-              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20"><Clock className="h-4 w-4 text-[#C4A052]" /><span className="text-[10px] font-black uppercase tracking-widest text-white">{format(currentTime, "hh:mm a")}</span></div>
+          <div className="relative min-h-screen flex flex-col items-center pt-10 pb-24 px-4 animate-in fade-in duration-1000">
+            <div className="w-full grid grid-cols-1 gap-4 sm:grid-cols-2 mb-5">
+              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-6 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
+                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-4">
+                  <Calendar className="h-4 w-4" /> HAJJ
+                </div>
+                <div className="text-3xl lg:text-4xl font-[900] text-white leading-tight">{hajjData.date}</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-6 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
+                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-4">
+                  <Sparkles className="h-4 w-4" /> RAMADAN
+                </div>
+                <div className="text-3xl lg:text-4xl font-[900] text-white leading-tight">{ramadanData.date}</div>
+              </div>
             </div>
-            <div className="flex flex-col items-center text-center space-y-8 w-full">
-              <div className="relative w-40 h-40 rounded-[2.5rem] border-[6px] border-white/20 flex items-center justify-center overflow-hidden group shadow-2xl bg-[#002366]">
-                {logo ? <Image src={logo} alt="Logo" fill className="object-cover group-hover:scale-110 transition-transform duration-700" /> : <div className="w-full h-full bg-[#002366] flex items-center justify-center text-white text-4xl font-black">MG</div>}
-              </div>
-              <div className="space-y-2">
-                <h1 className="text-4xl font-[900] text-[#C4A052] uppercase tracking-tighter leading-none">MINAR GO EXPATRIATE</h1>
-                <p className="text-lg font-bold text-white tracking-[0.3em] uppercase opacity-80">Development Foundation</p>
-              </div>
-              <div className="grid grid-cols-2 gap-5 w-full pt-4">
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3"><div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest"><Calendar className="h-4 w-4" /> Hajj</div><div className="text-xl font-black text-white tracking-tight">{hajjData.date}</div></div>
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3"><div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest"><Sparkles className="h-4 w-4" /> Ramadan</div><div className="text-xl font-black text-white tracking-tight">{ramadanData.date}</div></div>
-              </div>
-              <div className="w-full grid gap-5 lg:grid-cols-[1fr_0.9fr]">
-                <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-7 text-center">
-                  <p className="text-[10px] uppercase tracking-[0.4em] font-black text-white/60">TODAY</p>
-                  <p className="mt-4 text-3xl lg:text-4xl font-[900] text-white tracking-tight">{currentBn?.dayName}</p>
-                  <div className="mt-6 border-t border-white/10 pt-5">
-                    <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60">DATE</p>
-                    <p className="mt-3 text-2xl lg:text-3xl font-[900] text-[#C4A052] tracking-tight">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</p>
-                  </div>
-                </div>
-                <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-8 text-center hover:shadow-2xl transition-all">
-                  <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60">FOUNDATION ASSETS</p>
-                  <h3 className="mt-5 text-5xl lg:text-6xl font-[900] text-[#C4A052] tracking-tight">৳{toBengaliNumber(Math.round(dashboardTotal).toString())}</h3>
-                  <div className="mt-6 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]"><ShieldCheck className="h-4 w-4 text-green-400" /> SECURE LEDGER VERIFIED</div>
-                </div>
+            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-6 mb-5 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
+              <p className="text-[11px] uppercase tracking-[0.45em] font-black text-white/60 mb-4">TODAY</p>
+              <div className="text-2xl lg:text-3xl font-[900] text-white tracking-tight">{currentBn?.dayName}</div>
+              <p className="mt-4 text-[11px] uppercase tracking-[0.45em] font-black text-white/60 mb-2">DATE</p>
+              <div className="text-3xl lg:text-4xl font-[900] text-[#C4A052] tracking-tight">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</div>
+            </div>
+            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-8 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
+              <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60 mb-4">FOUNDATION ASSETS</p>
+              <h3 className="text-5xl lg:text-6xl font-[900] text-[#C4A052] tracking-tight">৳{dashboardTotal.toLocaleString("bn-BD")}</h3>
+              <div className="mt-5 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
+                <ShieldCheck className="h-4 w-4 text-green-400" /> SECURE LEDGER VERIFIED
               </div>
             </div>
           </div>
