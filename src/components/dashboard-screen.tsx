@@ -287,34 +287,34 @@ export default function DashboardScreen({ user }: { user: User }) {
               </div>
             </div>
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2rem] p-4 text-center shadow-xl">
-                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-3">
+              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[1.5rem] p-3 h-28 text-center shadow-md flex flex-col justify-center">
+                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-2">
                   <Calendar className="h-4 w-4" /> HAJJ
                 </div>
-                <div className="text-2xl lg:text-3xl font-[900] text-white leading-tight">{hajjData.date}</div>
+                <div className="text-xl lg:text-2xl font-[900] text-white leading-tight">{hajjData.date}</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2rem] p-4 text-center shadow-xl">
-                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-3">
+              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[1.5rem] p-3 h-28 text-center shadow-md flex flex-col justify-center">
+                <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-2">
                   <Sparkles className="h-4 w-4" /> RAMADAN
                 </div>
-                <div className="text-2xl lg:text-3xl font-[900] text-white leading-tight">{ramadanData.date}</div>
+                <div className="text-xl lg:text-2xl font-[900] text-white leading-tight">{ramadanData.date}</div>
               </div>
             </div>
-            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-5 mb-4 text-center shadow-xl">
-              <p className="text-[10px] uppercase tracking-[0.45em] font-black text-white/60 mb-3">TODAY</p>
-              <div className="text-2xl lg:text-3xl font-[900] text-white tracking-tight">{currentBn?.dayName}</div>
-              <p className="mt-3 text-[10px] uppercase tracking-[0.45em] font-black text-white/60 mb-2">DATE</p>
-              <div className="text-3xl lg:text-4xl font-[900] text-[#C4A052] tracking-tight">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</div>
+            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[1.5rem] p-3 mb-3 text-center shadow-md h-28 flex flex-col justify-center">
+              <p className="text-[9px] uppercase tracking-[0.45em] font-black text-white/60 mb-1">TODAY</p>
+              <div className="text-xl lg:text-2xl font-[900] text-white tracking-tight">{currentBn?.dayName}</div>
+              <p className="mt-1 text-[9px] uppercase tracking-[0.45em] font-black text-white/60 mb-1">DATE</p>
+              <div className="text-2xl lg:text-3xl font-[900] text-[#C4A052] tracking-tight">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</div>
             </div>
-            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-5 text-center shadow-xl">
+            <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[1.5rem] p-3 text-center shadow-md h-28 flex flex-col justify-center">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60">FOUNDATION ASSETS</p>
                 <button onClick={() => setActiveTab("gallery")} className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white/80 transition hover:bg-white/20">
                   <HardDrive className="h-4 w-4" />
                 </button>
               </div>
-              <h3 className="mt-3 text-4xl lg:text-5xl font-[900] text-[#C4A052] tracking-tight">৳{dashboardTotal.toLocaleString("bn-BD")}</h3>
-              <div className="mt-4 flex items-center justify-center gap-2 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
+              <h3 className="mt-2 text-2xl lg:text-3xl font-[900] text-[#C4A052] tracking-tight">৳{dashboardTotal.toLocaleString("bn-BD")}</h3>
+              <div className="mt-2 flex items-center justify-center gap-2 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
                 <ShieldCheck className="h-4 w-4 text-green-400" /> SECURE LEDGER VERIFIED
               </div>
             </div>
