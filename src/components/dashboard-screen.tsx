@@ -49,9 +49,9 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-const BENGALI_DAYS = ["à¦°à¦¬à¦؟à¦¬à¦¾à¦°", "à¦¸à§‹à¦®à¦¬à¦¾à¦°", "à¦®à¦™à§چà¦—à¦²à¦¬à¦¾à¦°", "à¦¬à§پà¦§à¦¬à¦¾à¦°", "à¦¬à§ƒà¦¹à¦¸à§چà¦ھà¦¤à¦؟à¦¬à¦¾à¦°", "à¦¶à§پà¦•à§چà¦°à¦¬à¦¾à¦°", "à¦¶à¦¨à¦؟à¦¬à¦¾à¦°"];
-const BENGALI_MONTHS = ["à¦œà¦¾à¦¨à§پà§ںà¦¾à¦°à¦؟", "à¦«à§‡à¦¬à§چà¦°à§پà§ںà¦¾à¦°à¦؟", "à¦®à¦¾à¦°à§چà¦ڑ", "à¦ڈà¦ھà§چà¦°à¦؟à¦²", "à¦®à§‡", "à¦œà§پà¦¨", "à¦œà§پà¦²à¦¾à¦‡", "à¦†à¦—à¦¸à§چà¦ں", "à¦¸à§‡à¦ھà§چà¦ںà§‡à¦®à§چà¦¬à¦°", "à¦…à¦•à§چà¦ںà§‹à¦¬à¦°", "à¦¨à¦­à§‡à¦®à§چà¦¬à¦°", "à¦،à¦؟à¦¸à§‡à¦®à§چà¦¬à¦°"];
-const BENGALI_NUMBERS = ["à§¦", "à§§", "à§¨", "à§©", "à§ھ", "à§«", "à§¬", "à§­", "à§®", "à§¯"];
+const BENGALI_DAYS = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"];
+const BENGALI_MONTHS = ["জানুয়ারী", "ফেব্রুয়ারী", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+const BENGALI_NUMBERS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
 
 const toBengaliNumber = (num: number | string) => {
   return num.toString().split('').map(d => BENGALI_NUMBERS[parseInt(d)] || d).join('');
@@ -280,11 +280,20 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3"><div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest"><Calendar className="h-4 w-4" /> Hajj</div><div className="text-xl font-black text-white tracking-tight">{hajjData.date}</div></div>
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-7 text-center space-y-3"><div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-widest"><Sparkles className="h-4 w-4" /> Ramadan</div><div className="text-xl font-black text-white tracking-tight">{ramadanData.date}</div></div>
               </div>
-              <div className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] py-5 px-8 text-center"><h2 className="text-xl font-[900] text-white tracking-tight font-bengali uppercase">Today: <span className="text-[#C4A052]">{currentBn?.dayName}</span> | Date: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span></h2></div>
-              <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-8 text-center hover:shadow-2xl transition-all" onClick={() => setActiveTab("history")}>
-                <p className="text-[10px] uppercase font-black text-white/60 tracking-[0.4em] mb-3">Foundation Assets</p>
-                <h3 className="text-4xl font-[900] text-[#C4A052] tracking-tighter">à§³{dashboardTotal.toLocaleString()}</h3>
-                <div className="mt-4 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/50 uppercase tracking-[0.2em]"><ShieldCheck className="h-4 w-4 text-green-400" /> Secure Ledger Verified</div>
+              <div className="w-full grid gap-5 lg:grid-cols-[1fr_0.9fr]">
+                <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-7 text-center">
+                  <p className="text-[10px] uppercase tracking-[0.4em] font-black text-white/60">TODAY</p>
+                  <p className="mt-4 text-3xl lg:text-4xl font-[900] text-white tracking-tight">{currentBn?.dayName}</p>
+                  <div className="mt-6 border-t border-white/10 pt-5">
+                    <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60">DATE</p>
+                    <p className="mt-3 text-2xl lg:text-3xl font-[900] text-[#C4A052] tracking-tight">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</p>
+                  </div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-8 text-center hover:shadow-2xl transition-all">
+                  <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60">FOUNDATION ASSETS</p>
+                  <h3 className="mt-5 text-5xl lg:text-6xl font-[900] text-[#C4A052] tracking-tight">৳{toBengaliNumber(Math.round(dashboardTotal).toString())}</h3>
+                  <div className="mt-6 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]"><ShieldCheck className="h-4 w-4 text-green-400" /> SECURE LEDGER VERIFIED</div>
+                </div>
               </div>
             </div>
           </div>
