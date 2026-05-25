@@ -1,4 +1,4 @@
-
+﻿
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -49,9 +49,9 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-const BENGALI_DAYS = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"];
-const BENGALI_MONTHS = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
-const BENGALI_NUMBERS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+const BENGALI_DAYS = ["à¦°à¦¬à¦؟à¦¬à¦¾à¦°", "à¦¸à§‹à¦®à¦¬à¦¾à¦°", "à¦®à¦™à§چà¦—à¦²à¦¬à¦¾à¦°", "à¦¬à§پà¦§à¦¬à¦¾à¦°", "à¦¬à§ƒà¦¹à¦¸à§چà¦ھà¦¤à¦؟à¦¬à¦¾à¦°", "à¦¶à§پà¦•à§چà¦°à¦¬à¦¾à¦°", "à¦¶à¦¨à¦؟à¦¬à¦¾à¦°"];
+const BENGALI_MONTHS = ["à¦œà¦¾à¦¨à§پà§ںà¦¾à¦°à¦؟", "à¦«à§‡à¦¬à§چà¦°à§پà§ںà¦¾à¦°à¦؟", "à¦®à¦¾à¦°à§چà¦ڑ", "à¦ڈà¦ھà§چà¦°à¦؟à¦²", "à¦®à§‡", "à¦œà§پà¦¨", "à¦œà§پà¦²à¦¾à¦‡", "à¦†à¦—à¦¸à§چà¦ں", "à¦¸à§‡à¦ھà§چà¦ںà§‡à¦®à§چà¦¬à¦°", "à¦…à¦•à§چà¦ںà§‹à¦¬à¦°", "à¦¨à¦­à§‡à¦®à§چà¦¬à¦°", "à¦،à¦؟à¦¸à§‡à¦®à§چà¦¬à¦°"];
+const BENGALI_NUMBERS = ["à§¦", "à§§", "à§¨", "à§©", "à§ھ", "à§«", "à§¬", "à§­", "à§®", "à§¯"];
 
 const toBengaliNumber = (num: number | string) => {
   return num.toString().split('').map(d => BENGALI_NUMBERS[parseInt(d)] || d).join('');
@@ -85,7 +85,7 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [logo, setLogo] = useState<string | null>(null);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
-  const [weather, setWeather] = useState({ city: "Detecting...", temp: "--°C", desc: "Loading" });
+  const [weather, setWeather] = useState({ city: "Detecting...", temp: "--آ°C", desc: "Loading" });
   const [backupLoading, setBackupLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>("All");
@@ -93,7 +93,6 @@ export default function DashboardScreen({ user }: { user: User }) {
   const [ramadanData, setRamadanData] = useState({ days: 0, date: "" });
   const [currentTheme, setCurrentTheme] = useState<Theme>("navy"); 
   const [isHydrated, setIsHydrated] = useState(false);
-  const [locationDenied, setLocationDenied] = useState(false);
   const [locPermissionLoading, setLocPermissionLoading] = useState(true);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -121,7 +120,6 @@ export default function DashboardScreen({ user }: { user: User }) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          setLocationDenied(false);
           setLocPermissionLoading(false);
           try {
             const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
@@ -132,81 +130,61 @@ export default function DashboardScreen({ user }: { user: User }) {
             const countryCode = geoData.address.country_code?.toUpperCase() || "INT";
             setWeather({
               city: `${city}, ${countryCode}`,
-              temp: `${Math.round(weatherData.current_weather.temperature)}°C`,
+              temp: `${Math.round(weatherData.current_weather.temperature)}آ°C`,
               desc: getWeatherDesc(weatherData.current_weather.weathercode)
             });
           } catch (error) {
-            setWeather({ city: "Global Access", temp: "--°C", desc: "Sunny" });
+            setWeather({ city: "Global Access", temp: "--آ°C", desc: "Sunny" });
           }
         },
         () => {
-          setLocationDenied(true);
           setLocPermissionLoading(false);
+          setWeather({ city: "Global Access", temp: "--آ°C", desc: "Sunny" });
         },
         { timeout: 10000 }
       );
     } else {
-      setLocationDenied(true);
       setLocPermissionLoading(false);
+      setWeather({ city: "Global Access", temp: "--آ°C", desc: "Sunny" });
     }
   };
 
   useEffect(() => {
-    if (!db) return;
-    audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-    const unsubscribe = onSnapshot(collection(db, "transactions"), (snapshot) => {
-      if (isFirstLoad.current) {
-        isFirstLoad.current = false;
-        return;
-      }
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const data = change.doc.data();
-          if (audioRef.current) audioRef.current.play().catch(() => {});
-          toast({
-            title: "New Deposit Alert! 🔔",
-            description: `${data.n} deposited ৳${data.a}.`,
-            className: "bg-[#002366] text-white border-none rounded-2xl shadow-2xl",
-          });
-        }
-      });
-    });
-    return () => unsubscribe();
-  }, [db, toast]);
+    const init = () => {
+      const now = new Date();
+      setCurrentTime(now);
+      setFilterMonth(MONTHS[now.getMonth()]);
 
-  useEffect(() => {
-    setIsHydrated(true);
-    const now = new Date();
-    setCurrentTime(now);
-    setFilterMonth(MONTHS[now.getMonth()]);
-    
-    const nextHajj = GET_NEXT_DATE(new Date("2026-05-25"));
-    const nextRamadan = GET_NEXT_DATE(new Date("2026-02-18"));
-    
-    const formatDateBn = (d: Date) => {
-      const day = toBengaliNumber(d.getDate());
-      const month = BENGALI_MONTHS[d.getMonth()];
-      const year = toBengaliNumber(d.getFullYear());
-      return `${day} ${month}, ${year}`;
+      const nextHajj = GET_NEXT_DATE(new Date("2026-05-25"));
+      const nextRamadan = GET_NEXT_DATE(new Date("2026-02-18"));
+
+      const formatDateBn = (d: Date) => {
+        const day = toBengaliNumber(d.getDate());
+        const month = BENGALI_MONTHS[d.getMonth()];
+        const year = toBengaliNumber(d.getFullYear());
+        return `${day} ${month}, ${year}`;
+      };
+
+      setHajjData({ 
+        days: differenceInDays(nextHajj, now), 
+        date: formatDateBn(nextHajj) 
+      });
+      setRamadanData({ 
+        days: differenceInDays(nextRamadan, now), 
+        date: formatDateBn(nextRamadan) 
+      });
+
+      const storedLogo = localStorage.getItem("mg_logo");
+      if (storedLogo) setLogo(storedLogo);
+      const storedTheme = localStorage.getItem("mg_theme") as Theme;
+      if (storedTheme) setCurrentTheme(storedTheme);
+
+      setIsHydrated(true);
+      requestLocation();
     };
 
-    setHajjData({ 
-      days: differenceInDays(nextHajj, now), 
-      date: formatDateBn(nextHajj) 
-    });
-    setRamadanData({ 
-      days: differenceInDays(nextRamadan, now), 
-      date: formatDateBn(nextRamadan) 
-    });
-
+    init();
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    const storedLogo = localStorage.getItem("mg_logo");
-    if (storedLogo) setLogo(storedLogo);
-    const storedTheme = localStorage.getItem("mg_theme") as Theme;
-    if (storedTheme) setCurrentTheme(storedTheme);
-
-    requestLocation();
-    
     return () => clearInterval(timer);
   }, []);
 
@@ -260,31 +238,6 @@ export default function DashboardScreen({ user }: { user: User }) {
 
   if (!isHydrated || !currentTime) return null;
 
-  if (locationDenied) {
-    return (
-      <div className="min-h-screen bg-[#002366] flex flex-col items-center justify-center p-8 text-center space-y-8 animate-in fade-in duration-500">
-        <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center border-4 border-red-500/30">
-          <AlertTriangle className="h-12 w-12 text-red-500" />
-        </div>
-        <div className="space-y-4">
-          <h1 className="text-3xl font-black text-white uppercase tracking-tight">Location Required</h1>
-          <p className="text-sm font-medium text-slate-300 max-w-xs leading-relaxed">
-            This application requires location access to verify secure international access and provide real-time regional weather data.
-          </p>
-        </div>
-        <Button 
-          onClick={requestLocation} 
-          className="bg-white text-[#002366] hover:bg-slate-100 h-14 w-full max-w-xs rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl"
-          disabled={locPermissionLoading}
-        >
-          {locPermissionLoading ? "Verifying..." : "Allow Access & Enter"}
-        </Button>
-        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-          Go to Phone Settings &gt; Browser &gt; Location to enable.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className={cn("min-h-screen flex flex-col font-body pb-32 transition-all duration-700", themeClasses)}>
@@ -330,7 +283,7 @@ export default function DashboardScreen({ user }: { user: User }) {
               <div className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] py-5 px-8 text-center"><h2 className="text-xl font-[900] text-white tracking-tight font-bengali uppercase">Today: <span className="text-[#C4A052]">{currentBn?.dayName}</span> | Date: <span className="text-[#C4A052]">{currentBn?.day} {currentBn?.month}, {currentBn?.year}</span></h2></div>
               <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-8 text-center hover:shadow-2xl transition-all" onClick={() => setActiveTab("history")}>
                 <p className="text-[10px] uppercase font-black text-white/60 tracking-[0.4em] mb-3">Foundation Assets</p>
-                <h3 className="text-4xl font-[900] text-[#C4A052] tracking-tighter">৳{dashboardTotal.toLocaleString()}</h3>
+                <h3 className="text-4xl font-[900] text-[#C4A052] tracking-tighter">à§³{dashboardTotal.toLocaleString()}</h3>
                 <div className="mt-4 flex items-center justify-center gap-2.5 text-[9px] font-black text-white/50 uppercase tracking-[0.2em]"><ShieldCheck className="h-4 w-4 text-green-400" /> Secure Ledger Verified</div>
               </div>
             </div>
@@ -388,33 +341,35 @@ export default function DashboardScreen({ user }: { user: User }) {
 
       <nav className="fixed bottom-0 left-0 w-full z-50">
         {isMobile ? (
-          <div className="w-full flex justify-center pb-8">
-            <div className="w-[calc(100%-20px)] max-w-lg bg-white/95 dark:bg-white/5 rounded-3xl shadow-lg px-2 py-3 relative">
-              <div className="flex items-center justify-between gap-1">
-                <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "home" ? "text-[#002366]" : "text-slate-400")}>
-                  <Home className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center truncate">Home</span>
-                </button>
-                <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 uppercase truncate", activeTab === "members" ? "text-[#002366]" : "text-slate-400")}
-                  aria-label="Members"
-                >
-                  <Users className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center truncate">Members</span>
-                </button>
-                <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "history" ? "text-[#002366]" : "text-slate-400")}> 
-                  <History className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center truncate">History</span>
-                </button>
-                <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "gallery" ? "text-[#002366]" : "text-slate-400")}> 
-                  <HardDrive className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center truncate">Gallery</span>
-                </button>
+          <div className="w-full flex justify-center pb-8 px-2">
+            <div className="w-full max-w-xl bg-white/90 dark:bg-slate-950/85 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.9)] border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl rounded-full px-3 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-1 flex-1">
+                  <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "home" ? "text-[#002366]" : "text-slate-500")}>
+                    <Home className="h-5 w-5" />
+                    <span className="mt-1 uppercase tracking-[0.2em]">Home</span>
+                  </button>
+                  <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "members" ? "text-[#002366]" : "text-slate-500")}
+                    aria-label="Members"
+                  >
+                    <Users className="h-5 w-5" />
+                    <span className="mt-1 uppercase tracking-[0.2em]">Members</span>
+                  </button>
+                  <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "history" ? "text-[#002366]" : "text-slate-500")}> 
+                    <History className="h-5 w-5" />
+                    <span className="mt-1 uppercase tracking-[0.2em]">History</span>
+                  </button>
+                  <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "gallery" ? "text-[#002366]" : "text-slate-500")}> 
+                    <HardDrive className="h-5 w-5" />
+                    <span className="mt-1 uppercase tracking-[0.2em]">Gallery</span>
+                  </button>
+                </div>
 
                 <div className="relative flex items-center justify-center px-1">
                   <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                     <DialogTrigger asChild>
-                      <button className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-[#002366] border-2 border-white shadow-lg flex items-center justify-center text-white">
-                        <Plus className="h-7 w-7 stroke-[3px]" />
+                      <button className="h-12 w-12 rounded-full bg-[#002366] text-white shadow-xl ring-2 ring-white/90 transition-transform duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#002366]/20">
+                        <Plus className="h-6 w-6 stroke-[3px]" />
                       </button>
                     </DialogTrigger>
                     <DialogContent className="max-w-[95vw] rounded-[2.5rem] p-8 border-none glass-card">
@@ -426,18 +381,20 @@ export default function DashboardScreen({ user }: { user: User }) {
                   </Dialog>
                 </div>
 
-                <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "chat" ? "text-[#002366]" : "text-slate-400")}> 
-                  <MessageSquare className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center truncate">Chat</span>
-                </button>
-                <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "call" ? "text-[#002366]" : "text-slate-400")}> 
-                  <Video className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center truncate">Call</span>
-                </button>
-                <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center justify-center flex-1 min-w-[50px] text-[9px] px-1 py-1 truncate", activeTab === "setting" ? "text-[#002366]" : "text-slate-400")}> 
-                  <Settings className="h-5 w-5" />
-                  <span className="mt-1 uppercase text-center truncate">System</span>
-                </button>
+                <div className="flex items-center justify-between gap-1 flex-1">
+                  <button onClick={() => setActiveTab("chat")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "chat" ? "text-[#002366]" : "text-slate-500")}> 
+                    <MessageSquare className="h-5 w-5" />
+                    <span className="mt-1 uppercase tracking-[0.2em]">Chat</span>
+                  </button>
+                  <button onClick={() => setActiveTab("call")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "call" ? "text-[#002366]" : "text-slate-500")}> 
+                    <Video className="h-5 w-5" />
+                    <span className="mt-1 uppercase tracking-[0.2em]">Call</span>
+                  </button>
+                  <button onClick={() => setActiveTab("setting")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "setting" ? "text-[#002366]" : "text-slate-500")}> 
+                    <Settings className="h-5 w-5" />
+                    <span className="mt-1 uppercase tracking-[0.2em]">System</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -477,3 +434,4 @@ export default function DashboardScreen({ user }: { user: User }) {
     </div>
   );
 }
+
