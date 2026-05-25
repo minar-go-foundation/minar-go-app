@@ -283,14 +283,14 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <p className="text-sm lg:text-base font-black uppercase tracking-[0.4em] text-white/80">DEVELOPMENT FOUNDATION</p>
               </div>
             </div>
-            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-7 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-6 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
                 <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-4">
                   <Calendar className="h-4 w-4" /> HAJJ
                 </div>
                 <div className="text-3xl lg:text-4xl font-[900] text-white leading-tight">{hajjData.date}</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-7 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
+              <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-6 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
                 <div className="flex items-center justify-center gap-2 text-[#C4A052] font-black text-[10px] uppercase tracking-[0.35em] mb-4">
                   <Sparkles className="h-4 w-4" /> RAMADAN
                 </div>
@@ -298,15 +298,17 @@ export default function DashboardScreen({ user }: { user: User }) {
               </div>
             </div>
             <div className="w-full mb-5">
-              <button onClick={() => setActiveTab("gallery")} className="w-full rounded-[2.5rem] bg-white/10 border border-white/20 p-5 text-left backdrop-blur-2xl shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)] transition hover:bg-white/15">
-                <div className="flex items-center justify-between gap-4">
+              <div className="bg-white/10 border border-white/20 backdrop-blur-2xl rounded-[2.5rem] p-5 shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)] transition hover:bg-white/15">
+                <button onClick={() => setActiveTab("gallery")} className="w-full flex items-center justify-between gap-4 text-left">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60">Gallery Documents</p>
+                    <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60">GALLERY DOCUMENTS</p>
                     <p className="mt-2 text-lg font-[900] text-white">Open shared documents</p>
                   </div>
-                  <HardDrive className="h-6 w-6 text-[#C4A052]" />
-                </div>
-              </button>
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#002366] text-white shadow-lg">
+                    <HardDrive className="h-6 w-6" />
+                  </span>
+                </button>
+              </div>
             </div>
             <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-6 mb-5 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
               <p className="text-[11px] uppercase tracking-[0.45em] font-black text-white/60 mb-4">TODAY</p>
