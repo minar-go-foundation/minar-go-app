@@ -297,19 +297,6 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <div className="text-3xl lg:text-4xl font-[900] text-white leading-tight">{ramadanData.date}</div>
               </div>
             </div>
-            <div className="w-full mb-5">
-              <div className="bg-white/10 border border-white/20 backdrop-blur-2xl rounded-[2.5rem] p-5 shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)] transition hover:bg-white/15">
-                <button onClick={() => setActiveTab("gallery")} className="w-full flex items-center justify-between gap-4 text-left">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.35em] font-black text-white/60">GALLERY DOCUMENTS</p>
-                    <p className="mt-2 text-lg font-[900] text-white">Open shared documents</p>
-                  </div>
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#002366] text-white shadow-lg">
-                    <HardDrive className="h-6 w-6" />
-                  </span>
-                </button>
-              </div>
-            </div>
             <div className="w-full bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[3rem] p-6 mb-5 text-center shadow-[0_20px_60px_-40px_rgba(255,255,255,0.8)]">
               <p className="text-[11px] uppercase tracking-[0.45em] font-black text-white/60 mb-4">TODAY</p>
               <div className="text-2xl lg:text-3xl font-[900] text-white tracking-tight">{currentBn?.dayName}</div>
@@ -395,6 +382,10 @@ export default function DashboardScreen({ user }: { user: User }) {
                     <History className="h-5 w-5" />
                     <span className="mt-1 uppercase tracking-[0.2em]">History</span>
                   </button>
+                  <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center justify-center min-w-[44px] max-w-[72px] px-1 py-2 rounded-2xl transition-colors duration-200 text-[10px] leading-4 text-slate-500 hover:text-[#002366]", activeTab === "gallery" ? "text-[#002366]" : "text-slate-500")}> 
+                    <HardDrive className="h-5 w-5" />
+                    <span className="mt-1 uppercase tracking-[0.2em]">Gallery</span>
+                  </button>
                 </div>
 
                 <div className="relative flex items-center justify-center px-1">
@@ -437,6 +428,7 @@ export default function DashboardScreen({ user }: { user: User }) {
                 <button onClick={() => setActiveTab("home")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "home" ? "text-[#002366]" : "text-slate-300")}><Home className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Home</span></button>
                 <button onClick={() => setActiveTab("members")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "members" ? "text-[#002366]" : "text-slate-300")}><Users className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Members</span></button>
                 <button onClick={() => setActiveTab("history")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "history" ? "text-[#002366]" : "text-slate-300")}><History className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">History</span></button>
+                <button onClick={() => setActiveTab("gallery")} className={cn("flex flex-col items-center flex-shrink-0 min-w-[56px] transition-colors", activeTab === "gallery" ? "text-[#002366]" : "text-slate-300")}><HardDrive className="h-6 w-6" /><span className="text-[9px] font-black uppercase mt-1">Gallery</span></button>
                 <div className="flex-shrink-0 relative">
                   <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                     <DialogTrigger asChild>
